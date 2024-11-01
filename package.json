@@ -4,7 +4,10 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "build-packages": "tsc -b packages/*",
+        "build-packages": "cd packages/models && pnpm build && cd ../../packages/utils && pnpm build",
+        "build-server": "cd apps/server && pnpm build",
+        "build-all": "pnpm build-packages && pnpm build-server",
+        "start-server": "cd apps/server && pnpm start",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "keywords": [],

@@ -10,6 +10,5 @@
     "keywords": [],
     "author": "",
     "license": "ISC",
-    "private": true,
-    "type": "module"
+    "private": true
 }

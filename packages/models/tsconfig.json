@@ -4,11 +4,6 @@
         "outDir": "dist",
         "rootDir": "./src",
         "baseUrl": "./src",
-        "paths": {
-            ".": [
-                "./src"
-            ]
-        }
     },
     "include": [
         "./src"

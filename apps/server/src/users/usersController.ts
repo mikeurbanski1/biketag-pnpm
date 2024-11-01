@@ -2,7 +2,7 @@
 import { Body, Controller, Get, Path, Post, Route, SuccessResponse } from 'tsoa';
 import { User } from '@biketag/models';
 import { UsersService, UserCreationParams } from './usersService';
-// import { getUserName } from '@biketag/utils';
+import { getUserName } from '@biketag/utils';
 
 @Route('users')
 export class UsersController extends Controller {
@@ -17,8 +17,8 @@ export class UsersController extends Controller {
     }
 
     @Get('/')
-    public async getAllUsers(): Promise<User[]> {
-        return new UsersService().getAll(); //.map(getUserName);
+    public async getAllUsers(): Promise<string[]> {
+        return new UsersService().getAll().map(getUserName);
     }
 
     @SuccessResponse('201', 'Created') // Custom success response
