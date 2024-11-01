@@ -4,6 +4,7 @@
     "description": "",
     "scripts": {
         "build": "mkdir -p build && tsoa routes && tsc",
+        "dev": "concurrently \"nodemon\" \"nodemon -x tsoa routes\"",
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "node build/src/server.js"
     },
