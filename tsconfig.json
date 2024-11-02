@@ -3,14 +3,13 @@
         "composite": true,
         "declaration": true,
         "declarationMap": true,
-        "rootDir": "./src",
         "baseUrl": "./src",
         "outDir": "./dist",
         "strict": true,
         "target": "ES2022",
         "esModuleInterop": true,
         "skipLibCheck": true,
-        "moduleResolution": "Node"
+        "moduleResolution": "Node",
     },
     "include": [
         "packages/**/*"

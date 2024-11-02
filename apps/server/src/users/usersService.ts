@@ -1,27 +1,26 @@
-// src/users/usersService.ts
-import { User } from '@biketag/models';
-
-// A post request should not contain an id.
-export type UserCreationParams = { name: string };
-
-const users: User[] = [];
+import { CreateUserParams, UserEntity } from '@biketag/models';
+import { UsersDalService } from '../dal/services/usersDalService';
 
 export class UsersService {
-    public get(id: number): User | undefined {
-        return users.find((user) => user.id === id);
+    private usersDalService = new UsersDalService();
+
+    public getUsers(): UserEntity[] {
+        return this.usersDalService.getUsers();
     }
 
-    public getAll(): User[] {
-        return users;
+    public getUser({ id }: { id: string }): UserEntity | undefined {
+        return this.usersDalService.getUser({ id });
     }
 
-    public create(userCreationParams: UserCreationParams): User {
-        const user = {
-            id: Math.floor(Math.random() * 10000), // Random
-            ...userCreationParams
-        };
-        users.push(user);
-        return user;
+    public createUser(params: CreateUserParams): UserEntity {
+        return this.usersDalService.createUser(params);
+    }
+
+    public updateUser({ id, params }: { id: string; params: CreateUserParams }): UserEntity {
+        return this.usersDalService.updateUser({ id, params });
+    }
+
+    public deleteUser({ id }: { id: string }): void {
+        this.usersDalService.deleteUser({ id });
     }
 }
-
