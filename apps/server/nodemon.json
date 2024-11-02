@@ -1,7 +1,9 @@
 {
     "exec": "ts-node src/server.ts",
     "watch": [
-        "src"
+        "src",
+        "../../packages/utils/src",
+        "../../packages/models/src"
     ],
     "ext": "ts"
 }
