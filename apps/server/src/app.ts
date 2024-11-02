@@ -1,6 +1,7 @@
 // src/app.ts
 import express, { json, urlencoded } from 'express';
 import { RegisterRoutes } from '../build/routes';
+import cors from 'cors';
 
 export const app = express();
 
@@ -11,6 +12,6 @@ app.use(
     })
 );
 app.use(json());
+app.use(cors());
 
 RegisterRoutes(app);
-
