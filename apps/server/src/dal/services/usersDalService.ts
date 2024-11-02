@@ -1,71 +1,55 @@
 import { Logger } from '@biketag/utils';
 import { UserExistsError, UserNotFoundError } from '../../common/errors';
-import { CreateUserParams, UserEntity } from '@biketag/models';
-
-let nextId = 1;
-const userIdMap = new Map<string, UserEntity>();
-const userNameMap = new Map<string, UserEntity>();
+import { UserEntity } from '../models';
+import { ObjectId, WithoutId } from 'mongodb';
+import { BaseDalService } from '..';
 
 const logger = new Logger({ prefix: 'UsersDalService' });
 
-export class UsersDalService {
-    public getUsers(): UserEntity[] {
-        return Array.from(userIdMap.values());
+export class UsersDalService extends BaseDalService<UserEntity, UserNotFoundError> {
+    constructor() {
+        super({ collectionName: 'users', notFoundErrorClass: UserNotFoundError });
     }
 
-    public createUser({ name }: CreateUserParams): UserEntity {
-        this.validateCreateUserParams({ name });
+    public async createUser(params: WithoutId<UserEntity>): Promise<UserEntity> {
+        const collection = await this.getCollection();
+        await this.validateCreateUserParams({ params });
 
         const user: UserEntity = {
-            id: (nextId++).toString(),
-            name
+            _id: new ObjectId(),
+            ...params
         };
 
-        userIdMap.set(user.id, user);
-        userNameMap.set(name, user);
+        await collection.insertOne(user);
 
         return user;
     }
 
-    public getUser({ id }: { id: string }): UserEntity | undefined {
-        logger.info(`[getUser] `, { id });
-        return userIdMap.get(id);
-    }
-
-    public updateUser({ id, params }: { id: string; params: CreateUserParams }): UserEntity {
+    public async updateUser({ id, params }: { id: string; params: WithoutId<UserEntity> }): Promise<UserEntity> {
         logger.info(`[updateUser] `, { params, id });
-        const { name } = params;
-        this.validateCreateUserParams({ name });
-        this.validateUserIdExists({ id });
 
-        const user = userIdMap.get(id)!;
-        const { name: oldName } = user;
+        await this.validateId({ id });
 
-        userNameMap.delete(oldName);
-        user.name = name;
-        userNameMap.set(name, user);
-        return user;
+        const objectId = new ObjectId(id);
+        const collection = await this.getCollection();
+        await this.validateCreateUserParams({ params, ignoreId: objectId });
+
+        await collection.updateOne({ _id: objectId }, { params });
+        return { _id: new ObjectId(id), ...params };
     }
 
-    public deleteUser({ id }: { id: string }): void {
+    public async deleteUser({ id }: { id: string }) {
         logger.info(`[deleteUser] `, { id });
-        this.validateUserIdExists({ id });
+        const collection = await this.getCollection();
+        await this.validateId({ id });
 
-        const user = userIdMap.get(id)!;
-
-        userNameMap.delete(user.name);
-        userIdMap.delete(id);
+        await collection.deleteOne({ _id: new ObjectId(id) });
     }
 
-    private validateCreateUserParams({ name }: CreateUserParams): void {
-        if (userNameMap.has(name)) {
-            throw new UserExistsError(`User ${name} already exists`);
-        }
-    }
-
-    private validateUserIdExists({ id }: { id: string }): void {
-        if (!userIdMap.has(id)) {
-            throw new UserNotFoundError(`User with ID ${id} does not exist`);
+    private async validateCreateUserParams({ params, ignoreId }: { params: WithoutId<UserEntity>; ignoreId?: ObjectId }) {
+        const filter = ignoreId ? { ...params, _id: { $ne: ignoreId } } : params;
+        if (await this.findOne(filter)) {
+            throw new UserExistsError(`User with name ${params.name} already exists`);
         }
     }
 }

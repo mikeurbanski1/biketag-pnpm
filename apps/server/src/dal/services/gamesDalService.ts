@@ -1,108 +1,85 @@
-import { CreateGameParams, GameEntity, GameRoles, PlayerGameEntity } from '@biketag/models';
+import { Logger } from '@biketag/utils';
 import { GameExistsError, GameNotFoundError } from '../../common/errors';
+import { GameEntity } from '../models';
+import { ObjectId, WithoutId } from 'mongodb';
+import { BaseDalService } from '..';
 
-let nextId = 1;
-const gameIdMap = new Map<string, GameEntity>();
-const gameNameMap = new Map<string, GameEntity>();
-const playerGameMap = new Map<string, PlayerGameEntity[]>();
+const logger = new Logger({ prefix: 'GamesDalService' });
 
-export class GamesDalService {
-    public getGames(): GameEntity[] {
-        return Array.from(gameIdMap.values());
+export class GamesDalService extends BaseDalService<GameEntity, GameNotFoundError> {
+    constructor() {
+        super({ collectionName: 'games', notFoundErrorClass: GameNotFoundError });
     }
 
-    public createGame({ name, creator, adminIds = [], playerIds }: CreateGameParams): GameEntity {
-        this.validateCreateGameParams({ name });
-
-        const uniqueAdminIds = new Set(adminIds.concat([creator]));
-        const uniquePlayerIds = playerIds ? new Set(playerIds.filter((id) => !uniqueAdminIds.has(id))) : new Set<string>();
+    public async createGame({ name, creator, players }: WithoutId<GameEntity>): Promise<GameEntity> {
+        this.validateCreateGameParams({ params: { name, creator, players } });
+        const collection = await this.getCollection();
 
         const game: GameEntity = {
-            id: (nextId++).toString(),
+            _id: new ObjectId(),
             name,
             creator,
-            adminIds: uniqueAdminIds,
-            playerIds: uniquePlayerIds
+            players
         };
 
-        gameIdMap.set(game.id, game);
-        gameNameMap.set(name, game);
-
-        for (const adminId of uniqueAdminIds) {
-            const currentGames = this.getGamesForPlayerOrInit({ userId: adminId });
-            currentGames.push({ ...game, role: GameRoles.ADMIN });
-        }
-
-        for (const player of uniquePlayerIds) {
-            const currentGames = this.getGamesForPlayerOrInit({ userId: player });
-            currentGames.push({ ...game, role: GameRoles.PLAYER });
-        }
+        await collection.insertOne(game);
 
         return game;
     }
 
-    private getGamesForPlayerOrInit({ userId }: { userId: string }): PlayerGameEntity[] {
-        const games = playerGameMap.get(userId);
-        if (games) {
-            return games;
-        }
-        const newGames: PlayerGameEntity[] = [];
-        playerGameMap.set(userId, newGames);
-        return newGames;
+    public async updateGame({ id, params }: { id: string; params: WithoutId<GameEntity> }): Promise<GameEntity> {
+        logger.info(`[updateGame] `, { params, id });
+
+        await this.validateId({ id });
+
+        const objectId = new ObjectId(id);
+        const collection = await this.getCollection();
+        await this.validateCreateGameParams({ params, ignoreId: objectId });
+
+        await collection.updateOne({ _id: objectId }, { params });
+        return { _id: new ObjectId(id), ...params };
     }
 
-    public setPlayerInGame({ gameId, userId, role }: { gameId: string; userId: string; role: GameRoles }): PlayerGameEntity {
-        const game = this.getGameRequired({ id: gameId });
-        if (role === GameRoles.ADMIN) {
-            game.playerIds.delete(userId);
-            game.adminIds.add(userId);
-        } else {
-            game.adminIds.delete(userId);
-            game.playerIds.add(userId);
-        }
-        const playerGames = this.getGamesForPlayerOrInit({ userId });
-        let playerGame = playerGames.find((g) => g.id === game.id);
-        if (!playerGame) {
-            playerGame = { ...game, role };
-            playerGames.push(playerGame);
-        }
-        return playerGame;
+    public async getGamesForPlayer({ userId }: { userId: string }): Promise<GameEntity[]> {
+        logger.info('[getGamesForPlayer]', { userId });
+        return await this.findAll({ 'players.userId': new ObjectId(userId) });
     }
 
-    public removePlayerFromGame({ gameId, userId }: { gameId: string; userId: string }) {
-        const game = this.getGameRequired({ id: gameId });
-        game.playerIds.delete(userId);
-        game.adminIds.delete(userId);
-        if (playerGameMap.has(userId)) {
-            playerGameMap.set(
-                userId,
-                playerGameMap.get(userId)!.filter((g) => g.id !== game.id)
-            );
-        }
-    }
+    // public setPlayerInGame({ gameId, userId, role }: { gameId: string; userId: string; role: GameRoles }): PlayerGameEntity {
+    //     const game = this.getByIdRequired({ id: gameId });
+    //     if (role === GameRoles.ADMIN) {
+    //         game.playerIds.delete(userId);
+    //         game.adminIds.add(userId);
+    //     } else {
+    //         game.adminIds.delete(userId);
+    //         game.playerIds.add(userId);
+    //     }
+    //     const playerGames = this.getGamesForPlayerOrInit({ userId });
+    //     let playerGame = playerGames.find((g) => g.id === game.id);
+    //     if (!playerGame) {
+    //         playerGame = { ...game, role };
+    //         playerGames.push(playerGame);
+    //     }
+    //     return playerGame;
+    // }
 
-    public getGamesForPlayer({ userId }: { userId: string }): PlayerGameEntity[] {
-        return playerGameMap.get(userId) || [];
-    }
+    // public removePlayerFromGame({ gameId, userId }: { gameId: string; userId: string }) {
+    //     const game = this.getGameRequired({ id: gameId });
+    //     game.playerIds.delete(userId);
+    //     game.adminIds.delete(userId);
+    //     if (playerGameMap.has(userId)) {
+    //         playerGameMap.set(
+    //             userId,
+    //             playerGameMap.get(userId)!.filter((g) => g.id !== game.id)
+    //         );
+    //     }
+    // }
 
-    private getGameRequired({ id }: { id: string }): GameEntity {
-        this.validateGameIdExists({ id });
-        return gameIdMap.get(id)!;
-    }
-
-    public getGame({ id }: { id: string }): GameEntity | undefined {
-        return gameIdMap.get(id);
-    }
-
-    private validateCreateGameParams({ name }: Pick<CreateGameParams, 'name'>): void {
-        if (gameNameMap.has(name)) {
-            throw new GameExistsError(`Game ${name} already exists`);
-        }
-    }
-
-    private validateGameIdExists({ id }: { id: string }): void {
-        if (!gameIdMap.has(id)) {
-            throw new GameNotFoundError(`Game with ID ${id} does not exist`);
+    private async validateCreateGameParams({ params, ignoreId }: { params: WithoutId<GameEntity>; ignoreId?: ObjectId }) {
+        const baseFilter = { name: params.name };
+        const filter = ignoreId ? { ...baseFilter, _id: { $ne: ignoreId } } : baseFilter;
+        if (await this.findOne(filter)) {
+            throw new GameExistsError(`Game with name ${params.name} already exists`);
         }
     }
 }
