@@ -1,7 +1,7 @@
 import { AxiosError } from 'axios';
 import { axiosInstance } from '.';
 import { Logger } from '@biketag/utils';
-import { GameDto } from '@biketag/models';
+import { GameDto, PlayerGameDto } from '@biketag/models';
 
 export class GameNotFoundError extends Error {}
 export class CreateGameFailedError extends Error {}
@@ -68,5 +68,21 @@ export class GamesApi {
             throw err;
         }
     }
-}
 
+    public async getGamesForPlayer({ userId }: { userId: string }): Promise<GameDto[]> {
+        try {
+            const resp = await axiosInstance.request({
+                method: 'get',
+                url: `/games/player/${userId}`
+            });
+            if (resp.status !== 200) {
+                throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
+            }
+            logger.info('[getGamesForPlayer] got games', { data: resp.data });
+            return resp.data as PlayerGameDto[];
+        } catch (err) {
+            logger.error(`[getGamesForPlayer] got an error response`, { err });
+            throw err;
+        }
+    }
+}

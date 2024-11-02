@@ -5,6 +5,8 @@ import './App.css';
 import React from 'react';
 import { Login } from './components/login';
 import { Apis, UsersApi } from './api';
+import { Landing } from './components/landing';
+import { GamesApi } from './api/gamesApi';
 
 const logger = new Logger({});
 
@@ -27,7 +29,8 @@ interface AppComponentState {
 
 export default class App extends React.Component<AppProps, AppComponentState> {
     private readonly usersApi = new UsersApi();
-    private readonly apis: Apis = { usersApi: this.usersApi };
+    private readonly gamesApi = new GamesApi();
+    private readonly apis: Apis = { usersApi: this.usersApi, gamesApi: this.gamesApi };
 
     constructor(props: AppProps) {
         super(props);
@@ -84,6 +87,7 @@ export default class App extends React.Component<AppProps, AppComponentState> {
                     Logged in as {this.state.name} ({this.state.userId})
                 </h1>,
                 <br></br>,
+                <Landing key="landing" id={this.state.userId!} name={this.state.name!} apis={this.apis}></Landing>,
                 <input type="button" name="login" value="Log out" onClick={async () => await this.handleLogOut()}></input>
             ];
         }

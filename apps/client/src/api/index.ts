@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { UsersApi } from './usersApi';
+import { GamesApi } from './gamesApi';
 
 export * from './usersApi';
 
@@ -9,4 +10,5 @@ export const axiosInstance = axios.create({
 
 export type Apis = {
     usersApi: UsersApi;
+    gamesApi: GamesApi;
 };
