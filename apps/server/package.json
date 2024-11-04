@@ -6,7 +6,8 @@
         "build": "mkdir -p build && tsoa routes && tsc",
         "dev": "concurrently \"nodemon\" \"nodemon -x tsoa routes\"",
         "test": "vitest",
-        "start": "ts-node src/server.ts"
+        "start": "ts-node src/server.ts",
+        "bootstrap": "ts-node src/bootstrap.ts"
     },
     "keywords": [],
     "author": "",
@@ -17,15 +18,18 @@
         "@tsoa/runtime": "^6.5.1",
         "@types/cors": "^2.8.17",
         "cors": "^2.8.5",
+        "dotenv": "^16.4.5",
         "express": "^4.21.1",
         "express-serve-static-core": "^0.1.1",
         "joi": "^17.13.3",
+        "mongodb": "6.9.0",
         "tsoa": "^6.5.1",
         "uuid": "^11.0.2"
     },
     "devDependencies": {
         "@types/express": "^5.0.0",
         "@types/express-serve-static-core": "^5.0.1",
+        "@types/mongodb": "^4.0.7",
         "@types/uuid": "^10.0.0"
     }
 }

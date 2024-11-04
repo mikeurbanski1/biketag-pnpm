@@ -12,7 +12,7 @@
         "moduleResolution": "Node",
     },
     "include": [
-        "packages/**/*"
+        "packages/**/*",
     ],
     "exclude": [
         "node_modules",

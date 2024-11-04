@@ -1,54 +1,60 @@
 // src/server.ts
 import { Logger } from '@biketag/utils';
 import { app } from './app';
-import { UsersService } from './users/usersService';
-import { GamesService } from './games/gamesService';
-import { GameRoles } from '@biketag/models';
+import { initializePersistence } from './dal/persistenceService';
+// import { UsersService } from './users/usersService';
+// import { GamesService } from './games/gamesService';
+// import { GameRoles } from '@biketag/models';
 
 const port = process.env.PORT || 3001;
 
-const logger = new Logger({ prefix: '[UsersDalService]' });
+const logger = new Logger({ prefix: '[Server]' });
 
-app.listen(port, () => logger.info(`Example app listening at http://localhost:${port}`));
-
-if (process.env.BOOTSTRAP_DATA === 'true') {
-    logger.info('bootstrapping data');
-    const usersService = new UsersService();
-    const gamesService = new GamesService();
-
-    const mike = usersService.createUser({
-        name: 'Mike'
+initializePersistence().then(() => {
+    logger.info('Initialized persistence');
+    app.listen(port, () => {
+        logger.info(`Example app listening at http://localhost:${port}`);
     });
+});
 
-    const jenny = usersService.createUser({
-        name: 'Jenny'
-    });
+// if (process.env.BOOTSTRAP_DATA === 'true') {
+//     logger.info('bootstrapping data');
+//     const usersService = new UsersService();
+//     const gamesService = new GamesService();
 
-    const katie = usersService.createUser({
-        name: 'Katie'
-    });
+//     const mike = usersService.createUser({
+//         name: 'Mike'
+//     });
 
-    const users = [mike, jenny, katie];
+//     const jenny = usersService.createUser({
+//         name: 'Jenny'
+//     });
 
-    logger.info(`created users`, { users });
+//     const katie = usersService.createUser({
+//         name: 'Katie'
+//     });
 
-    const jennyGame = gamesService.createGame({
-        name: "Jenny's bike tag!",
-        creator: jenny.id
-    });
+//     const users = [mike, jenny, katie];
 
-    const mikeGame = gamesService.createGame({
-        name: "Mike's Bikes Bike Mike'",
-        creator: mike.id
-    });
+//     logger.info(`created users`, { users });
 
-    gamesService.addPlayerInGame({
-        gameId: mikeGame.id,
-        userId: katie.id,
-        role: GameRoles.PLAYER
-    });
+//     const jennyGame = gamesService.createGame({
+//         name: "Jenny's bike tag!",
+//         creator: jenny.id
+//     });
 
-    const games = [jennyGame, mikeGame];
+//     const mikeGame = gamesService.createGame({
+//         name: "Mike's Bikes Bike Mike'",
+//         creator: mike.id
+//     });
 
-    logger.info(`created games`, { games });
-}
+//     gamesService.addPlayerInGame({
+//         gameId: mikeGame.id,
+//         userId: katie.id,
+//         role: GameRoles.PLAYER
+//     });
+
+//     const games = [jennyGame, mikeGame];
+
+//     logger.info(`created games`, { games });
+// }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import typescriptEslint from '@typescript-eslint/eslint-plugin';
 import prettier from 'eslint-plugin-prettier';
 import react from 'eslint-plugin-react';
@@ -54,7 +55,18 @@ export default [
                 }
             ],
             '@typescript-eslint/no-non-null-assertion': 'off',
-            '@typescript-eslint/no-empty-object-type': 'off'
+            '@typescript-eslint/no-empty-object-type': 'off',
+            '@typescript-eslint/naming-convention': [
+                'error',
+                {
+                    selector: 'default',
+                    format: ['strictCamelCase']
+                },
+                {
+                    argsIgnorePattern: '^_id',
+                    varsIgnorePattern: '^_id'
+                }
+            ]
         }
     }
 ];

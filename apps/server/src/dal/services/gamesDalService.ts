@@ -1,108 +1,63 @@
-import { CreateGameParams, GameEntity, GameRoles, PlayerGameEntity } from '@biketag/models';
-import { GameExistsError, GameNotFoundError } from '../../common/errors';
+import { gameServiceErrors } from '../../common/errors';
+import { GameEntity } from '../models';
+import { ObjectId } from 'mongodb';
+import { BaseDalService } from './baseDalService';
 
-let nextId = 1;
-const gameIdMap = new Map<string, GameEntity>();
-const gameNameMap = new Map<string, GameEntity>();
-const playerGameMap = new Map<string, PlayerGameEntity[]>();
-
-export class GamesDalService {
-    public getGames(): GameEntity[] {
-        return Array.from(gameIdMap.values());
+export class GamesDalService extends BaseDalService<GameEntity> {
+    constructor() {
+        super({ prefix: 'GamesDalService', collectionName: 'games', serviceErrors: gameServiceErrors });
     }
 
-    public createGame({ name, creator, adminIds = [], playerIds }: CreateGameParams): GameEntity {
-        this.validateCreateGameParams({ name });
+    // public async updateGame({ id, params }: { id: string; params: Partial<WithoutId<GameEntity>> }): Promise<GameEntity> {
+    //     this.logger.info(`[updateGame] `, { params, id });
 
-        const uniqueAdminIds = new Set(adminIds.concat([creator]));
-        const uniquePlayerIds = playerIds ? new Set(playerIds.filter((id) => !uniqueAdminIds.has(id))) : new Set<string>();
+    //     const objectId = new ObjectId(id);
 
-        const game: GameEntity = {
-            id: (nextId++).toString(),
-            name,
-            creator,
-            adminIds: uniqueAdminIds,
-            playerIds: uniquePlayerIds
-        };
+    //     const collection = await this.getCollection();
+    //     const oldGame = await this.getByIdRequired({ id });
+    //     this.logger.info(`[updateGame] updating game`, { oldGame });
+    //     if (params.name) {
+    //         await this.checkIfAttributeExists({ attribute: 'name', value: params.name, ignoreId: objectId });
+    //     }
 
-        gameIdMap.set(game.id, game);
-        gameNameMap.set(name, game);
+    //     await collection.updateOne({ _id: objectId }, { $set: params });
+    //     return await this.getByIdRequired({ id });
+    // }
 
-        for (const adminId of uniqueAdminIds) {
-            const currentGames = this.getGamesForPlayerOrInit({ userId: adminId });
-            currentGames.push({ ...game, role: GameRoles.ADMIN });
-        }
-
-        for (const player of uniquePlayerIds) {
-            const currentGames = this.getGamesForPlayerOrInit({ userId: player });
-            currentGames.push({ ...game, role: GameRoles.PLAYER });
-        }
-
-        return game;
+    public async getGamesForPlayer({ userId }: { userId: string }): Promise<GameEntity[]> {
+        this.logger.info('[getGamesForPlayer]', { userId });
+        return await this.findAll({
+            filter: { $or: [{ 'players.userId': new ObjectId(userId) }, { creator: userId }] }
+        });
     }
 
-    private getGamesForPlayerOrInit({ userId }: { userId: string }): PlayerGameEntity[] {
-        const games = playerGameMap.get(userId);
-        if (games) {
-            return games;
-        }
-        const newGames: PlayerGameEntity[] = [];
-        playerGameMap.set(userId, newGames);
-        return newGames;
-    }
+    // public setPlayerInGame({ gameId, userId, role }: { gameId: string; userId: string; role: GameRoles }): PlayerGameEntity {
+    //     const game = this.getByIdRequired({ id: gameId });
+    //     if (role === GameRoles.ADMIN) {
+    //         game.playerIds.delete(userId);
+    //         game.adminIds.add(userId);
+    //     } else {
+    //         game.adminIds.delete(userId);
+    //         game.playerIds.add(userId);
+    //     }
+    //     const playerGames = this.getGamesForPlayerOrInit({ userId });
+    //     let playerGame = playerGames.find((g) => g.id === game.id);
+    //     if (!playerGame) {
+    //         playerGame = { ...game, role };
+    //         playerGames.push(playerGame);
+    //     }
+    //     return playerGame;
+    // }
 
-    public setPlayerInGame({ gameId, userId, role }: { gameId: string; userId: string; role: GameRoles }): PlayerGameEntity {
-        const game = this.getGameRequired({ id: gameId });
-        if (role === GameRoles.ADMIN) {
-            game.playerIds.delete(userId);
-            game.adminIds.add(userId);
-        } else {
-            game.adminIds.delete(userId);
-            game.playerIds.add(userId);
-        }
-        const playerGames = this.getGamesForPlayerOrInit({ userId });
-        let playerGame = playerGames.find((g) => g.id === game.id);
-        if (!playerGame) {
-            playerGame = { ...game, role };
-            playerGames.push(playerGame);
-        }
-        return playerGame;
-    }
-
-    public removePlayerFromGame({ gameId, userId }: { gameId: string; userId: string }) {
-        const game = this.getGameRequired({ id: gameId });
-        game.playerIds.delete(userId);
-        game.adminIds.delete(userId);
-        if (playerGameMap.has(userId)) {
-            playerGameMap.set(
-                userId,
-                playerGameMap.get(userId)!.filter((g) => g.id !== game.id)
-            );
-        }
-    }
-
-    public getGamesForPlayer({ userId }: { userId: string }): PlayerGameEntity[] {
-        return playerGameMap.get(userId) || [];
-    }
-
-    private getGameRequired({ id }: { id: string }): GameEntity {
-        this.validateGameIdExists({ id });
-        return gameIdMap.get(id)!;
-    }
-
-    public getGame({ id }: { id: string }): GameEntity | undefined {
-        return gameIdMap.get(id);
-    }
-
-    private validateCreateGameParams({ name }: Pick<CreateGameParams, 'name'>): void {
-        if (gameNameMap.has(name)) {
-            throw new GameExistsError(`Game ${name} already exists`);
-        }
-    }
-
-    private validateGameIdExists({ id }: { id: string }): void {
-        if (!gameIdMap.has(id)) {
-            throw new GameNotFoundError(`Game with ID ${id} does not exist`);
-        }
-    }
+    // public removePlayerFromGame({ gameId, userId }: { gameId: string; userId: string }) {
+    //     const game = this.getGameRequired({ id: gameId });
+    //     game.playerIds.delete(userId);
+    //     game.adminIds.delete(userId);
+    //     if (playerGameMap.has(userId)) {
+    //         playerGameMap.set(
+    //             userId,
+    //             playerGameMap.get(userId)!.filter((g) => g.id !== game.id)
+    //         );
+    //     }
+    // }
 }

@@ -52,3 +52,4 @@ export const jsonReplacer = (_: unknown, value: unknown) => {
 export const stringify = (value: unknown, space?: string | number) => JSON.stringify(value, jsonReplacer, space);
 
 export { Logger, LogLevel };
+export * from './types';

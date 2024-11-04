@@ -1,26 +1,14 @@
-import { CreateUserParams, UserEntity } from '@biketag/models';
 import { UsersDalService } from '../dal/services/usersDalService';
+import { UserEntity } from 'src/dal/models';
+import { userServiceErrors } from '../common/errors';
+import { BaseService } from '../common/baseService';
 
-export class UsersService {
-    private usersDalService = new UsersDalService();
-
-    public getUsers(): UserEntity[] {
-        return this.usersDalService.getUsers();
+export class UsersService extends BaseService<UserEntity, UsersDalService> {
+    constructor() {
+        super({ prefix: 'UsersService', dalService: new UsersDalService(), serviceErrors: userServiceErrors });
     }
 
-    public getUser({ id }: { id: string }): UserEntity | undefined {
-        return this.usersDalService.getUser({ id });
-    }
-
-    public createUser(params: CreateUserParams): UserEntity {
-        return this.usersDalService.createUser(params);
-    }
-
-    public updateUser({ id, params }: { id: string; params: CreateUserParams }): UserEntity {
-        return this.usersDalService.updateUser({ id, params });
-    }
-
-    public deleteUser({ id }: { id: string }): void {
-        this.usersDalService.deleteUser({ id });
+    public async getUserByName({ name }: { name: string }): Promise<UserEntity | null> {
+        return await this.dalService.findOne({ filter: { name } });
     }
 }
