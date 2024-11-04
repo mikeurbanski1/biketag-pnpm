@@ -8,7 +8,12 @@ export interface GameDto {
     playerIds: string[];
 }
 
-export type CreateGameParams = Omit<GameDto, 'id'>;
+export interface CreateGameParams extends Omit<GameDto, 'id' | 'adminIds' | 'playerIds'> {
+    adminIds?: string[];
+    playerIds?: string[];
+}
+
+export type UpdateGameParams = Partial<Omit<GameDto, 'id'>>;
 
 export interface RoleDto {
     role: GameRoles;

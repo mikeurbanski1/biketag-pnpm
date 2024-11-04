@@ -1,5 +1,5 @@
-import { WithId } from 'mongodb';
+import { BaseEntity } from '.';
 
-export type UserEntity = WithId<{
+export interface UserEntity extends BaseEntity {
     name: string;
-}>;
+}

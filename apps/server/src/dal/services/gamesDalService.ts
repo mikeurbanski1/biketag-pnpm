@@ -1,48 +1,34 @@
-import { Logger } from '@biketag/utils';
-import { GameExistsError, GameNotFoundError } from '../../common/errors';
+import { gameServiceErrors } from '../../common/errors';
 import { GameEntity } from '../models';
-import { ObjectId, WithoutId } from 'mongodb';
-import { BaseDalService } from '..';
+import { ObjectId } from 'mongodb';
+import { BaseDalService } from './baseDalService';
 
-const logger = new Logger({ prefix: 'GamesDalService' });
-
-export class GamesDalService extends BaseDalService<GameEntity, GameNotFoundError> {
+export class GamesDalService extends BaseDalService<GameEntity> {
     constructor() {
-        super({ collectionName: 'games', notFoundErrorClass: GameNotFoundError });
+        super({ prefix: 'GamesDalService', collectionName: 'games', serviceErrors: gameServiceErrors });
     }
 
-    public async createGame({ name, creator, players }: WithoutId<GameEntity>): Promise<GameEntity> {
-        this.validateCreateGameParams({ params: { name, creator, players } });
-        const collection = await this.getCollection();
+    // public async updateGame({ id, params }: { id: string; params: Partial<WithoutId<GameEntity>> }): Promise<GameEntity> {
+    //     this.logger.info(`[updateGame] `, { params, id });
 
-        const game: GameEntity = {
-            _id: new ObjectId(),
-            name,
-            creator,
-            players
-        };
+    //     const objectId = new ObjectId(id);
 
-        await collection.insertOne(game);
+    //     const collection = await this.getCollection();
+    //     const oldGame = await this.getByIdRequired({ id });
+    //     this.logger.info(`[updateGame] updating game`, { oldGame });
+    //     if (params.name) {
+    //         await this.checkIfAttributeExists({ attribute: 'name', value: params.name, ignoreId: objectId });
+    //     }
 
-        return game;
-    }
-
-    public async updateGame({ id, params }: { id: string; params: WithoutId<GameEntity> }): Promise<GameEntity> {
-        logger.info(`[updateGame] `, { params, id });
-
-        await this.validateId({ id });
-
-        const objectId = new ObjectId(id);
-        const collection = await this.getCollection();
-        await this.validateCreateGameParams({ params, ignoreId: objectId });
-
-        await collection.updateOne({ _id: objectId }, { params });
-        return { _id: new ObjectId(id), ...params };
-    }
+    //     await collection.updateOne({ _id: objectId }, { $set: params });
+    //     return await this.getByIdRequired({ id });
+    // }
 
     public async getGamesForPlayer({ userId }: { userId: string }): Promise<GameEntity[]> {
-        logger.info('[getGamesForPlayer]', { userId });
-        return await this.findAll({ 'players.userId': new ObjectId(userId) });
+        this.logger.info('[getGamesForPlayer]', { userId });
+        return await this.findAll({
+            filter: { $or: [{ 'players.userId': new ObjectId(userId) }, { creator: userId }] }
+        });
     }
 
     // public setPlayerInGame({ gameId, userId, role }: { gameId: string; userId: string; role: GameRoles }): PlayerGameEntity {
@@ -74,12 +60,4 @@ export class GamesDalService extends BaseDalService<GameEntity, GameNotFoundErro
     //         );
     //     }
     // }
-
-    private async validateCreateGameParams({ params, ignoreId }: { params: WithoutId<GameEntity>; ignoreId?: ObjectId }) {
-        const baseFilter = { name: params.name };
-        const filter = ignoreId ? { ...baseFilter, _id: { $ne: ignoreId } } : baseFilter;
-        if (await this.findOne(filter)) {
-            throw new GameExistsError(`Game with name ${params.name} already exists`);
-        }
-    }
 }

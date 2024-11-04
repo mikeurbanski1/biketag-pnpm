@@ -1,13 +1,13 @@
 import { GameRoles } from '@biketag/models';
-import { ObjectId, WithId } from 'mongodb';
+import { BaseEntity } from '.';
 
-export type GameEntity = WithId<{
+export interface GameEntity extends BaseEntity {
     name: string;
     creator: string;
     players: PlayerGameEntity[];
-}>;
+}
 
 export interface PlayerGameEntity {
-    userId: ObjectId;
+    userId: string;
     role: GameRoles;
 }

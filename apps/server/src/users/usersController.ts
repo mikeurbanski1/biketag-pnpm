@@ -14,7 +14,7 @@ export class UsersController extends Controller {
     @SuccessResponse('200', 'ok')
     public async getUsers(): Promise<UserDto[]> {
         logger.info('[getUsers]');
-        return (await this.usersService.getUsers()).map(this.convertUserToDto);
+        return (await this.usersService.getAll()).map(this.convertUserToDto);
     }
 
     @Post('/login')
@@ -34,7 +34,7 @@ export class UsersController extends Controller {
     @SuccessResponse('200', 'ok')
     public async getUser(@Path() id: string, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<UserDto> {
         logger.info(`[getUser] id: ${id}`);
-        const user = await this.usersService.getUser({ id });
+        const user = await this.usersService.get({ id });
         if (!user) {
             return notFoundResponse(404, { reason: 'User does not exist' });
         }
@@ -46,15 +46,12 @@ export class UsersController extends Controller {
     @SuccessResponse('201', 'Created')
     public async createUser(@Body() requestBody: CreateUserParams): Promise<UserDto> {
         logger.info(`[createUser]`, { requestBody });
-        const user = await this.usersService.createUser(requestBody);
+        const user = await this.usersService.create(requestBody);
         this.setStatus(201);
         return this.convertUserToDto(user);
     }
 
-    private convertUserToDto(game: UserEntity): UserDto {
-        return {
-            id: game._id.toString(),
-            name: game.name
-        };
+    private convertUserToDto(user: UserEntity): UserDto {
+        return user;
     }
 }

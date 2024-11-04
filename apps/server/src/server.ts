@@ -1,16 +1,20 @@
 // src/server.ts
 import { Logger } from '@biketag/utils';
 import { app } from './app';
+import { initializePersistence } from './dal/persistenceService';
 // import { UsersService } from './users/usersService';
 // import { GamesService } from './games/gamesService';
 // import { GameRoles } from '@biketag/models';
 
 const port = process.env.PORT || 3001;
 
-const logger = new Logger({ prefix: '[UsersDalService]' });
+const logger = new Logger({ prefix: '[Server]' });
 
-app.listen(port, () => {
-    logger.info(`Example app listening at http://localhost:${port}`);
+initializePersistence().then(() => {
+    logger.info('Initialized persistence');
+    app.listen(port, () => {
+        logger.info(`Example app listening at http://localhost:${port}`);
+    });
 });
 
 // if (process.env.BOOTSTRAP_DATA === 'true') {
