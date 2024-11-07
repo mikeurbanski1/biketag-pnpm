@@ -1,0 +1,26 @@
+import { BaseService } from '../../src/common/baseService';
+import { ServiceErrors } from '../../src/common/errors';
+import { BaseEntity } from '../../src/dal/models';
+import { BaseDalService } from '../../src/dal/services/baseDalService';
+
+export interface MockType extends BaseEntity {
+    name: string;
+    phone: string;
+}
+
+export const mockServiceErrors: ServiceErrors = {
+    notFoundErrorClass: Error,
+    existsErrorClass: Error
+};
+
+export class MockDalService extends BaseDalService<MockType> {
+    constructor() {
+        super({ collectionName: 'mocks' as any, prefix: 'mock', serviceErrors: mockServiceErrors });
+    }
+}
+
+export class MockService extends BaseService<MockType, MockDalService> {
+    constructor() {
+        super({ prefix: 'MockService', dalService: new MockDalService(), serviceErrors: mockServiceErrors });
+    }
+}

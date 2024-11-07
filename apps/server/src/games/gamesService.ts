@@ -1,10 +1,10 @@
 import { GamesDalService } from '../dal/services/gamesDalService';
 import { UsersService } from '../users/usersService';
 import { CannotRemovePlayerError, gameServiceErrors, UserNotFoundError } from '../common/errors';
-import { CreateGameParams, GameRoles, UpdateGameParams } from '@biketag/models';
-import { GameEntity, PlayerGameEntity } from 'src/dal/models';
-import { WithoutId } from 'mongodb';
+import { CreateGameParams, GameRoles, PlayerGame, UpdateGameParams } from '@biketag/models';
+import { GameEntity } from 'src/dal/models';
 import { BaseService } from '../common/baseService';
+import { copyDefinedProperties } from '@biketag/utils';
 
 export class GamesService extends BaseService<GameEntity, GamesDalService> {
     private usersService = new UsersService();
@@ -14,19 +14,16 @@ export class GamesService extends BaseService<GameEntity, GamesDalService> {
     }
 
     public override async create(params: CreateGameParams): Promise<GameEntity> {
-        const { name, creator } = params;
+        const { name, creator, players } = params;
         const user = await this.usersService.get({ id: creator });
         if (!user) {
             throw new UserNotFoundError(`User with ID ${creator} does not exist - cannot be game creator`);
         }
 
-        const validAdmins = params.adminIds?.filter((id) => this.usersService.get({ id })) || [];
-        const validPlayers = params.playerIds?.filter((id) => this.usersService.get({ id })) || [];
-
         const createGameParams = {
             name,
             creator,
-            players: this.combinePlayerLists({ playerIds: validPlayers, adminIds: validAdmins })
+            players: players || []
         };
 
         return await this.dalService.create(createGameParams);
@@ -36,12 +33,21 @@ export class GamesService extends BaseService<GameEntity, GamesDalService> {
         if (updateParams.creator) {
             await this.validateUserExists({ userId: updateParams.creator });
         }
-        let newPlayers: PlayerGameEntity[] | undefined = undefined;
-        if (updateParams.creator || updateParams.adminIds || updateParams.playerIds) {
-            newPlayers = this.combinePlayerLists({ creator: updateParams.creator, adminIds: updateParams.adminIds || [], playerIds: updateParams.playerIds || [] });
+
+        const game = await this.dalService.getByIdRequired({ id });
+
+        let dalParams: Partial<GameEntity> = copyDefinedProperties(updateParams, ['name', 'creator', 'players']);
+        if (updateParams.creator) {
+            const players = updateParams.players || game.players;
+            const creatorIndex = players.findIndex((p) => p.userId === updateParams.creator);
+            if (creatorIndex !== -1) {
+                players.splice(creatorIndex, 1);
+                dalParams.players = players;
+            }
         }
-        const dalParams: Partial<WithoutId<GameEntity>> = { name: updateParams.name, creator: updateParams.creator, players: newPlayers };
-        return await this.dalService.update({ id, updateParams: dalParams });
+        const newGame = await this.dalService.update({ id, updateParams: dalParams });
+        GamesService.sortPlayersByAdmins(newGame.players);
+        return newGame;
     }
 
     public async addPlayerInGame({ gameId, userId, role }: { gameId: string; userId: string; role: string }): Promise<GameEntity> {
@@ -52,7 +58,7 @@ export class GamesService extends BaseService<GameEntity, GamesDalService> {
         const game = await this.dalService.getByIdRequired({ id: gameId });
         this.setPlayerInGame({ game, userId, role: GameRoles[role] });
 
-        return game;
+        return await this.dalService.update({ id: gameId, updateParams: { players: game.players } });
     }
 
     public async removePlayerFromGame({ gameId, userId }: { gameId: string; userId: string }): Promise<GameEntity> {
@@ -60,7 +66,7 @@ export class GamesService extends BaseService<GameEntity, GamesDalService> {
         const game = await this.dalService.getByIdRequired({ id: gameId });
         this.removePlayerInGame({ game, userId });
 
-        return game;
+        return await this.dalService.update({ id: gameId, updateParams: { players: game.players } });
     }
 
     public async getGamesForPlayer({ userId }: { userId: string }): Promise<GameEntity[]> {
@@ -79,6 +85,8 @@ export class GamesService extends BaseService<GameEntity, GamesDalService> {
         } else {
             players.push({ userId, role });
         }
+
+        GamesService.sortPlayersByAdmins(game.players);
     }
 
     private removePlayerInGame({ game, userId }: { game: GameEntity; userId: string }): void {
@@ -88,19 +96,24 @@ export class GamesService extends BaseService<GameEntity, GamesDalService> {
             throw new CannotRemovePlayerError('Cannot remove creator from game');
         }
         game.players = players.filter((p) => p.userId !== userId);
-    }
-
-    private combinePlayerLists({ creator, playerIds, adminIds }: { creator?: string; playerIds: string[]; adminIds: string[] }): PlayerGameEntity[] {
-        const players: PlayerGameEntity[] = adminIds.filter((adminId) => adminId !== creator).map((adminId) => ({ userId: adminId, role: GameRoles.ADMIN }));
-
-        const nonAdmins = playerIds.filter((playerId) => !adminIds.includes(playerId) && playerId !== creator);
-
-        return players.concat(nonAdmins.map((playerId) => ({ userId: playerId, role: GameRoles.PLAYER })));
+        GamesService.sortPlayersByAdmins(game.players);
     }
 
     private async validateUserExists({ userId }: { userId: string }) {
         if (!(await this.usersService.get({ id: userId }))) {
             throw new UserNotFoundError(`User with ID ${userId} does not exist`);
         }
+    }
+
+    private static sortPlayersByAdmins(players: PlayerGame[]): void {
+        players.sort((a, b) => {
+            if (a.role === GameRoles.ADMIN) {
+                return -1;
+            }
+            if (b.role === GameRoles.ADMIN) {
+                return 1;
+            }
+            return 0;
+        });
     }
 }

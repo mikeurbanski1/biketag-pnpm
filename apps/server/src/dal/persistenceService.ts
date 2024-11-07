@@ -2,6 +2,7 @@ import { Logger } from '@biketag/utils';
 import { MongoDbProvider } from './providers/mongoProvider';
 import { UsersService } from '../users/usersService';
 import { GamesService } from '../games/gamesService';
+import { GameRoles } from '@biketag/models';
 
 const logger = new Logger({ prefix: '[PersistenceService]' });
 
@@ -42,9 +43,32 @@ export const bootstrapData = async () => {
     logger.info(`[bootstrapData] creating games`);
 
     const games = [
-        await gamesService.create({ name: "Jenny's bike tag!", creator: users[1].id, adminIds: [users[0].id], playerIds: [users[2].id] }),
-        await gamesService.create({ name: "Mike's bike tag!", creator: users[0].id, adminIds: [users[2].id], playerIds: [users[0].id, users[3].id] }),
-        await gamesService.create({ name: "Katie's bike tag!", creator: users[2].id, adminIds: [users[0].id, users[2].id], playerIds: [users[3].id] })
+        await gamesService.create({
+            name: "Jenny's bike tag!",
+            creator: users[1].id,
+            players: [
+                { userId: users[0].id, role: GameRoles.ADMIN },
+                { userId: users[2].id, role: GameRoles.PLAYER }
+            ]
+        }),
+        await gamesService.create({
+            name: "Mike's bike tag!",
+            creator: users[0].id,
+            players: [
+                { userId: users[2].id, role: GameRoles.ADMIN },
+                { userId: users[0].id, role: GameRoles.PLAYER },
+                { userId: users[3].id, role: GameRoles.PLAYER }
+            ]
+        }),
+        await gamesService.create({
+            name: "Katie's bike tag!",
+            creator: users[2].id,
+            players: [
+                { userId: users[0].id, role: GameRoles.ADMIN },
+                { userId: users[2].id, role: GameRoles.ADMIN },
+                { userId: users[3].id, role: GameRoles.PLAYER }
+            ]
+        })
     ];
 
     logger.info(`[bootstrapData] created games`, { games });

@@ -2,9 +2,8 @@
 import { Body, Controller, Delete, Get, Patch, Path, Post, Put, Res, Route, SuccessResponse, TsoaResponse } from 'tsoa';
 import { Logger } from '@biketag/utils';
 import { GamesService } from './gamesService';
-import { CreateGameParams, GameDto, AddPlayerInGameParams, GameRoles } from '@biketag/models';
+import { CreateGameParams, GameDto, AddPlayerInGameParams } from '@biketag/models';
 import { GameNotFoundError, UserNotFoundError } from '../common/errors';
-import { GameEntity } from 'src/dal/models';
 
 const logger = new Logger({ prefix: '[GamesController]' });
 
@@ -15,7 +14,7 @@ export class GamesController extends Controller {
     @Get('/')
     @SuccessResponse('200', 'ok')
     public async getGames(): Promise<GameDto[]> {
-        return (await this.gamesService.getAll()).map((game) => this.convertGameToDto(game));
+        return await this.gamesService.getAll();
     }
 
     @Get('/{id}')
@@ -27,7 +26,7 @@ export class GamesController extends Controller {
             return notFoundResponse(404, { reason: 'Game not found' });
         }
         logger.info(`[getGame] result ${game}`);
-        return this.convertGameToDto(game);
+        return game;
     }
 
     @Get('/player/{userId}')
@@ -36,14 +35,14 @@ export class GamesController extends Controller {
         logger.info(`[getGamesForPlayer] player id: ${userId}`);
         const playerGames = await this.gamesService.getGamesForPlayer({ userId });
         logger.info(`[getGamesForPlayer] result ${playerGames}`);
-        return playerGames.map((playerGame) => this.convertGameToDto(playerGame));
+        return playerGames;
     }
 
     @Post()
     public async createGame(@Body() requestBody: CreateGameParams, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<GameDto> {
         logger.info(`[createGame]`, { requestBody });
         try {
-            const game = this.convertGameToDto(await this.gamesService.create(requestBody));
+            const game = await this.gamesService.create(requestBody);
             return game;
         } catch (err) {
             if (err instanceof UserNotFoundError) {
@@ -60,7 +59,7 @@ export class GamesController extends Controller {
         try {
             const game = await this.gamesService.update({ id, updateParams: requestBody });
             logger.info(`[updateGame] updated game`, { game });
-            return this.convertGameToDto(game);
+            return game;
         } catch (err) {
             if (err instanceof GameNotFoundError) {
                 return notFoundResponse(404, { reason: err.message });
@@ -81,7 +80,7 @@ export class GamesController extends Controller {
         try {
             const game = await this.gamesService.addPlayerInGame({ gameId, userId, role: requestBody.role });
             logger.info('[addPlayerInGame] result', { game });
-            return this.convertGameToDto(game);
+            return game;
         } catch (err) {
             if (err instanceof UserNotFoundError || err instanceof GameNotFoundError) {
                 return notFoundResponse(404, { reason: err.message });
@@ -96,7 +95,7 @@ export class GamesController extends Controller {
         logger.info(`[removePlayerFromGame]`, { gameId, userId });
         try {
             const game = await this.gamesService.removePlayerFromGame({ gameId, userId });
-            return this.convertGameToDto(game);
+            return game;
         } catch (err) {
             if (err instanceof GameNotFoundError) {
                 return notFoundResponse(404, { reason: err.message });
@@ -104,25 +103,4 @@ export class GamesController extends Controller {
             throw err;
         }
     }
-
-    private convertGameToDto(game: GameEntity): GameDto {
-        const { id, name, creator } = game;
-        return {
-            id,
-            name,
-            creator,
-            adminIds: game.players.filter((p) => p.role === GameRoles.ADMIN).map((p) => p.userId.toString()),
-            playerIds: game.players.filter((p) => p.role === GameRoles.PLAYER).map((p) => p.userId.toString())
-        };
-    }
-
-    // private convertDtoToGame(game: CreateGameParams): GameEntity {
-    //     return {
-    //         id: game.id,
-    //         name: game.name,
-    //         creator: game.creator,
-    //         adminIds: new Set(game.adminIds),
-    //         playerIds: new Set(game.playerIds)
-    //     };
-    // }
 }

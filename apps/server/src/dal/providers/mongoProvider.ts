@@ -20,6 +20,7 @@ export class MongoDbProvider {
     }
 
     public getCollection<E extends Document>(collectionName: CollectionName): Collection<E> {
+        logger.info(`[getCollection]`);
         return this.db.collection(collectionName);
     }
 

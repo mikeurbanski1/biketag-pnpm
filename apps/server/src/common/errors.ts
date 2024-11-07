@@ -4,6 +4,7 @@ export class UserNotFoundError extends Error {}
 export class GameExistsError extends Error {}
 export class GameNotFoundError extends Error {}
 export class CannotRemovePlayerError extends Error {}
+export class CannotRemoveCreatorError extends Error {}
 
 export interface IError<E extends Error> {
     new (message: string): E;
