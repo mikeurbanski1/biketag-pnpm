@@ -1,16 +1,14 @@
-import { GameRoles } from '../common/game';
+import { GameRoles, PlayerGame } from '../common/game';
 
 export interface GameDto {
     id: string;
     name: string;
     creator: string;
-    adminIds: string[];
-    playerIds: string[];
+    players: PlayerGame[];
 }
 
-export interface CreateGameParams extends Omit<GameDto, 'id' | 'adminIds' | 'playerIds'> {
-    adminIds?: string[];
-    playerIds?: string[];
+export interface CreateGameParams extends Omit<GameDto, 'id' | 'players'> {
+    players?: PlayerGame[];
 }
 
 export type UpdateGameParams = Partial<Omit<GameDto, 'id'>>;
