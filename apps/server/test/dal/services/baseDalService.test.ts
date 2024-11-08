@@ -4,7 +4,7 @@ import { ServiceErrors } from '../../../src/common/errors';
 import { BaseEntity } from '../../../src/dal/models';
 import { MongoDbProvider } from '../../../src/dal/providers/mongoProvider';
 import { BaseDalService } from '../../../src/dal/services/baseDalService';
-import { MockDalService } from '../../utils/mockTypes';
+import { MockDalService } from '../../testUtils/mockTypes';
 
 describe('baseDalService tests', () => {
     let getInstanceSpy: Mock;

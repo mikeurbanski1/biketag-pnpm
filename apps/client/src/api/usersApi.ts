@@ -1,7 +1,7 @@
 import { AxiosError } from 'axios';
 import { axiosInstance } from '.';
 import { Logger } from '@biketag/utils';
-import { CreateUserParams, UserEntity } from '@biketag/models';
+import { CreateUserParams, UserDto } from '@biketag/models';
 
 export class LoginFailedError extends Error {}
 export class SignupFailedError extends Error {}
@@ -9,20 +9,20 @@ export class SignupFailedError extends Error {}
 const logger = new Logger({ prefix: '[UsersApi]' });
 
 export class UsersApi {
-    public async login({ name, id }: UserEntity) {
+    public async login({ name }: CreateUserParams): Promise<UserDto> {
         try {
             const resp = await axiosInstance.request({
                 method: 'post',
                 url: '/users/login',
                 data: {
-                    id,
                     name
                 }
             });
             if (resp.status !== 200) {
                 throw new LoginFailedError(`Unexpected response: ${resp.status} - ${resp.statusText}`);
             }
-            logger.info(`[login] login successful`);
+            logger.info(`[login] login successful`, { data: resp.data });
+            return resp.data as UserDto;
         } catch (err) {
             logger.error(`[login] error`, { err });
             if (err instanceof AxiosError) {
@@ -38,7 +38,7 @@ export class UsersApi {
         }
     }
 
-    public async signup({ name }: CreateUserParams): Promise<UserEntity> {
+    public async signup({ name }: CreateUserParams): Promise<UserDto> {
         try {
             const resp = await axiosInstance.request({
                 method: 'post',
@@ -61,4 +61,3 @@ export class UsersApi {
         }
     }
 }
-

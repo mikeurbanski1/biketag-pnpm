@@ -60,8 +60,8 @@ export class Login extends React.Component<LoginProps, LoginState> {
 
     async login() {
         try {
-            const { name, id } = this.state;
-            await this.props.apis.usersApi.login({ name, id });
+            const { name } = this.state;
+            const { id } = await this.props.apis.usersApi.login({ name });
             this.props.setUser({ name, id });
         } catch (err) {
             if (err instanceof Error) {
@@ -90,12 +90,12 @@ export class Login extends React.Component<LoginProps, LoginState> {
         return (
             <div>
                 <span>
-                    <label htmlFor="id">User ID: </label>
-                    <input type="text" name="id" onChange={(event) => this.handleIdChange(event)} value={this.state.id}></input>
+                    {/* <label htmlFor="id">User ID: </label>
+                    <input type="text" name="id" onChange={(event) => this.handleIdChange(event)} value={this.state.id}></input> */}
                     <label htmlFor="name">Your name: </label>
                     <input type="text" name="name" onChange={(event) => this.handleNameChange(event)} value={this.state.name}></input>
                     <br></br>
-                    <input type="button" name="login" value="Login" onClick={async () => await this.login()} disabled={!this.state.canLogin}></input>
+                    <input type="button" name="login" value="Login" onClick={async () => await this.login()} disabled={!this.state.canSignup}></input>
                     <input type="button" name="signup" value="Sign Up" onClick={async () => await this.signUp()} disabled={!this.state.canSignup}></input>
                     <br></br>
                     <h3>{this.state.errorMessage || ''}</h3>

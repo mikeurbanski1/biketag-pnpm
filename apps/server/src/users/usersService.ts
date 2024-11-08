@@ -9,6 +9,8 @@ export class UsersService extends BaseService<UserEntity, UsersDalService> {
     }
 
     public async getUserByName({ name }: { name: string }): Promise<UserEntity | null> {
-        return await this.dalService.findOne({ filter: { name } });
+        const res = await this.dalService.findOne({ filter: { name } });
+        this.logger.info(`[getUserByName] result`, { res });
+        return res;
     }
 }

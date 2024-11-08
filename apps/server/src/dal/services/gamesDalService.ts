@@ -1,6 +1,5 @@
 import { gameServiceErrors } from '../../common/errors';
 import { GameEntity } from '../models';
-import { ObjectId } from 'mongodb';
 import { BaseDalService } from './baseDalService';
 
 export class GamesDalService extends BaseDalService<GameEntity> {
@@ -27,7 +26,7 @@ export class GamesDalService extends BaseDalService<GameEntity> {
     public async getGamesForPlayer({ userId }: { userId: string }): Promise<GameEntity[]> {
         this.logger.info('[getGamesForPlayer]', { userId });
         return await this.findAll({
-            filter: { $or: [{ 'players.userId': new ObjectId(userId) }, { creator: userId }] }
+            filter: { $or: [{ 'players.userId': userId }, { creator: userId }] }
         });
     }
 

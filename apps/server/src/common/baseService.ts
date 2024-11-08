@@ -15,12 +15,14 @@ export abstract class BaseService<E extends BaseEntity, D extends BaseDalService
     }
 
     protected async failIfNotExists({ id }: { id: string }) {
+        this.logger.info(`[failIfNotExists]`, { id });
         if (!(await this.dalService.getById({ id }))) {
             throw new this.serviceErrors.notFoundErrorClass(`Object with ID ${id} does not exist`);
         }
     }
 
     protected async failIfExists({ id }: { id: string }) {
+        this.logger.info(`[failIfNotExists]`, { id });
         if (await this.dalService.getById({ id })) {
             throw new this.serviceErrors.existsErrorClass(`Object with ID ${id} already exists`);
         }
@@ -35,27 +37,37 @@ export abstract class BaseService<E extends BaseEntity, D extends BaseDalService
 
     public async getAll(): Promise<E[]> {
         this.logger.info('[getAll]');
-        return await this.dalService.getAll();
+        const res = await this.dalService.getAll();
+        this.logger.info(`[getAll] result`, { res });
+        return res;
     }
 
     public async get({ id }: { id: string }): Promise<E | null> {
         this.logger.info('[get]', { id });
-        return await this.dalService.getById({ id });
+        const res = await this.dalService.getById({ id });
+        this.logger.info(`[get] result`, { res });
+        return res;
     }
 
     public async create(params: BaseEntityWithoutId<E>): Promise<E> {
         this.logger.info('[create]', { params });
-        return await this.dalService.create(params);
+        const res = await this.dalService.create(params);
+        this.logger.info(`[create] result`, { res });
+        return res;
     }
 
     public async update({ id, updateParams }: { id: string; updateParams: BaseEntityWithoutId<E> }): Promise<E> {
         this.logger.info('[update]', { id, updateParams });
         await this.dalService.getByIdRequired({ id });
-        return this.dalService.update({ id, updateParams });
+        const res = this.dalService.update({ id, updateParams });
+        this.logger.info(`[update] result`, { res });
+        return res;
     }
 
     public async deleteUser({ id }: { id: string }) {
         this.logger.info('[deleteUser]', { id });
-        await this.dalService.delete({ id });
+        const res = await this.dalService.delete({ id });
+        this.logger.info(`[deleteUser] result`, { res });
+        return res;
     }
 }

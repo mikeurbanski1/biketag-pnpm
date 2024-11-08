@@ -1,4 +1,4 @@
-import { MockDalService, MockService, mockServiceErrors, MockType } from '../utils/mockTypes';
+import { MockDalService, MockService, mockServiceErrors, MockType } from '../testUtils/mockTypes';
 import { Mock, vitest, describe, it, beforeAll, beforeEach, afterAll, afterEach, expect, vi } from 'vitest';
 
 describe('BaseService tests', () => {

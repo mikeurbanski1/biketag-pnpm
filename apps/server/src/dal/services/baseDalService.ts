@@ -66,18 +66,19 @@ export abstract class BaseDalService<E extends BaseEntity> {
         return (await collection.find().toArray()).map(this.convertFromDalEntity);
     }
 
-    public async findOne({ filter, ignoreId }: { filter: Filter<E>; ignoreId?: string }): Promise<WithId<E> | null> {
+    public async findOne({ filter, ignoreId }: { filter: Filter<E>; ignoreId?: string }): Promise<E | null> {
         this.logger.info('[findOne]', { filter, ignoreId });
         const searchFilter = ignoreId ? { ...filter, _id: { $ne: new ObjectId(ignoreId) } } : filter;
         const collection = await this.getCollection();
-        return await collection.findOne(searchFilter);
+        const res = await collection.findOne(searchFilter);
+        return res ? this.convertFromDalEntity(res) : null;
     }
 
-    public async findAll({ filter, ignoreId }: { filter: Filter<E>; ignoreId?: string }): Promise<WithId<E>[]> {
+    public async findAll({ filter, ignoreId }: { filter: Filter<E>; ignoreId?: string }): Promise<E[]> {
         this.logger.info(`[findAll] `, { filter, ignoreId });
         const searchFilter = ignoreId ? { ...filter, _id: { $ne: new ObjectId(ignoreId) } } : filter;
         const collection = await this.getCollection();
-        return await collection.find(searchFilter).toArray();
+        return (await collection.find(searchFilter).toArray()).map(this.convertFromDalEntity);
     }
 
     public async delete({ id }: { id: string }) {
