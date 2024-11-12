@@ -1,14 +1,18 @@
 import React, { ReactNode } from 'react';
 import { Apis } from '../api';
+import { GameDto, UserDto } from '@biketag/models';
+import { CreateEditGame } from './createEditGame';
+import { ViewGame } from './viewGame';
 
 interface LandingState {
     loadingGames: boolean;
-    games: string[];
+    games: GameDto[];
+    game?: GameDto;
+    creatingGame: boolean;
 }
 
 interface LandingProps {
-    id: string;
-    name: string;
+    user: UserDto;
     apis: Apis;
 }
 
@@ -17,24 +21,92 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         super(props);
         this.state = {
             loadingGames: true,
-            games: []
+            games: [],
+            creatingGame: false
         };
+        this.doneCreatingGame = this.doneCreatingGame.bind(this);
+        // this.editGame = this.editGame.bind(this);
     }
 
     componentDidMount(): void {
-        this.props.apis.gamesApi.getGamesForPlayer({ userId: this.props.id }).then((games) => {
-            this.setState({
-                loadingGames: false,
-                games: games.map((game) => game.name)
-            });
+        this.refreshGames().then(() => this.setState({ loadingGames: false }));
+    }
+
+    private async refreshGames(): Promise<void> {
+        const games = await this.props.apis.gamesApi.getGamesForPlayer({ userId: this.props.user.id });
+        console.log('got games:', games);
+        this.setState({
+            games
+        });
+    }
+
+    doneCreatingGame(game?: GameDto): void {
+        this.setState({
+            loadingGames: true
+        });
+        this.refreshGames().then(() => {
+            if (game) {
+                this.setState({
+                    game,
+                    creatingGame: false,
+                    loadingGames: false
+                });
+            } else {
+                this.setState({
+                    creatingGame: false,
+                    loadingGames: false
+                });
+            }
+        });
+    }
+
+    editGame(): void {
+        this.setState({
+            creatingGame: true
+        });
+    }
+
+    deleteGame(): void {
+        this.setState({
+            game: undefined,
+            loadingGames: true
+        });
+        this.props.apis.gamesApi.deleteGame({ gameId: this.state.game!.id }).then(() => this.refreshGames().then(() => this.setState({ loadingGames: false })));
+    }
+
+    doneViewingGame(): void {
+        this.setState({
+            game: undefined
         });
     }
 
     render(): ReactNode {
-        return (
-            <div>
-                <h1>{this.state.loadingGames ? 'Loading games...' : `Your games: ${this.state.games.join(', ')}`}</h1>
-            </div>
-        );
+        if (this.state.loadingGames) {
+            return <h1>Loading games...</h1>;
+        }
+
+        if (!this.state.creatingGame && !this.state.game) {
+            return (
+                <div>
+                    <div>
+                        <h1>Your games:</h1>
+                        <ul>
+                            {this.state.games.map((game) => (
+                                <a onClick={() => this.setState({ game })}>
+                                    <li key={game.id}>{game.name}</li>
+                                </a>
+                            ))}
+                        </ul>
+                    </div>
+                    <input type="button" name="createGame" value="Create game" onClick={() => this.setState({ creatingGame: true })}></input>
+                </div>
+            );
+        }
+
+        if (!this.state.creatingGame && this.state.game) {
+            return <ViewGame game={this.state.game} user={this.props.user} deleteGame={() => this.deleteGame()} editGame={() => this.editGame()} doneViewingGame={() => this.doneViewingGame()} />;
+        }
+
+        return <CreateEditGame user={this.props.user} apis={this.props.apis} doneCreatingGame={this.doneCreatingGame} game={this.state.game} />;
     }
 }

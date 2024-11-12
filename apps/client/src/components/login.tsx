@@ -1,10 +1,10 @@
 import React, { ChangeEvent, ReactNode } from 'react';
-import { parseIfInteger } from '@biketag/utils';
 import { Apis } from '../api';
+import { UserDto } from '@biketag/models';
 
 interface LoginState {
     name: string;
-    id: string;
+    user?: UserDto;
     canLogin: boolean;
     canSignup: boolean;
     errorMessage?: string;
@@ -20,7 +20,6 @@ export class Login extends React.Component<LoginProps, LoginState> {
         super(props);
         this.state = {
             name: '',
-            id: '',
             canLogin: false,
             canSignup: false
         };
@@ -39,23 +38,14 @@ export class Login extends React.Component<LoginProps, LoginState> {
         this.setState(newState as LoginState);
     }
 
-    private handleIdChange(event: ChangeEvent<HTMLInputElement>) {
-        const newState: Partial<LoginState> = {
-            id: event.target.value === '' ? '' : parseIfInteger(event.target.value)?.toString() || this.state.id
-        };
-        newState.canLogin = this.canLogin(newState);
-        newState.canSignup = this.canSignup(newState);
-        this.setState(newState as LoginState);
-    }
-
     private canLogin(newState: Partial<LoginState>) {
-        const merged = Object.assign({}, this.state, newState);
-        return merged.name !== '' && merged.id !== '';
+        // const merged = Object.assign({}, this.state, newState);
+        return newState.name !== '';
     }
 
     private canSignup(newState: Partial<LoginState>) {
-        const merged = Object.assign({}, this.state, newState);
-        return merged.name !== '' && merged.id === '';
+        // const merged = Object.assign({}, this.state, newState);
+        return newState.name !== '';
     }
 
     async login() {

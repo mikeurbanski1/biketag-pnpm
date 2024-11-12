@@ -1,35 +1,58 @@
 import { GamesDalService } from '../dal/services/gamesDalService';
 import { UsersService } from '../users/usersService';
 import { CannotRemovePlayerError, gameServiceErrors, UserNotFoundError } from '../common/errors';
-import { CreateGameParams, GameRoles, PlayerGame, UpdateGameParams } from '@biketag/models';
-import { GameEntity } from 'src/dal/models';
+import { CreateGameParams, GameDto, GameRoles, PlayerGame } from '@biketag/models';
+import { BaseEntityWithoutId, GameEntity } from 'src/dal/models';
 import { BaseService } from '../common/baseService';
 import { copyDefinedProperties } from '@biketag/utils';
 
-export class GamesService extends BaseService<GameEntity, GamesDalService> {
+export class GamesService extends BaseService<GameDto, CreateGameParams, GameEntity, GamesDalService> {
     private usersService = new UsersService();
 
     constructor() {
         super({ prefix: 'GamesService', dalService: new GamesDalService(), serviceErrors: gameServiceErrors });
     }
 
-    public override async create(params: CreateGameParams): Promise<GameEntity> {
-        const { name, creator, players } = params;
+    protected async convertToDtoList(entity: GameEntity[]): Promise<GameDto[]> {
+        return (await Promise.all(entity.map((e) => this.convertToDto(e)))) as GameDto[];
+    }
+
+    protected async convertToDto(entity: GameEntity): Promise<GameDto>;
+    protected async convertToDto(entity: null): Promise<null>;
+    protected async convertToDto(entity: GameEntity | null): Promise<GameDto | null> {
+        if (!entity) {
+            return null;
+        }
+        return {
+            id: entity.id,
+            name: entity.name,
+            creator: await this.usersService.getRequired({ id: entity.creator }),
+            players: await Promise.all(entity.players.map(async (p) => ({ ...p, user: await this.usersService.getRequired({ id: p.userId }) })))
+        };
+    }
+
+    protected convertToEntity(dto: CreateGameParams): BaseEntityWithoutId<GameEntity> {
+        return {
+            name: dto.name,
+            creator: dto.creator,
+            players: dto.players
+        };
+    }
+
+    public override async create(params: CreateGameParams): Promise<GameDto> {
+        const { creator, players } = params;
         const user = await this.usersService.get({ id: creator });
         if (!user) {
             throw new UserNotFoundError(`User with ID ${creator} does not exist - cannot be game creator`);
         }
 
-        const createGameParams = {
-            name,
-            creator,
-            players: players || []
-        };
+        GamesService.sortPlayersByAdmins(players);
 
-        return await this.dalService.create(createGameParams);
+        const game = await this.dalService.create(params);
+        return await this.convertToDto(game);
     }
 
-    public override async update({ id, updateParams }: { id: string; updateParams: UpdateGameParams }): Promise<GameEntity> {
+    public override async update({ id, updateParams }: { id: string; updateParams: CreateGameParams }): Promise<GameDto> {
         if (updateParams.creator) {
             await this.validateUserExists({ userId: updateParams.creator });
         }
@@ -47,10 +70,10 @@ export class GamesService extends BaseService<GameEntity, GamesDalService> {
         }
         const newGame = await this.dalService.update({ id, updateParams: dalParams });
         GamesService.sortPlayersByAdmins(newGame.players);
-        return newGame;
+        return await this.convertToDto(newGame);
     }
 
-    public async addPlayerInGame({ gameId, userId, role }: { gameId: string; userId: string; role: string }): Promise<GameEntity> {
+    public async addPlayerInGame({ gameId, userId, role }: { gameId: string; userId: string; role: string }): Promise<GameDto> {
         await this.validateUserExists({ userId });
         if (role !== GameRoles.ADMIN && role != GameRoles.PLAYER) {
             throw new Error(`Invalid role name: ${role}`);
@@ -58,19 +81,23 @@ export class GamesService extends BaseService<GameEntity, GamesDalService> {
         const game = await this.dalService.getByIdRequired({ id: gameId });
         this.setPlayerInGame({ game, userId, role: GameRoles[role] });
 
-        return await this.dalService.update({ id: gameId, updateParams: { players: game.players } });
+        const newGame = await this.dalService.update({ id: gameId, updateParams: { players: game.players } });
+
+        return await this.convertToDto(newGame);
     }
 
-    public async removePlayerFromGame({ gameId, userId }: { gameId: string; userId: string }): Promise<GameEntity> {
+    public async removePlayerFromGame({ gameId, userId }: { gameId: string; userId: string }): Promise<GameDto> {
         await this.validateUserExists({ userId });
         const game = await this.dalService.getByIdRequired({ id: gameId });
         this.removePlayerInGame({ game, userId });
 
-        return await this.dalService.update({ id: gameId, updateParams: { players: game.players } });
+        const newGame = await this.dalService.update({ id: gameId, updateParams: { players: game.players } });
+        return await this.convertToDto(newGame);
     }
 
-    public async getGamesForPlayer({ userId }: { userId: string }): Promise<GameEntity[]> {
-        return await this.dalService.getGamesForPlayer({ userId });
+    public async getGamesForPlayer({ userId }: { userId: string }): Promise<GameDto[]> {
+        const games = await this.dalService.getGamesForPlayer({ userId });
+        return await this.convertToDtoList(games);
     }
 
     private setPlayerInGame({ game, userId, role }: { game: GameEntity; userId: string; role: GameRoles }): void {

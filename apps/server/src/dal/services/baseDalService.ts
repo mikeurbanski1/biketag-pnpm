@@ -106,7 +106,7 @@ export abstract class BaseDalService<E extends BaseEntity> {
     }
 
     // there seems to be a TS bug where generic filters do not match type checks
-    // but if we were to put this in a subclass, it would work
+    // but if we were to put this in a subclass and replace the generic type, it would work
     private getIdFilter(id: string | ObjectId): Filter<E> {
         const _id = typeof id === 'string' ? new ObjectId(id) : id;
         return { _id } as Filter<E>;

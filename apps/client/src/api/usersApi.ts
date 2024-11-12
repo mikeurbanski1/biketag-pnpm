@@ -60,4 +60,21 @@ export class UsersApi {
             throw err;
         }
     }
+
+    public async getUsers(): Promise<UserDto[]> {
+        try {
+            const resp = await axiosInstance.request({
+                method: 'get',
+                url: '/users'
+            });
+            if (resp.status !== 200) {
+                throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
+            }
+            logger.info('[getUsers] got users', { data: resp.data });
+            return resp.data as UserDto[];
+        } catch (err) {
+            logger.error(`[getUsers] got an error response`, { err });
+            throw err;
+        }
+    }
 }

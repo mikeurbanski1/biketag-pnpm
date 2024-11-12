@@ -39,6 +39,7 @@ export class GamesController extends Controller {
     }
 
     @Post()
+    @SuccessResponse('201', 'Created')
     public async createGame(@Body() requestBody: CreateGameParams, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<GameDto> {
         logger.info(`[createGame]`, { requestBody });
         try {
@@ -54,7 +55,7 @@ export class GamesController extends Controller {
 
     @Patch('/{id}')
     @SuccessResponse('200', 'ok')
-    public async updateGame(@Path() id: string, @Body() requestBody: Partial<CreateGameParams>, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<GameDto> {
+    public async updateGame(@Path() id: string, @Body() requestBody: CreateGameParams, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<GameDto> {
         logger.info(`[updateGame]`, { id, requestBody });
         try {
             const game = await this.gamesService.update({ id, updateParams: requestBody });
@@ -90,12 +91,26 @@ export class GamesController extends Controller {
     }
 
     @Delete('/{gameId}/player/{userId}')
-    @SuccessResponse('200', 'ok')
+    @SuccessResponse('204', 'deleted')
     public async removePlayerFromGame(@Path() gameId: string, @Path() userId: string, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<GameDto> {
         logger.info(`[removePlayerFromGame]`, { gameId, userId });
         try {
             const game = await this.gamesService.removePlayerFromGame({ gameId, userId });
             return game;
+        } catch (err) {
+            if (err instanceof GameNotFoundError) {
+                return notFoundResponse(404, { reason: err.message });
+            }
+            throw err;
+        }
+    }
+
+    @Delete('/{id}')
+    @SuccessResponse('204', 'deleted')
+    public async deleteGame(@Path() id: string, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<void> {
+        logger.info(`[deleteGame] id: ${id}`);
+        try {
+            await this.gamesService.delete({ id });
         } catch (err) {
             if (err instanceof GameNotFoundError) {
                 return notFoundResponse(404, { reason: err.message });
