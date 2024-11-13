@@ -27,6 +27,13 @@
         "experimentalDecorators": true,
         // emitDecoratorMetadata is not needed by tsoa (unless you are using Custom Middlewares)
         /* Advanced Options */
-        "forceConsistentCasingInFileNames": true
+        "forceConsistentCasingInFileNames": true,
+        "paths": {
+            // workaround for: https://github.com/vitest-dev/vitest/issues/4567
+            // notice that we'll need to update this when newer versions of vitest are used
+            "rollup/parseAst": [
+                "node_modules/.pnpm/rollup@4.24.3/node_modules/rollup/dist/parseAst"
+            ]
+        }
     }
 }

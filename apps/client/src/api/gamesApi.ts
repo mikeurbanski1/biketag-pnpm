@@ -1,7 +1,7 @@
 import { AxiosError } from 'axios';
 import { axiosInstance } from '.';
 import { Logger } from '@biketag/utils';
-import { GameDto, PlayerGameDto } from '@biketag/models';
+import { CreateGameParams, GameDto, PlayerGame } from '@biketag/models';
 
 export class GameNotFoundError extends Error {}
 export class CreateGameFailedError extends Error {}
@@ -48,12 +48,12 @@ export class GamesApi {
         }
     }
 
-    public async createGame({ name, creator, adminIds, playerIds }: { name: string; creator: string; adminIds?: string[]; playerIds?: string[] }): Promise<GameDto> {
+    public async createGame({ name, creator, players }: { name: string; creator: string; players: PlayerGame[] }): Promise<GameDto> {
         try {
             const resp = await axiosInstance.request({
                 method: 'post',
                 url: '/games',
-                data: { name, creator, adminIds, playerIds }
+                data: { name, creator, players }
             });
             if (resp.status !== 201) {
                 throw new CreateGameFailedError(`Unexpected response: ${resp.status} - ${resp.statusText}`);
@@ -79,9 +79,44 @@ export class GamesApi {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
             }
             logger.info('[getGamesForPlayer] got games', { data: resp.data });
-            return resp.data as PlayerGameDto[];
+            return resp.data as GameDto[];
         } catch (err) {
             logger.error(`[getGamesForPlayer] got an error response`, { err });
+            throw err;
+        }
+    }
+
+    public async updateGame(id: string, game: CreateGameParams): Promise<GameDto> {
+        const { name, creator, players } = game;
+        try {
+            const resp = await axiosInstance.request({
+                method: 'patch',
+                url: `/games/${id}`,
+                data: { name, creator, players }
+            });
+            if (resp.status !== 200) {
+                throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
+            }
+            logger.info('[updateGame] updated game', { data: resp.data });
+            return resp.data as GameDto;
+        } catch (err) {
+            logger.error(`[updateGame] got an error response`, { err });
+            throw err;
+        }
+    }
+
+    public async deleteGame({ gameId }: { gameId: string }) {
+        try {
+            const resp = await axiosInstance.request({
+                method: 'delete',
+                url: `/games/${gameId}`
+            });
+            if (resp.status !== 204) {
+                throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
+            }
+            logger.info('[deleteGame] game deleted', { gameId });
+        } catch (err) {
+            logger.error(`[deleteGame] got an error response`, { err });
             throw err;
         }
     }

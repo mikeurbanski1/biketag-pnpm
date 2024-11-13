@@ -2,9 +2,8 @@
 import { Body, Controller, Delete, Get, Patch, Path, Post, Put, Res, Route, SuccessResponse, TsoaResponse } from 'tsoa';
 import { Logger } from '@biketag/utils';
 import { GamesService } from './gamesService';
-import { CreateGameParams, GameDto, AddPlayerInGameParams, GameRoles } from '@biketag/models';
+import { CreateGameParams, GameDto, AddPlayerInGameParams } from '@biketag/models';
 import { GameNotFoundError, UserNotFoundError } from '../common/errors';
-import { GameEntity } from 'src/dal/models';
 
 const logger = new Logger({ prefix: '[GamesController]' });
 
@@ -15,7 +14,7 @@ export class GamesController extends Controller {
     @Get('/')
     @SuccessResponse('200', 'ok')
     public async getGames(): Promise<GameDto[]> {
-        return (await this.gamesService.getAll()).map((game) => this.convertGameToDto(game));
+        return await this.gamesService.getAll();
     }
 
     @Get('/{id}')
@@ -27,7 +26,7 @@ export class GamesController extends Controller {
             return notFoundResponse(404, { reason: 'Game not found' });
         }
         logger.info(`[getGame] result ${game}`);
-        return this.convertGameToDto(game);
+        return game;
     }
 
     @Get('/player/{userId}')
@@ -36,14 +35,15 @@ export class GamesController extends Controller {
         logger.info(`[getGamesForPlayer] player id: ${userId}`);
         const playerGames = await this.gamesService.getGamesForPlayer({ userId });
         logger.info(`[getGamesForPlayer] result ${playerGames}`);
-        return playerGames.map((playerGame) => this.convertGameToDto(playerGame));
+        return playerGames;
     }
 
     @Post()
+    @SuccessResponse('201', 'Created')
     public async createGame(@Body() requestBody: CreateGameParams, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<GameDto> {
         logger.info(`[createGame]`, { requestBody });
         try {
-            const game = this.convertGameToDto(await this.gamesService.create(requestBody));
+            const game = await this.gamesService.create(requestBody);
             return game;
         } catch (err) {
             if (err instanceof UserNotFoundError) {
@@ -55,12 +55,12 @@ export class GamesController extends Controller {
 
     @Patch('/{id}')
     @SuccessResponse('200', 'ok')
-    public async updateGame(@Path() id: string, @Body() requestBody: Partial<CreateGameParams>, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<GameDto> {
+    public async updateGame(@Path() id: string, @Body() requestBody: CreateGameParams, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<GameDto> {
         logger.info(`[updateGame]`, { id, requestBody });
         try {
             const game = await this.gamesService.update({ id, updateParams: requestBody });
             logger.info(`[updateGame] updated game`, { game });
-            return this.convertGameToDto(game);
+            return game;
         } catch (err) {
             if (err instanceof GameNotFoundError) {
                 return notFoundResponse(404, { reason: err.message });
@@ -81,7 +81,7 @@ export class GamesController extends Controller {
         try {
             const game = await this.gamesService.addPlayerInGame({ gameId, userId, role: requestBody.role });
             logger.info('[addPlayerInGame] result', { game });
-            return this.convertGameToDto(game);
+            return game;
         } catch (err) {
             if (err instanceof UserNotFoundError || err instanceof GameNotFoundError) {
                 return notFoundResponse(404, { reason: err.message });
@@ -91,12 +91,12 @@ export class GamesController extends Controller {
     }
 
     @Delete('/{gameId}/player/{userId}')
-    @SuccessResponse('200', 'ok')
+    @SuccessResponse('204', 'deleted')
     public async removePlayerFromGame(@Path() gameId: string, @Path() userId: string, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<GameDto> {
         logger.info(`[removePlayerFromGame]`, { gameId, userId });
         try {
             const game = await this.gamesService.removePlayerFromGame({ gameId, userId });
-            return this.convertGameToDto(game);
+            return game;
         } catch (err) {
             if (err instanceof GameNotFoundError) {
                 return notFoundResponse(404, { reason: err.message });
@@ -105,24 +105,17 @@ export class GamesController extends Controller {
         }
     }
 
-    private convertGameToDto(game: GameEntity): GameDto {
-        const { id, name, creator } = game;
-        return {
-            id,
-            name,
-            creator,
-            adminIds: game.players.filter((p) => p.role === GameRoles.ADMIN).map((p) => p.userId.toString()),
-            playerIds: game.players.filter((p) => p.role === GameRoles.PLAYER).map((p) => p.userId.toString())
-        };
+    @Delete('/{id}')
+    @SuccessResponse('204', 'deleted')
+    public async deleteGame(@Path() id: string, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<void> {
+        logger.info(`[deleteGame] id: ${id}`);
+        try {
+            await this.gamesService.delete({ id });
+        } catch (err) {
+            if (err instanceof GameNotFoundError) {
+                return notFoundResponse(404, { reason: err.message });
+            }
+            throw err;
+        }
     }
-
-    // private convertDtoToGame(game: CreateGameParams): GameEntity {
-    //     return {
-    //         id: game.id,
-    //         name: game.name,
-    //         creator: game.creator,
-    //         adminIds: new Set(game.adminIds),
-    //         playerIds: new Set(game.playerIds)
-    //     };
-    // }
 }

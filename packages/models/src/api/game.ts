@@ -1,19 +1,18 @@
-import { GameRoles } from '../common/game';
+import { BaseDto } from '.';
+import { GameRoles, PlayerGame, PlayerGameDto } from '../common/game';
+import { UserDto } from './user';
 
-export interface GameDto {
+export interface GameDto extends BaseDto {
     id: string;
     name: string;
+    creator: UserDto;
+    players: PlayerGameDto[];
+}
+
+export interface CreateGameParams extends Omit<GameDto, 'id' | 'creator' | 'players'> {
     creator: string;
-    adminIds: string[];
-    playerIds: string[];
+    players: PlayerGame[];
 }
-
-export interface CreateGameParams extends Omit<GameDto, 'id' | 'adminIds' | 'playerIds'> {
-    adminIds?: string[];
-    playerIds?: string[];
-}
-
-export type UpdateGameParams = Partial<Omit<GameDto, 'id'>>;
 
 export interface RoleDto {
     role: GameRoles;

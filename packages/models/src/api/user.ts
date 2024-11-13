@@ -1,6 +1,7 @@
-export interface UserDto {
+import { BaseDto } from '.';
+
+export interface UserDto extends BaseDto {
     name: string;
-    id: string;
 }
 
 export type CreateUserParams = Omit<UserDto, 'id'>;

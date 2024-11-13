@@ -1,9 +1,10 @@
+import { BaseDto } from '@biketag/models';
 import { Logger } from '@biketag/utils';
 import { ServiceErrors } from 'src/common/errors';
 import { BaseEntity, BaseEntityWithoutId } from 'src/dal/models';
 import { BaseDalService } from 'src/dal/services/baseDalService';
 
-export abstract class BaseService<E extends BaseEntity, D extends BaseDalService<E>> {
+export abstract class BaseService<ResponseDto extends BaseDto, UpsertDTO, E extends BaseEntity, D extends BaseDalService<E>> {
     protected readonly logger: Logger;
     protected readonly dalService: D;
     private readonly serviceErrors: ServiceErrors;
@@ -15,12 +16,14 @@ export abstract class BaseService<E extends BaseEntity, D extends BaseDalService
     }
 
     protected async failIfNotExists({ id }: { id: string }) {
+        this.logger.info(`[failIfNotExists]`, { id });
         if (!(await this.dalService.getById({ id }))) {
             throw new this.serviceErrors.notFoundErrorClass(`Object with ID ${id} does not exist`);
         }
     }
 
     protected async failIfExists({ id }: { id: string }) {
+        this.logger.info(`[failIfNotExists]`, { id });
         if (await this.dalService.getById({ id })) {
             throw new this.serviceErrors.existsErrorClass(`Object with ID ${id} already exists`);
         }
@@ -33,29 +36,52 @@ export abstract class BaseService<E extends BaseEntity, D extends BaseDalService
         }
     }
 
-    public async getAll(): Promise<E[]> {
+    public async getAll(): Promise<ResponseDto[]> {
         this.logger.info('[getAll]');
-        return await this.dalService.getAll();
+        const res = await this.dalService.getAll();
+        this.logger.info(`[getAll] result`, { res });
+        return (await Promise.all(res.map((entity) => this.convertToDto(entity)))) as ResponseDto[];
     }
 
-    public async get({ id }: { id: string }): Promise<E | null> {
+    public async get({ id }: { id: string }): Promise<ResponseDto | null> {
         this.logger.info('[get]', { id });
-        return await this.dalService.getById({ id });
+        const res = await this.dalService.getById({ id });
+        this.logger.info(`[get] result`, { res });
+        return await this.convertToDto(res);
     }
 
-    public async create(params: BaseEntityWithoutId<E>): Promise<E> {
+    public async getRequired({ id }: { id: string }): Promise<ResponseDto> {
+        this.logger.info('[get]', { id });
+        const res = await this.dalService.getByIdRequired({ id });
+        this.logger.info(`[get] result`, { res });
+        return (await this.convertToDto(res))!;
+    }
+
+    public async create(params: UpsertDTO): Promise<ResponseDto> {
         this.logger.info('[create]', { params });
-        return await this.dalService.create(params);
+        const entity = await this.convertToEntity(params);
+        const res = await this.dalService.create(entity);
+        this.logger.info(`[create] result`, { res });
+        return (await this.convertToDto(res))!;
     }
 
-    public async update({ id, updateParams }: { id: string; updateParams: BaseEntityWithoutId<E> }): Promise<E> {
+    public async update({ id, updateParams }: { id: string; updateParams: UpsertDTO }): Promise<ResponseDto> {
         this.logger.info('[update]', { id, updateParams });
         await this.dalService.getByIdRequired({ id });
-        return this.dalService.update({ id, updateParams });
+        const updateEntity = await this.convertToEntity(updateParams);
+        const res = await this.dalService.update({ id, updateParams: updateEntity });
+        this.logger.info(`[update] result`, { res });
+        return (await this.convertToDto(res))!;
     }
 
-    public async deleteUser({ id }: { id: string }) {
-        this.logger.info('[deleteUser]', { id });
-        await this.dalService.delete({ id });
+    public async delete({ id }: { id: string }) {
+        this.logger.info('[delete]', { id });
+        const res = await this.dalService.delete({ id });
+        this.logger.info(`[delete] result`, { res });
+        return res;
     }
+
+    protected abstract convertToEntity(dto: UpsertDTO): BaseEntityWithoutId<E>;
+    protected abstract convertToDtoList(entity: E[]): Promise<ResponseDto[]>;
+    protected abstract convertToDto(entity: E | null): Promise<ResponseDto | null>;
 }

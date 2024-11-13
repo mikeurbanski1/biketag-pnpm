@@ -51,5 +51,17 @@ export const jsonReplacer = (_: unknown, value: unknown) => {
 
 export const stringify = (value: unknown, space?: string | number) => JSON.stringify(value, jsonReplacer, space);
 
+export const copyDefinedProperties = <T>(source: T, filters?: (keyof T)[]): Partial<T> => {
+    const retVal: Partial<T> = {};
+
+    for (const key in source) {
+        if (source[key] && (!filters || filters.includes(key))) {
+            retVal[key] = source[key];
+        }
+    }
+
+    return retVal;
+};
+
 export { Logger, LogLevel };
 export * from './types';

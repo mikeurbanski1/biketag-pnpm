@@ -16,7 +16,9 @@ export abstract class BaseDalService<E extends BaseEntity> {
     }
 
     public async create(params: BaseEntityWithoutId<E>): Promise<E> {
+        this.logger.info(`[create]`, { params });
         const collection = await this.getCollection();
+        this.logger.info(`[create] got collection`);
         const entity = this.convertToDalEntity(params);
         await collection.insertOne(entity as OptionalUnlessRequiredId<E>);
         return this.convertFromDalEntity(entity);
@@ -28,7 +30,7 @@ export abstract class BaseDalService<E extends BaseEntity> {
         const objectId = new ObjectId(id);
 
         const collection = await this.getCollection();
-        const oldEntity = await this.getByIdRequired({ id });
+        const oldEntity = await this.validateId({ id });
         this.logger.info(`[update] updating entity`, { oldEntity });
 
         await collection.updateOne(this.getIdFilter(objectId), { $set: updateParams });
@@ -39,10 +41,12 @@ export abstract class BaseDalService<E extends BaseEntity> {
         return (await MongoDbProvider.getInstance()).getCollection<E>(this.collectionName);
     }
 
-    protected async validateId({ id, checkExists = true }: { id: string; checkExists?: boolean }) {
-        if (!ObjectId.isValid(id) || (checkExists && !(await this.getById({ id })))) {
+    protected async validateId({ id, checkExists = true }: { id: string; checkExists?: boolean }): Promise<E> {
+        let entity: E | null = null;
+        if (!ObjectId.isValid(id) || (checkExists && !(entity = await this.getById({ id }))) || entity === null) {
             throw new this.serviceErrors.notFoundErrorClass(`Object with ID ${id} does not exist`);
         }
+        return entity;
     }
 
     protected convertFromDalEntity(entity: WithId<E>): E {
@@ -62,18 +66,19 @@ export abstract class BaseDalService<E extends BaseEntity> {
         return (await collection.find().toArray()).map(this.convertFromDalEntity);
     }
 
-    public async findOne({ filter, ignoreId }: { filter: Filter<E>; ignoreId?: string }): Promise<WithId<E> | null> {
+    public async findOne({ filter, ignoreId }: { filter: Filter<E>; ignoreId?: string }): Promise<E | null> {
         this.logger.info('[findOne]', { filter, ignoreId });
         const searchFilter = ignoreId ? { ...filter, _id: { $ne: new ObjectId(ignoreId) } } : filter;
         const collection = await this.getCollection();
-        return await collection.findOne(searchFilter);
+        const res = await collection.findOne(searchFilter);
+        return res ? this.convertFromDalEntity(res) : null;
     }
 
-    public async findAll({ filter, ignoreId }: { filter: Filter<E>; ignoreId?: string }): Promise<WithId<E>[]> {
+    public async findAll({ filter, ignoreId }: { filter: Filter<E>; ignoreId?: string }): Promise<E[]> {
         this.logger.info(`[findAll] `, { filter, ignoreId });
         const searchFilter = ignoreId ? { ...filter, _id: { $ne: new ObjectId(ignoreId) } } : filter;
         const collection = await this.getCollection();
-        return await collection.find(searchFilter).toArray();
+        return (await collection.find(searchFilter).toArray()).map(this.convertFromDalEntity);
     }
 
     public async delete({ id }: { id: string }) {
@@ -97,12 +102,11 @@ export abstract class BaseDalService<E extends BaseEntity> {
 
     public async getByIdRequired({ id }: { id: string }): Promise<E> {
         this.logger.info(`[getByIdRequired] `, { id });
-        await this.validateId({ id });
-        return (await this.getById({ id }))!;
+        return await this.validateId({ id });
     }
 
     // there seems to be a TS bug where generic filters do not match type checks
-    // but if we were to put this in a subclass, it would work
+    // but if we were to put this in a subclass and replace the generic type, it would work
     private getIdFilter(id: string | ObjectId): Filter<E> {
         const _id = typeof id === 'string' ? new ObjectId(id) : id;
         return { _id } as Filter<E>;

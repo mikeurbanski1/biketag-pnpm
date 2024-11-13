@@ -7,6 +7,7 @@ import { Login } from './components/login';
 import { Apis, UsersApi } from './api';
 import { Landing } from './components/landing';
 import { GamesApi } from './api/gamesApi';
+import { UserDto } from '@biketag/models';
 
 const logger = new Logger({});
 
@@ -21,10 +22,11 @@ enum AppState {
 
 interface AppComponentState {
     state: AppState;
+    name?: string;
     loggedIn: boolean;
     clientId: string;
     userId?: string;
-    name?: string;
+    user?: UserDto;
 }
 
 export default class App extends React.Component<AppProps, AppComponentState> {
@@ -54,9 +56,9 @@ export default class App extends React.Component<AppProps, AppComponentState> {
     // componentDidMount(): void {}
 
     async setUser({ name, id }: { name: string; id: string }) {
-        await this.usersApi.login({ name, id });
+        await this.usersApi.login({ name });
         this.setState({
-            name,
+            user: { name, id },
             userId: id,
             state: AppState.LOGGED_IN
         });
@@ -70,9 +72,9 @@ export default class App extends React.Component<AppProps, AppComponentState> {
     handleLogOut() {
         this.setState({
             state: AppState.HOME,
-            name: undefined,
             userId: undefined,
-            loggedIn: false
+            loggedIn: false,
+            user: undefined
         });
     }
 
@@ -87,8 +89,9 @@ export default class App extends React.Component<AppProps, AppComponentState> {
                     Logged in as {this.state.name} ({this.state.userId})
                 </h1>,
                 <br></br>,
-                <Landing key="landing" id={this.state.userId!} name={this.state.name!} apis={this.apis}></Landing>,
-                <input type="button" name="login" value="Log out" onClick={async () => await this.handleLogOut()}></input>
+                <Landing key="landing" user={this.state.user!} apis={this.apis}></Landing>,
+                <br></br>,
+                <input type="button" name="login" value="Log out" onClick={() => this.handleLogOut()}></input>
             ];
         }
 
