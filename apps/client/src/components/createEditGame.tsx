@@ -36,7 +36,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
     createEditGame(): void {
         const game: CreateGameParams = {
             name: this.state.gameName,
-            creator: this.props.user.id,
+            creatorId: this.props.user.id,
             players: this.state.selectedUsers
                 .filter((user) => user.role !== undefined)
                 .map((user) => ({

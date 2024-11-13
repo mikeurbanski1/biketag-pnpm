@@ -44,7 +44,8 @@ export abstract class BaseDalService<E extends BaseEntity> {
     protected async validateId({ id, checkExists = true }: { id: string; checkExists?: boolean }): Promise<E> {
         let entity: E | null = null;
         if (!ObjectId.isValid(id) || (checkExists && !(entity = await this.getById({ id }))) || entity === null) {
-            throw new this.serviceErrors.notFoundErrorClass(`Object with ID ${id} does not exist`);
+            const { notFoundErrorClass } = this.serviceErrors;
+            throw new notFoundErrorClass(`${notFoundErrorClass.entityName} with ID ${id} does not exist`);
         }
         return entity;
     }

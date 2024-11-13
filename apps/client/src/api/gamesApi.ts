@@ -48,12 +48,12 @@ export class GamesApi {
         }
     }
 
-    public async createGame({ name, creator, players }: { name: string; creator: string; players: PlayerGame[] }): Promise<GameDto> {
+    public async createGame({ name, creatorId, players }: { name: string; creatorId: string; players: PlayerGame[] }): Promise<GameDto> {
         try {
             const resp = await axiosInstance.request({
                 method: 'post',
                 url: '/games',
-                data: { name, creator, players }
+                data: { name, creatorId, players }
             });
             if (resp.status !== 201) {
                 throw new CreateGameFailedError(`Unexpected response: ${resp.status} - ${resp.statusText}`);
@@ -87,7 +87,7 @@ export class GamesApi {
     }
 
     public async updateGame(id: string, game: CreateGameParams): Promise<GameDto> {
-        const { name, creator, players } = game;
+        const { name, creatorId: creator, players } = game;
         try {
             const resp = await axiosInstance.request({
                 method: 'patch',

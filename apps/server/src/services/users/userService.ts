@@ -1,12 +1,12 @@
-import { UsersDalService } from '../dal/services/usersDalService';
-import { userServiceErrors } from '../common/errors';
-import { BaseService } from '../common/baseService';
+import { UserDalService } from '../../dal/services/userDalService';
+import { userServiceErrors } from '../../common/errors';
+import { BaseService } from '../../common/baseService';
 import { CreateUserParams, UserDto } from '@biketag/models';
-import { UserEntity } from '../dal/models';
+import { UserEntity } from '../../dal/models';
 
-export class UsersService extends BaseService<UserDto, CreateUserParams, UserEntity, UsersDalService> {
+export class UserService extends BaseService<UserDto, CreateUserParams, UserEntity, UserDalService> {
     constructor() {
-        super({ prefix: 'UsersService', dalService: new UsersDalService(), serviceErrors: userServiceErrors });
+        super({ prefix: 'UserService', dalService: new UserDalService(), serviceErrors: userServiceErrors });
     }
 
     protected convertToEntity(dto: CreateUserParams): CreateUserParams {
