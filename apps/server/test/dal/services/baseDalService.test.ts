@@ -1,4 +1,4 @@
-import { Collection, Db, MongoClient, ObjectId } from 'mongodb';
+import { Collection, Db, MongoClient, UUID } from 'mongodb';
 import { Mock, vitest, describe, it, beforeAll, beforeEach, afterAll, afterEach, expect, vi } from 'vitest';
 import { ServiceErrors } from '../../../src/common/errors';
 import { BaseEntity } from '../../../src/dal/models';
@@ -41,7 +41,7 @@ describe('baseDalService tests', () => {
         });
 
         it('should get an entity by ID', async () => {
-            const objectId = new ObjectId();
+            const objectId = new UUID();
             const objectIdStr = objectId.toString();
             collection.findOne = vitest.fn().mockResolvedValue({ _id: objectId, name: 'test', phone: '1234' });
             const obj = { name: 'test', phone: '1234' };
@@ -74,7 +74,7 @@ describe('baseDalService tests', () => {
         });
 
         it('should get a required entity by ID', async () => {
-            const objectId = new ObjectId();
+            const objectId = new UUID();
             const objectIdStr = objectId.toString();
             collection.findOne = vitest.fn().mockResolvedValue({ _id: objectId, name: 'test', phone: '1234' });
             const obj = { name: 'test', phone: '1234' };
@@ -86,7 +86,7 @@ describe('baseDalService tests', () => {
         });
 
         it('should throw an error if the object is not found', async () => {
-            const id = new ObjectId().toString();
+            const id = new UUID().toString();
             collection.findOne = vitest.fn().mockResolvedValue(null);
             await expect(instance.getByIdRequired({ id })).rejects.toThrow(`Object with ID ${id} does not exist`);
             expect(collection.findOne).toHaveBeenCalledTimes(1);
@@ -96,12 +96,12 @@ describe('baseDalService tests', () => {
     describe('update tests', async () => {
         it('should update an entity', async () => {
             const obj = { name: 'test', phone: '5678' };
-            const id = new ObjectId().toString();
+            const id = new UUID().toString();
 
             collection.findOne = vitest.fn().mockResolvedValueOnce({ _id: id, name: 'test', phone: '1234' }).mockResolvedValueOnce({ _id: id, name: 'test', phone: '5678' });
             collection.updateOne = vitest.fn();
             expect(await instance.update({ id, updateParams: obj })).toEqual({ id, ...obj });
-            expect(collection.updateOne).toHaveBeenCalledWith({ _id: new ObjectId(id) }, { $set: obj });
+            expect(collection.updateOne).toHaveBeenCalledWith({ _id: new UUID(id) }, { $set: obj });
         });
     });
 });

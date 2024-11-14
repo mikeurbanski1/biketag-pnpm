@@ -5,6 +5,6 @@ export interface GameEntity extends BaseEntity {
     name: string;
     creatorId: string;
     players: PlayerGame[];
-    rootTagId?: string;
-    latestTagId?: string;
+    firstRootTagId?: string;
+    latestRootTagId?: string;
 }

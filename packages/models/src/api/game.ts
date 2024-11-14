@@ -7,15 +7,15 @@ export interface GameDto extends BaseDto {
     name: string;
     creator: UserDto;
     players: PlayerGameDto[];
-    rootTag?: TagDto;
-    latestTag?: TagDto;
+    firstRootTag?: TagDto;
+    latestRootTag?: TagDto;
 }
 
 export interface CreateGameParams extends Pick<GameDto, 'name'> {
     creatorId: string;
     players: PlayerGame[];
-    rootTagId?: string;
-    latestTagId?: string;
+    firstRootTagId?: string;
+    latestRootTagId?: string;
 }
 
 export interface RoleDto {

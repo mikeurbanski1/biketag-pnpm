@@ -29,8 +29,8 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
             name: entity.name,
             creator: await this.usersService.getRequired({ id: entity.creatorId }),
             players: await Promise.all(entity.players.map(async (p) => ({ ...p, user: await this.usersService.getRequired({ id: p.userId }) }))),
-            rootTag: entity.rootTagId ? await this.tagsService.getRequired({ id: entity.rootTagId }) : undefined,
-            latestTag: entity.latestTagId ? await this.tagsService.getRequired({ id: entity.latestTagId }) : undefined
+            firstRootTag: entity.firstRootTagId ? await this.tagsService.getRequired({ id: entity.firstRootTagId }) : undefined,
+            latestRootTag: entity.latestRootTagId ? await this.tagsService.getRequired({ id: entity.latestRootTagId }) : undefined
         };
     }
 
@@ -62,7 +62,7 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
 
         const game = await this.dalService.getByIdRequired({ id });
 
-        let dalParams: Partial<GameEntity> = copyDefinedProperties(updateParams, ['name', 'creatorId', 'players', 'latestTagId', 'rootTagId']);
+        let dalParams: Partial<GameEntity> = copyDefinedProperties(updateParams, ['name', 'creatorId', 'players', 'latestRootTagId', 'firstRootTagId']);
         if (updateParams.creatorId) {
             const players = updateParams.players || game.players;
             const creatorIndex = players.findIndex((p) => p.userId === updateParams.creatorId);
@@ -76,15 +76,17 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
         return await this.convertToDto(newGame);
     }
 
-    public async setTagInGame({ gameId, tagId, root = false }: { gameId: string; tagId: string; root?: boolean }): Promise<GameDto> {
+    public async setTagInGame({ gameId, tagId, root = false }: { gameId: string; tagId: string; root?: boolean }): Promise<void> {
         this.logger.info(`[setTagInGame]`, { gameId, tagId, root });
-        const game = await this.dalService.getByIdRequired({ id: gameId });
-        game.latestTagId = tagId;
         if (root) {
-            game.rootTagId = tagId;
+            const game = await this.dalService.getByIdRequired({ id: gameId });
+
+            const updateParams: Partial<GameEntity> = { latestRootTagId: tagId };
+            if (!game.firstRootTagId) {
+                updateParams.firstRootTagId = tagId;
+            }
+            await this.dalService.update({ id: gameId, updateParams });
         }
-        const newGame = await this.dalService.update({ id: gameId, updateParams: game });
-        return await this.convertToDto(newGame);
     }
 
     public async addPlayerInGame({ gameId, userId, role }: { gameId: string; userId: string; role: string }): Promise<GameDto> {

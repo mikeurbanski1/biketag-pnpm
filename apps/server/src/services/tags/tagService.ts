@@ -7,6 +7,7 @@ import { GameService } from '../games/gamesService';
 import { UserService } from '../users/userService';
 import { validateExists } from '../../common/entityValidators';
 import { tagServiceErrors } from '../../common/errors';
+import { UUID } from 'mongodb';
 
 export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, TagDalService> {
     private readonly usersService: UserService;
@@ -58,23 +59,62 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         };
     }
 
+    private async updateTagLinks({ tagIdToUpdate, tagIdToSet, fields }: { tagIdToUpdate: string; tagIdToSet: string; fields: (typeof tagFields)[number][] }) {
+        this.logger.info('[updateTagLink]', { tagIdToUpdate, tagIdToSet, fields });
+        const updateFields = fields.reduce((params, field) => {
+            params[field] = tagIdToSet;
+            return params;
+        }, {} as Partial<TagEntity>);
+        await this.dalService.update({ id: tagIdToUpdate, updateParams: updateFields });
+    }
+
     public override async create(params: CreateTagParams): Promise<TagDto> {
-        const requiredTagFields: (typeof tagFields)[number][] = params.isRoot ? [] : ['parentTagId', 'rootTagId'];
-        await this.validateTagLinks({ tag: params, requiredTagFields });
+        const { isRoot, gameId } = params;
+        if (isRoot) {
+            await this.validateRootTagLinks(params);
+        }
 
-        const tag = await this.dalService.create({ ...params, postedDate: new Date().toISOString() });
+        // create a new tag object id now so we can update references with fewer calls / cleaner flow
+        const tagUUID = new UUID().toString();
 
-        await this.gamesService.setTagInGame({ gameId: tag.gameId, tagId: tag.id, root: params.isRoot });
+        const createParams: TagEntity = { ...params, id: tagUUID, postedDate: new Date().toISOString() };
+
+        if (isRoot) {
+            // before we update the game, get the current latest root tag, and point it to this as the next root
+            // then point this back to it
+            const game = await this.gamesService.getRequiredAsEntity({ id: gameId });
+            const { latestRootTagId } = game;
+            if (latestRootTagId) {
+                await this.updateTagLinks({ tagIdToUpdate: latestRootTagId, tagIdToSet: tagUUID, fields: ['nextRootTagId'] });
+                await this.dalService.updateMany({ filter: { gameId, rootTagId: latestRootTagId }, updateParams: { nextRootTagId: tagUUID } });
+                createParams.previousRootTagId = latestRootTagId;
+            }
+        } else {
+            const { parentTagId } = params;
+            // if this is not a root tag, we need to update the parent tag to point to this, and copy the previous and next roots
+            await this.updateTagLinks({ tagIdToUpdate: parentTagId!, tagIdToSet: tagUUID, fields: ['nextTagId'] });
+            const parentTag = await this.dalService.getByIdRequired({ id: parentTagId! });
+            createParams.nextRootTagId = parentTag.nextRootTagId;
+            createParams.previousRootTagId = parentTag.previousRootTagId;
+        }
+
+        const tag = await this.dalService.create(createParams);
+
+        await this.gamesService.setTagInGame({ gameId, tagId: tagUUID, root: isRoot });
 
         return await this.convertToDto(tag);
     }
 
-    private async validateTagLinks({ tag, requiredTagFields = [] }: { tag: CreateTagParams; requiredTagFields?: (typeof tagFields)[number][] }) {
+    /**
+     * Validates the links for a new tag: creator, game, and parent and root tags
+     */
+    private async validateRootTagLinks(tag: CreateTagParams): Promise<void> {
         const promises = [validateExists(tag.creatorId, this.usersService), validateExists(tag.gameId, this.gamesService)];
 
-        for (const field of tagFields) {
-            if (requiredTagFields.includes(field) || tag[field]) {
-                promises.push(validateExists(tag[field] ?? '', this));
+        if (tag.parentTagId) {
+            promises.push(validateExists(tag.parentTagId, this));
+            if (tag.rootTagId && tag.rootTagId !== tag.parentTagId) {
+                promises.push(validateExists(tag.rootTagId, this));
             }
         }
 

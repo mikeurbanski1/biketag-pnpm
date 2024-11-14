@@ -25,11 +25,8 @@ export interface CreateTagParams {
     creatorId: string;
     gameId: string;
     parentTagId?: string;
-    nextTagId?: string;
     rootTagId?: string;
     isRoot: boolean;
-    previousRootTagId?: string;
-    nextRootTagId?: string;
     contents: string;
 }
 

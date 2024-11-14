@@ -5,7 +5,7 @@
     "scripts": {
         "build": "mkdir -p build && tsoa routes && tsc",
         "dev": "concurrently \"nodemon\" \"nodemon -x tsoa routes\"",
-        "test": "vitest",
+        "test": "vitest test/**/*.test.ts",
         "start": "ts-node src/server.ts",
         "bootstrap": "ts-node src/bootstrap.ts"
     },
