@@ -50,11 +50,25 @@ export abstract class BaseService<ResponseDto extends BaseDto, UpsertDTO, E exte
         return await this.convertToDto(res);
     }
 
+    public async getAsEntity({ id }: { id: string }): Promise<E | null> {
+        this.logger.info('[getAsEntity]', { id });
+        const res = await this.dalService.getById({ id });
+        this.logger.info(`[getAsEntity] result`, { res });
+        return res;
+    }
+
     public async getRequired({ id }: { id: string }): Promise<ResponseDto> {
         this.logger.info('[get]', { id });
         const res = await this.dalService.getByIdRequired({ id });
         this.logger.info(`[get] result`, { res });
         return (await this.convertToDto(res))!;
+    }
+
+    public async getRequiredAsEntity({ id }: { id: string }): Promise<E> {
+        this.logger.info('[getRequiredAsEntity]', { id });
+        const res = await this.dalService.getByIdRequired({ id });
+        this.logger.info(`[getRequiredAsEntity] result`, { res });
+        return res;
     }
 
     public async create(params: UpsertDTO): Promise<ResponseDto> {
@@ -81,7 +95,10 @@ export abstract class BaseService<ResponseDto extends BaseDto, UpsertDTO, E exte
         return res;
     }
 
+    protected async convertToDtoList(entity: E[]): Promise<ResponseDto[]> {
+        return (await Promise.all(entity.map((e) => this.convertToDto(e)))) as ResponseDto[];
+    }
+
     protected abstract convertToEntity(dto: UpsertDTO): BaseEntityWithoutId<E>;
-    protected abstract convertToDtoList(entity: E[]): Promise<ResponseDto[]>;
     protected abstract convertToDto(entity: E | null): Promise<ResponseDto | null>;
 }

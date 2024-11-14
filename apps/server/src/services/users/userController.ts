@@ -1,20 +1,19 @@
 import { Body, Controller, Get, Path, Post, Res, Route, SuccessResponse, TsoaResponse } from 'tsoa';
 import { Logger } from '@biketag/utils';
-import { UsersService } from './usersService';
+import { UserService } from './userService';
 import { CreateUserParams, UserDto } from '@biketag/models';
-import { UserEntity } from 'src/dal/models';
 
-const logger = new Logger({ prefix: '[UsersController]' });
+const logger = new Logger({ prefix: '[UserController]' });
 
 @Route('users')
-export class UsersController extends Controller {
-    private usersService = new UsersService();
+export class UserController extends Controller {
+    private usersService = new UserService();
 
     @Get('/')
     @SuccessResponse('200', 'ok')
     public async getUsers(): Promise<UserDto[]> {
         logger.info('[getUsers]');
-        return (await this.usersService.getAll()).map(this.convertUserToDto);
+        return await this.usersService.getAll();
     }
 
     @Post('/login')
@@ -27,7 +26,7 @@ export class UsersController extends Controller {
         if (!user) {
             return invalidResponse(400, { reason: 'Incorrect name' });
         }
-        return this.convertUserToDto(user);
+        return user;
     }
 
     @Get('/{id}')
@@ -39,7 +38,7 @@ export class UsersController extends Controller {
             return notFoundResponse(404, { reason: 'User does not exist' });
         }
         logger.info(`[getUser] result ${user}`);
-        return this.convertUserToDto(user);
+        return user;
     }
 
     @Post()
@@ -47,11 +46,6 @@ export class UsersController extends Controller {
     public async createUser(@Body() requestBody: CreateUserParams): Promise<UserDto> {
         logger.info(`[createUser]`, { requestBody });
         const user = await this.usersService.create(requestBody);
-        this.setStatus(201);
-        return this.convertUserToDto(user);
-    }
-
-    private convertUserToDto(user: UserEntity): UserDto {
         return user;
     }
 }

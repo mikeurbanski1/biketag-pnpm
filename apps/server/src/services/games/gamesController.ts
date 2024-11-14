@@ -1,15 +1,15 @@
 // src/users/usersController.ts
 import { Body, Controller, Delete, Get, Patch, Path, Post, Put, Res, Route, SuccessResponse, TsoaResponse } from 'tsoa';
 import { Logger } from '@biketag/utils';
-import { GamesService } from './gamesService';
+import { GameService } from './gamesService';
 import { CreateGameParams, GameDto, AddPlayerInGameParams } from '@biketag/models';
-import { GameNotFoundError, UserNotFoundError } from '../common/errors';
+import { GameNotFoundError, UserNotFoundError } from '../../common/errors';
 
-const logger = new Logger({ prefix: '[GamesController]' });
+const logger = new Logger({ prefix: '[GameController]' });
 
 @Route('games')
-export class GamesController extends Controller {
-    private gamesService = new GamesService();
+export class GameController extends Controller {
+    private gamesService = new GameService();
 
     @Get('/')
     @SuccessResponse('200', 'ok')

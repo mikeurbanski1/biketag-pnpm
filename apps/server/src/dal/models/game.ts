@@ -3,6 +3,8 @@ import { BaseEntity } from '.';
 
 export interface GameEntity extends BaseEntity {
     name: string;
-    creator: string;
+    creatorId: string;
     players: PlayerGame[];
+    firstRootTagId?: string;
+    latestRootTagId?: string;
 }

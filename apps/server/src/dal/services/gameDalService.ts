@@ -1,16 +1,17 @@
 import { gameServiceErrors } from '../../common/errors';
 import { GameEntity } from '../models';
+import { UUID } from 'mongodb';
 import { BaseDalService } from './baseDalService';
 
-export class GamesDalService extends BaseDalService<GameEntity> {
+export class GameDalService extends BaseDalService<GameEntity> {
     constructor() {
-        super({ prefix: 'GamesDalService', collectionName: 'games', serviceErrors: gameServiceErrors });
+        super({ prefix: 'GameDalService', collectionName: 'games', serviceErrors: gameServiceErrors });
     }
 
     // public async updateGame({ id, params }: { id: string; params: Partial<WithoutId<GameEntity>> }): Promise<GameEntity> {
     //     this.logger.info(`[updateGame] `, { params, id });
 
-    //     const objectId = new ObjectId(id);
+    //     const objectId = new UUID(id);
 
     //     const collection = await this.getCollection();
     //     const oldGame = await this.getByIdRequired({ id });
@@ -26,7 +27,7 @@ export class GamesDalService extends BaseDalService<GameEntity> {
     public async getGamesForPlayer({ userId }: { userId: string }): Promise<GameEntity[]> {
         this.logger.info('[getGamesForPlayer]', { userId });
         return await this.findAll({
-            filter: { $or: [{ 'players.userId': userId }, { creator: userId }] }
+            filter: { $or: [{ 'players.userId': new UUID(userId) }, { creatorId: userId }] }
         });
     }
 

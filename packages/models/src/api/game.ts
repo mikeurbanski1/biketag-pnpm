@@ -1,4 +1,4 @@
-import { BaseDto } from '.';
+import { BaseDto, TagDto } from '.';
 import { GameRoles, PlayerGame, PlayerGameDto } from '../common/game';
 import { UserDto } from './user';
 
@@ -7,11 +7,15 @@ export interface GameDto extends BaseDto {
     name: string;
     creator: UserDto;
     players: PlayerGameDto[];
+    firstRootTag?: TagDto;
+    latestRootTag?: TagDto;
 }
 
-export interface CreateGameParams extends Omit<GameDto, 'id' | 'creator' | 'players'> {
-    creator: string;
+export interface CreateGameParams extends Pick<GameDto, 'name'> {
+    creatorId: string;
     players: PlayerGame[];
+    firstRootTagId?: string;
+    latestRootTagId?: string;
 }
 
 export interface RoleDto {
