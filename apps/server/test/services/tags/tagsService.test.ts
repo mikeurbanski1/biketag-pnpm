@@ -1,3 +1,4 @@
+// @ts-ignore
 import { Mock, vitest, describe, it, beforeAll, beforeEach, afterAll, afterEach, expect, vi } from 'vitest';
 import { TagDalService } from '../../../src/dal/services/tagDalService';
 import { TagEntity } from '../../../src/dal/models/tag';
@@ -151,7 +152,7 @@ describe('TagService tests', () => {
 
             obj = { name: 'Chain 2', creatorId: '1', gameId: '1', contents: 'tag 2B', isRoot: false, parentTagId: tag2aId, rootTagId: tag2aId };
             let tag2b = await service.create(obj);
-            const { id: tag2bId } = tag2b;
+            const { id: _tag2bId } = tag2b;
             expect(tag2b).toEqual({
                 id: expect.any(String),
                 name: 'Chain 2',
