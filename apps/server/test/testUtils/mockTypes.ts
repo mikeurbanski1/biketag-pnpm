@@ -1,4 +1,3 @@
-import { dot } from 'node:test/reporters';
 import { BaseService } from '../../src/common/baseService';
 import { BaseExistsCheckError, ServiceErrors } from '../../src/common/errors';
 import { BaseEntity } from '../../src/dal/models';

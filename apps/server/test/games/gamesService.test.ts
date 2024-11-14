@@ -1,3 +1,4 @@
+// @ts-ignore
 import { Mock, vitest, describe, it, beforeAll, beforeEach, afterAll, afterEach, expect, vi } from 'vitest';
 import { UserService } from '../../src/services/users/userService';
 import { GameService } from '../../src/services/games/gamesService';
