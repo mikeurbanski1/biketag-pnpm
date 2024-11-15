@@ -1,17 +1,18 @@
 import { AxiosError } from 'axios';
-import { axiosInstance } from '.';
-import { Logger } from '@biketag/utils';
 import { CreateUserParams, UserDto } from '@biketag/models';
+import { AbstractApi } from './abstractApi';
 
 export class LoginFailedError extends Error {}
 export class SignupFailedError extends Error {}
 
-const logger = new Logger({ prefix: '[UsersApi]' });
+export class UserApi extends AbstractApi {
+    constructor({ clientId }: { clientId: string }) {
+        super({ clientId, logPrefix: '[UserApi]' });
+    }
 
-export class UsersApi {
     public async login({ name }: CreateUserParams): Promise<UserDto> {
         try {
-            const resp = await axiosInstance.request({
+            const resp = await this.axiosInstance.request<UserDto>({
                 method: 'post',
                 url: '/users/login',
                 data: {
@@ -21,10 +22,10 @@ export class UsersApi {
             if (resp.status !== 200) {
                 throw new LoginFailedError(`Unexpected response: ${resp.status} - ${resp.statusText}`);
             }
-            logger.info(`[login] login successful`, { data: resp.data });
-            return resp.data as UserDto;
+            this.logger.info(`[login] login successful`, { data: resp.data });
+            return resp.data;
         } catch (err) {
-            logger.error(`[login] error`, { err });
+            this.logger.error(`[login] error`, { err });
             if (err instanceof AxiosError) {
                 if (err.status === 404) {
                     throw new LoginFailedError('User does not exist');
@@ -40,7 +41,7 @@ export class UsersApi {
 
     public async signup({ name }: CreateUserParams): Promise<UserDto> {
         try {
-            const resp = await axiosInstance.request({
+            const resp = await this.axiosInstance.request<{ id: string }>({
                 method: 'post',
                 url: '/users',
                 data: {
@@ -50,10 +51,10 @@ export class UsersApi {
             if (resp.status !== 201) {
                 throw new SignupFailedError(`Unexpected response: ${resp.status} - ${resp.statusText}`);
             }
-            logger.info('[signup] got 201 response', { data: resp.data });
+            this.logger.info('[signup] got 201 response', { data: resp.data });
             return { name, id: resp.data.id };
         } catch (err) {
-            logger.info(`[signup]`, { err });
+            this.logger.info(`[signup]`, { err });
             if (err instanceof AxiosError) {
                 throw new SignupFailedError(err.message);
             }
@@ -63,17 +64,17 @@ export class UsersApi {
 
     public async getUsers(): Promise<UserDto[]> {
         try {
-            const resp = await axiosInstance.request({
+            const resp = await this.axiosInstance.request<UserDto[]>({
                 method: 'get',
                 url: '/users'
             });
             if (resp.status !== 200) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
             }
-            logger.info('[getUsers] got users', { data: resp.data });
-            return resp.data as UserDto[];
+            this.logger.info('[getUsers] got users', { data: resp.data });
+            return resp.data;
         } catch (err) {
-            logger.error(`[getUsers] got an error response`, { err });
+            this.logger.error(`[getUsers] got an error response`, { err });
             throw err;
         }
     }

@@ -1,5 +1,6 @@
 import { BaseDto } from '@biketag/models';
 import { Logger } from '@biketag/utils';
+import { Filter, UUID } from 'mongodb';
 import { ServiceErrors } from 'src/common/errors';
 import { BaseEntity, BaseEntityWithoutId } from 'src/dal/models';
 import { BaseDalService } from 'src/dal/services/baseDalService';
@@ -48,6 +49,13 @@ export abstract class BaseService<ResponseDto extends BaseDto, UpsertDTO, E exte
         const res = await this.dalService.getById({ id });
         this.logger.info(`[get] result`, { res });
         return await this.convertToDto(res);
+    }
+
+    public async getMultiple({ ids }: { ids: string[] }): Promise<ResponseDto[]> {
+        this.logger.info('[getMultiple]', { ids });
+        const res = await this.dalService.findAll({ filter: { _id: { $in: ids.map((id) => new UUID(id)) } } as Filter<E> });
+        this.logger.info(`[getMultiple] result`, { res });
+        return await this.convertToDtoList(res);
     }
 
     public async getAsEntity({ id }: { id: string }): Promise<E | null> {

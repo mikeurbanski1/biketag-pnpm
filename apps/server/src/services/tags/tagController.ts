@@ -29,4 +29,19 @@ export class TagController extends Controller {
         const tag = await this.tagsService.create(requestBody);
         return tag;
     }
+
+    @Post('/multi')
+    @SuccessResponse('201', 'Created')
+    public async getMultipleTags(@Body() requestBody: string[]): Promise<Record<string, TagDto>> {
+        logger.info(`[getMultipleTags]`, { requestBody });
+        const tags = await this.tagsService.getMultiple({ ids: requestBody });
+        logger.info('[getMultipleTags] got tags', { tags });
+        return tags.reduce(
+            (idMap, tag) => {
+                idMap[tag.id] = tag;
+                return idMap;
+            },
+            {} as Record<string, TagDto>
+        );
+    }
 }

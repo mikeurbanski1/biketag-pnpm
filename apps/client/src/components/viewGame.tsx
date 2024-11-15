@@ -1,5 +1,6 @@
 import { GameDto, UserDto } from '@biketag/models';
 import React from 'react';
+import { TagView } from './game/tagView';
 
 interface ViewGameState {
     isCreator: boolean;
@@ -35,8 +36,11 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                         </li>
                     ))}
                 </ul>
+                <TagView game={game} />
+                <br></br>
                 {this.state.isCreator && <input type="button" name="editGame" value="Edit game" onClick={() => this.props.editGame()}></input>}
                 {this.state.isCreator && <input type="button" name="deleteGame" value="Delete game" onClick={() => this.props.deleteGame()}></input>}
+                <br></br>
                 <input type="button" name="goBack" value="Go back" onClick={() => this.props.doneViewingGame()}></input>
             </div>
         );
