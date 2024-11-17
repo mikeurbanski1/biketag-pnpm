@@ -20,9 +20,10 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
     }
 
     protected convertToEntity(dto: CreateTagParams): BaseEntityWithoutId<TagEntity> {
+        this.logger.info(`[convertToEntity]`, { dto });
         return {
             ...dto,
-            postedDate: new Date().toISOString()
+            postedDate: dto.postedDate ?? new Date().toISOString()
         };
     }
 
@@ -71,6 +72,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
     }
 
     public override async create(params: CreateTagParams): Promise<TagDto> {
+        this.logger.info(`[create]`, { params });
         const { isRoot, gameId } = params;
         if (isRoot) {
             await this.validateRootTagLinks(params);
@@ -79,7 +81,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         // create a new tag object id now so we can update references with fewer calls / cleaner flow
         const tagUUID = new UUID().toString();
 
-        const createParams: TagEntity = { ...params, id: tagUUID, postedDate: new Date().toISOString() };
+        const createParams: TagEntity = { ...params, id: tagUUID, postedDate: params.postedDate ?? new Date().toISOString() };
 
         if (isRoot) {
             // before we update the game, get the current latest root tag, and point it to this as the next root

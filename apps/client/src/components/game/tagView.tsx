@@ -1,8 +1,9 @@
 import React from 'react';
 // import { ApiManager } from '../../api';
 import { GameDto, MinimalTag as MinimalTagType, TagDto } from '@biketag/models';
-import { MinimalTag, TagDetails } from './tag';
+import { MinimalTag, TagDetails } from './tagDetails';
 import { ApiManager } from '../../api';
+import { SubtagView } from './subtagView';
 
 interface TagViewState {
     loading: boolean;
@@ -37,7 +38,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
     }
 
     getMinimalTagAndButton(tag: MinimalTagType, previous: boolean): React.ReactNode {
-        const tagElement = <MinimalTag tag={tag} />;
+        const tagElement = <MinimalTag tag={tag} isSubtag={false} />;
         const button = <input type="button" className="root-scroller-button" name={tag.id} value={previous ? '<<' : '>>'} onClick={() => this.setTag(tag.id)}></input>;
         return previous ? [tagElement, <br></br>, button] : [button, <br></br>, tagElement];
     }
@@ -49,10 +50,15 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         if (!this.state.rootTag) {
             return <div>No tags yet!</div>;
         }
+
         return (
             <div className="root-tag-scroller">
                 {this.state.rootTag.previousRootTag && this.getMinimalTagAndButton(this.state.rootTag.previousRootTag, true)}
-                <TagDetails tag={this.state.rootTag} />
+                <div className="root-tag">
+                    <TagDetails tag={this.state.rootTag} isSubtag={false} />
+                    <hr></hr>
+                    <SubtagView game={this.props.game} />
+                </div>
                 {this.state.rootTag.nextRootTag && this.getMinimalTagAndButton(this.state.rootTag.nextRootTag, false)}
             </div>
         );

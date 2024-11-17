@@ -30,6 +30,7 @@ export interface CreateTagParams {
     rootTagId?: string;
     isRoot: boolean;
     contents: string;
+    postedDate?: string; // used for bootstrapping
 }
 
 export const tagFields = ['parentTagId', 'nextTagId', 'rootTagId', 'previousRootTagId', 'nextRootTagId'] as const;

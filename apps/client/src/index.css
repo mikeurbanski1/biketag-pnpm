@@ -105,19 +105,28 @@ input[type="button"] {
     font-size: 1.2em;
 }
 
-.main-tag .tag-title {
+.sub-tag {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 1em;
+}
+
+.tag-title {
     font-size: 1.5em;
     font-weight: 500;
     margin-bottom: 0.5em;
 }
 
-.main-tag .tag-contents {
+.tag-contents {
     font-size: 1.2em;
     font-weight: 400;
     margin-bottom: 0.5em;
     color: #0058fb;
     font-style: italic;
 }
+
+
 
 .minimal-tag {
     display: flex;
@@ -131,7 +140,7 @@ input[type="button"] {
     margin-bottom: 0.5em;
 }
 
-.tag-creator {
+.main-tag-creator {
     color: #535bf2;
     font-size: 1.1em;
 }
