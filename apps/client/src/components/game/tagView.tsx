@@ -38,7 +38,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
 
     getMinimalTagAndButton(tag: MinimalTagType, previous: boolean): React.ReactNode {
         const tagElement = <MinimalTag tag={tag} />;
-        const button = <input type="button" name={tag.id} value={previous ? 'Previous' : 'Next'} onClick={() => this.setTag(tag.id)}></input>;
+        const button = <input type="button" className="root-scroller-button" name={tag.id} value={previous ? '<<' : '>>'} onClick={() => this.setTag(tag.id)}></input>;
         return previous ? [tagElement, <br></br>, button] : [button, <br></br>, tagElement];
     }
 
@@ -50,7 +50,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
             return <div>No tags yet!</div>;
         }
         return (
-            <div>
+            <div className="root-tag-scroller">
                 {this.state.rootTag.previousRootTag && this.getMinimalTagAndButton(this.state.rootTag.previousRootTag, true)}
                 <TagDetails tag={this.state.rootTag} />
                 {this.state.rootTag.nextRootTag && this.getMinimalTagAndButton(this.state.rootTag.nextRootTag, false)}

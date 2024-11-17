@@ -34,7 +34,7 @@ export class GameController extends Controller {
     public async getGamesForPlayer(@Path() userId: string): Promise<GameDto[]> {
         logger.info(`[getGamesForPlayer] player id: ${userId}`);
         const playerGames = await this.gamesService.getGamesForPlayer({ userId });
-        logger.info(`[getGamesForPlayer] result ${playerGames}`);
+        logger.info(`[getGamesForPlayer] result`, { playerGames });
         return playerGames;
     }
 

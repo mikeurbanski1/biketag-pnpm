@@ -1,7 +1,6 @@
 import { ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '@biketag/utils';
-import './App.css';
 import React from 'react';
 import { Login } from './components/login';
 import { ApiManager } from './api';

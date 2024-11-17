@@ -112,6 +112,7 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
     }
 
     public async getGamesForPlayer({ userId }: { userId: string }): Promise<GameDto[]> {
+        this.logger.info(`[getGamesForPlayer]`, { userId });
         const games = await this.dalService.getGamesForPlayer({ userId });
         return await this.convertToDtoList(games);
     }
