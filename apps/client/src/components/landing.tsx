@@ -92,7 +92,9 @@ export class Landing extends React.Component<LandingProps, LandingState> {
                         <ul>
                             {this.state.games.map((game) => (
                                 <a onClick={() => this.setState({ game })}>
-                                    <li key={game.id}>{game.name}</li>
+                                    <li id={game.id} key={game.id}>
+                                        {game.name}
+                                    </li>
                                 </a>
                             ))}
                         </ul>

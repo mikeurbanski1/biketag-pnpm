@@ -77,28 +77,27 @@ export default class App extends React.Component<AppProps, AppComponentState> {
     }
 
     render(): ReactNode {
-        let inner;
+        let inner: ReactNode;
 
         if (this.state.state === AppState.HOME) {
-            inner = [<Login key="landing" setUser={({ name, id }: { name: string; id: string }) => this.setUser({ name, id })}></Login>];
+            inner = <Login key="landing" setUser={({ name, id }: { name: string; id: string }) => this.setUser({ name, id })}></Login>;
         } else if (this.state.state === AppState.LOGGED_IN) {
-            inner = [
-                <h1 key="k1">
-                    Logged in as {this.state.name} ({this.state.userId})
-                </h1>,
-                <br></br>,
-                <Landing key="landing" user={this.state.user!}></Landing>,
-                <br></br>,
-                <input type="button" name="login" value="Log out" onClick={() => this.handleLogOut()}></input>
-            ];
+            inner = [<br></br>, <Landing key="landing" user={this.state.user!}></Landing>, <br></br>];
         }
 
         return (
             <div className="App">
                 <header className="App-header">
                     <h1 key="h1">Bike Tag</h1>
+                    {this.state.user && (
+                        <p>
+                            Logged in as {this.state.user.name} ({this.state.userId})
+                        </p>
+                    )}
+                    <hr></hr>
                     {inner}
-                    <br></br>
+                    <hr></hr>
+                    {this.state.user && [<input type="button" name="login" value="Log out" onClick={() => this.handleLogOut()}></input>, <br></br>]}
                     <input type="button" name="reset-client-button" value="Reset local client ID" onClick={this.handleResetClient}></input>
                 </header>
             </div>
