@@ -4,9 +4,8 @@ import { Logger } from '@biketag/utils';
 import './App.css';
 import React from 'react';
 import { Login } from './components/login';
-import { Apis, UsersApi } from './api';
+import { ApiManager } from './api';
 import { Landing } from './components/landing';
-import { GamesApi } from './api/gamesApi';
 import { UserDto } from '@biketag/models';
 
 const logger = new Logger({});
@@ -30,10 +29,6 @@ interface AppComponentState {
 }
 
 export default class App extends React.Component<AppProps, AppComponentState> {
-    private readonly usersApi = new UsersApi();
-    private readonly gamesApi = new GamesApi();
-    private readonly apis: Apis = { usersApi: this.usersApi, gamesApi: this.gamesApi };
-
     constructor(props: AppProps) {
         super(props);
 
@@ -49,6 +44,8 @@ export default class App extends React.Component<AppProps, AppComponentState> {
             loggedIn: false
         };
 
+        ApiManager.initialize({ clientId: this.state.clientId });
+
         logger.info('Client UUID:', { uuid: this.state.clientId });
         localStorage.setItem('clientId', this.state.clientId);
     }
@@ -56,12 +53,12 @@ export default class App extends React.Component<AppProps, AppComponentState> {
     // componentDidMount(): void {}
 
     async setUser({ name, id }: { name: string; id: string }) {
-        await this.usersApi.login({ name });
         this.setState({
             user: { name, id },
             userId: id,
             state: AppState.LOGGED_IN
         });
+        ApiManager.setUser({ userId: id });
     }
 
     handleResetClient() {
@@ -76,20 +73,21 @@ export default class App extends React.Component<AppProps, AppComponentState> {
             loggedIn: false,
             user: undefined
         });
+        ApiManager.setUser({ userId: null });
     }
 
     render(): ReactNode {
         let inner;
 
         if (this.state.state === AppState.HOME) {
-            inner = [<Login key="landing" setUser={({ name, id }: { name: string; id: string }) => this.setUser({ name, id })} apis={this.apis}></Login>];
+            inner = [<Login key="landing" setUser={({ name, id }: { name: string; id: string }) => this.setUser({ name, id })}></Login>];
         } else if (this.state.state === AppState.LOGGED_IN) {
             inner = [
                 <h1 key="k1">
                     Logged in as {this.state.name} ({this.state.userId})
                 </h1>,
                 <br></br>,
-                <Landing key="landing" user={this.state.user!} apis={this.apis}></Landing>,
+                <Landing key="landing" user={this.state.user!}></Landing>,
                 <br></br>,
                 <input type="button" name="login" value="Log out" onClick={() => this.handleLogOut()}></input>
             ];

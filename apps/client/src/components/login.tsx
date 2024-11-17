@@ -1,5 +1,5 @@
 import React, { ChangeEvent, ReactNode } from 'react';
-import { Apis } from '../api';
+import { ApiManager } from '../api';
 import { UserDto } from '@biketag/models';
 
 interface LoginState {
@@ -12,7 +12,6 @@ interface LoginState {
 
 interface LoginProps {
     setUser: ({ name, id }: { name: string; id: string }) => void;
-    apis: Apis;
 }
 
 export class Login extends React.Component<LoginProps, LoginState> {
@@ -51,7 +50,7 @@ export class Login extends React.Component<LoginProps, LoginState> {
     async login() {
         try {
             const { name } = this.state;
-            const { id } = await this.props.apis.usersApi.login({ name });
+            const { id } = await ApiManager.userApi.login({ name });
             this.props.setUser({ name, id });
         } catch (err) {
             if (err instanceof Error) {
@@ -65,7 +64,7 @@ export class Login extends React.Component<LoginProps, LoginState> {
     async signUp() {
         try {
             const { name } = this.state;
-            const { id } = await this.props.apis.usersApi.signup({ name });
+            const { id } = await ApiManager.userApi.signup({ name });
             this.props.setUser({ name, id });
         } catch (err) {
             if (err instanceof Error) {

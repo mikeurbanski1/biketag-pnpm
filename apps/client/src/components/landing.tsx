@@ -1,8 +1,8 @@
 import React, { ReactNode } from 'react';
-import { Apis } from '../api';
 import { GameDto, UserDto } from '@biketag/models';
 import { CreateEditGame } from './createEditGame';
 import { ViewGame } from './viewGame';
+import { ApiManager } from '../api';
 
 interface LandingState {
     loadingGames: boolean;
@@ -13,7 +13,6 @@ interface LandingState {
 
 interface LandingProps {
     user: UserDto;
-    apis: Apis;
 }
 
 export class Landing extends React.Component<LandingProps, LandingState> {
@@ -33,7 +32,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
     }
 
     private async refreshGames(): Promise<void> {
-        const games = await this.props.apis.gamesApi.getGamesForPlayer({ userId: this.props.user.id });
+        const games = await ApiManager.gameApi.getGamesForPlayer({ userId: this.props.user.id });
         console.log('got games:', games);
         this.setState({
             games
@@ -71,7 +70,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
             game: undefined,
             loadingGames: true
         });
-        this.props.apis.gamesApi.deleteGame({ gameId: this.state.game!.id }).then(() => this.refreshGames().then(() => this.setState({ loadingGames: false })));
+        ApiManager.gameApi.deleteGame({ gameId: this.state.game!.id }).then(() => this.refreshGames().then(() => this.setState({ loadingGames: false })));
     }
 
     doneViewingGame(): void {
@@ -107,6 +106,6 @@ export class Landing extends React.Component<LandingProps, LandingState> {
             return <ViewGame game={this.state.game} user={this.props.user} deleteGame={() => this.deleteGame()} editGame={() => this.editGame()} doneViewingGame={() => this.doneViewingGame()} />;
         }
 
-        return <CreateEditGame user={this.props.user} apis={this.props.apis} doneCreatingGame={this.doneCreatingGame} game={this.state.game} />;
+        return <CreateEditGame user={this.props.user} doneCreatingGame={this.doneCreatingGame} game={this.state.game} />;
     }
 }

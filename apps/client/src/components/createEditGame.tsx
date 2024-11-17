@@ -1,6 +1,6 @@
 import { CreateGameParams, GameDto, GameRoles, UserDto } from '@biketag/models';
 import React from 'react';
-import { Apis } from '../api';
+import { ApiManager } from '../api';
 import { UserBeingAdded } from '../models/user';
 import UserSelection from './userSelection';
 
@@ -14,7 +14,6 @@ interface CreateEditGameState {
 
 interface CreateEditGameProps {
     user: UserDto;
-    apis: Apis;
     game?: GameDto;
     doneCreatingGame: (game?: GameDto) => void;
 }
@@ -50,9 +49,9 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
             this.props.doneCreatingGame(game);
         };
         if (!this.props.game) {
-            this.props.apis.gamesApi.createGame(game).then(callback);
+            ApiManager.gameApi.createGame(game).then(callback);
         } else {
-            this.props.apis.gamesApi.updateGame(this.props.game.id, game).then(callback);
+            ApiManager.gameApi.updateGame(this.props.game.id, game).then(callback);
         }
     }
 
@@ -71,7 +70,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
     }
 
     private async refreshUsers(): Promise<void> {
-        const users = (await this.props.apis.usersApi.getUsers()).filter((user) => user.id !== this.props.user.id);
+        const users = (await ApiManager.userApi.getUsers()).filter((user) => user.id !== this.props.user.id);
         console.log('got (filtered) users:', users);
         const selectedUsers = this.getSelectedUsersForGame({ game: this.props.game, users });
         this.setState({

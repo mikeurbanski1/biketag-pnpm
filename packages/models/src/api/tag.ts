@@ -2,8 +2,10 @@ import { BaseDto } from '.';
 import { UserDto } from './user';
 
 export interface MinimalTag extends BaseDto {
+    name: string;
     creatorName: string;
     contents: string;
+    postedDate: string;
 }
 
 export interface TagDto extends BaseDto {

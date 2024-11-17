@@ -2,7 +2,7 @@ import { GameDalService } from '../../dal/services/gameDalService';
 import { UserService } from '../users/userService';
 import { CannotRemovePlayerError, gameServiceErrors, UserNotFoundError } from '../../common/errors';
 import { CreateGameParams, GameDto, GameRoles, PlayerGame } from '@biketag/models';
-import { BaseEntityWithoutId, GameEntity } from 'src/dal/models';
+import { BaseEntityWithoutId, GameEntity } from '../../dal/models';
 import { BaseService } from '../../common/baseService';
 import { copyDefinedProperties } from '@biketag/utils';
 import { TagService } from '../tags/tagService';

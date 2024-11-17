@@ -54,6 +54,8 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         const tag = await this.dalService.getByIdRequired({ id });
         return {
             id: tag.id,
+            name: tag.name,
+            postedDate: tag.postedDate,
             creatorName: (await this.usersService.getRequired({ id: tag.creatorId })).name,
             contents: tag.contents
         };
