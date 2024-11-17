@@ -16,6 +16,7 @@ interface TagViewProps {
 
 export class TagView extends React.Component<TagViewProps, TagViewState> {
     constructor(props: TagViewProps) {
+        console.log('in tag view constructor');
         super(props);
         this.state = {
             loading: false,
@@ -44,6 +45,8 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
     }
 
     render() {
+        console.error('in render for tag view');
+        console.error('state:', JSON.stringify(this.state, null, 2));
         if (this.state.loading) {
             return <div>Loading...</div>;
         }
@@ -57,7 +60,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
                 <div className="root-tag">
                     <TagDetails tag={this.state.rootTag} isSubtag={false} />
                     <hr></hr>
-                    <SubtagView game={this.props.game} />
+                    <SubtagView key={this.state.rootTag.id} rootTag={this.state.rootTag} />
                 </div>
                 {this.state.rootTag.nextRootTag && this.getMinimalTagAndButton(this.state.rootTag.nextRootTag, false)}
             </div>

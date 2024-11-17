@@ -79,9 +79,9 @@ export default class App extends React.Component<AppProps, AppComponentState> {
         let inner: ReactNode;
 
         if (this.state.state === AppState.HOME) {
-            inner = <Login key="landing" setUser={({ name, id }: { name: string; id: string }) => this.setUser({ name, id })}></Login>;
+            inner = <Login key="login" setUser={({ name, id }: { name: string; id: string }) => this.setUser({ name, id })}></Login>;
         } else if (this.state.state === AppState.LOGGED_IN) {
-            inner = [<br></br>, <Landing key="landing" user={this.state.user!}></Landing>, <br></br>];
+            inner = [<br key="br1"></br>, <Landing key="landing" user={this.state.user!}></Landing>, <br key="br2"></br>];
         }
 
         return (
@@ -96,7 +96,7 @@ export default class App extends React.Component<AppProps, AppComponentState> {
                     <hr></hr>
                     {inner}
                     <hr></hr>
-                    {this.state.user && [<input type="button" name="login" value="Log out" onClick={() => this.handleLogOut()}></input>, <br></br>]}
+                    {this.state.user && [<input key="logout-button" type="button" name="login" value="Log out" onClick={() => this.handleLogOut()}></input>, <br key="login-br"></br>]}
                     <input type="button" name="reset-client-button" value="Reset local client ID" onClick={this.handleResetClient}></input>
                 </header>
             </div>

@@ -18,7 +18,7 @@ export class TagController extends Controller {
         if (!tag) {
             return notFoundResponse(404, { reason: 'Tag does not exist' });
         }
-        logger.info(`[getTag] result ${tag}`);
+        logger.info('[getTag] result', { tag });
         return tag;
     }
 

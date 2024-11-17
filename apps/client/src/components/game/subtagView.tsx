@@ -1,31 +1,29 @@
 import React from 'react';
 // import { ApiManager } from '../../api';
-import { GameDto, MinimalTag as MinimalTagType, TagDto } from '@biketag/models';
+import { MinimalTag as MinimalTagType, TagDto } from '@biketag/models';
 import { MinimalTag, TagDetails } from './tagDetails';
 import { ApiManager } from '../../api';
 
 interface SubtagViewState {
     loading: boolean;
-    rootTag: TagDto;
     currentTag?: TagDto;
 }
 
 interface SubtagViewProps {
-    game: GameDto;
+    rootTag: TagDto;
 }
 
 export class SubtagView extends React.Component<SubtagViewProps, SubtagViewState> {
     constructor(props: SubtagViewProps) {
         super(props);
         this.state = {
-            loading: true,
-            rootTag: this.props.game.latestRootTag!
+            loading: true
         };
     }
 
     componentDidMount(): void {
-        if (this.state.rootTag.nextTag) {
-            ApiManager.tagApi.getTag({ id: this.state.rootTag.nextTag.id }).then((tag) => {
+        if (this.props.rootTag.nextTag) {
+            ApiManager.tagApi.getTag({ id: this.props.rootTag.nextTag.id }).then((tag) => {
                 this.setState({ currentTag: tag, loading: false });
             });
         } else {
@@ -40,9 +38,19 @@ export class SubtagView extends React.Component<SubtagViewProps, SubtagViewState
     }
 
     getMinimalTagAndButton(tag: MinimalTagType, previous: boolean): React.ReactNode[] {
-        const tagElement = <MinimalTag tag={tag} isSubtag={true} />;
-        const button = <input type="button" className="root-scroller-button" name={tag.id} value={previous ? '^^' : 'vv'} onClick={() => this.setTag(tag.id)}></input>;
-        return previous ? [tagElement, <br></br>, button] : [button, <br></br>, tagElement];
+        const tagElement = <MinimalTag key={`${previous ? 'prev' : 'next'}-tag-${tag.id}`} tag={tag} isSubtag={true} />;
+        const button = (
+            <input
+                key={`${previous ? 'prev' : 'next'}-tag-button-${tag.id}`}
+                type="button"
+                className="root-scroller-button"
+                name={tag.id}
+                value={previous ? '^^' : 'vv'}
+                onClick={() => this.setTag(tag.id)}
+            ></input>
+        );
+        const br = <br key={`${previous ? 'prev' : 'next'}-br-${tag.id}`}></br>;
+        return previous ? [tagElement, br, button] : [button, br, tagElement];
     }
 
     render() {
@@ -52,7 +60,7 @@ export class SubtagView extends React.Component<SubtagViewProps, SubtagViewState
             const { currentTag } = this.state;
             return (
                 <div className="subtag-scroller">
-                    {currentTag.parentTag && currentTag.parentTag.id !== this.state.rootTag.id && this.getMinimalTagAndButton(currentTag.parentTag, true)}
+                    {currentTag.parentTag && currentTag.parentTag.id !== this.props.rootTag.id && this.getMinimalTagAndButton(currentTag.parentTag, true)}
                     <div className="subtag">
                         <TagDetails tag={this.state.currentTag} isSubtag={true} />
                     </div>
