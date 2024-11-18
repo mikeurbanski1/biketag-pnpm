@@ -91,10 +91,18 @@ input[type="button"] {
     display: flex;
 }
 
+.flex>div {
+    flex: 1 0 0;
+}
+
+.flex>div:nth-child(1) {
+    text-align: center;
+}
+
 .root-tag-scroller {
     display: flex;
     gap: 1em;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
 }
 
@@ -137,6 +145,12 @@ input[type="button"] {
 .minimal-tag .tag-title {
     font-size: 1.5em;
     font-weight: 500;
+    margin-bottom: 0.5em;
+}
+
+.minimal-tag .subtag-title {
+    font-size: 1em;
+    font-weight: 400;
     margin-bottom: 0.5em;
 }
 

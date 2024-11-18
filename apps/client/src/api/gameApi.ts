@@ -121,4 +121,21 @@ export class GameApi extends AbstractApi {
             throw err;
         }
     }
+
+    public async canAddNewTag({ userId, gameId }: { userId: string; gameId: string }): Promise<boolean> {
+        try {
+            const resp = await this.axiosInstance.request<boolean>({
+                method: 'get',
+                url: `/games/${gameId}/user/${userId}/can-add-tag`
+            });
+            if (resp.status !== 200) {
+                throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
+            }
+            this.logger.info('[canAddNewTag] got response', { data: resp.data });
+            return resp.data;
+        } catch (err) {
+            this.logger.error(`[canAddNewTag] got an error response`, { err });
+            throw err;
+        }
+    }
 }

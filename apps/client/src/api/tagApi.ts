@@ -1,4 +1,4 @@
-import { TagDto } from '@biketag/models';
+import { CreateTagParams, TagDto } from '@biketag/models';
 import { AbstractApi } from './abstractApi';
 import { AxiosError } from 'axios';
 
@@ -49,6 +49,41 @@ export class TagApi extends AbstractApi {
                     throw new TagNotFoundError(err.message);
                 }
             }
+            throw err;
+        }
+    }
+
+    public async canUserAddSubtag({ userId, tagId }: { userId: string; tagId: string }): Promise<boolean> {
+        try {
+            const resp = await this.axiosInstance.request<boolean>({
+                method: 'get',
+                url: `/tags/user/${userId}/in-chain/${tagId}`
+            });
+            if (resp.status !== 200) {
+                throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
+            }
+            this.logger.info('[canUserAddTag] got response', { data: resp.data });
+            return !resp.data; // if the user is in the chain than we cannot add a tag
+        } catch (err) {
+            this.logger.error(`[canUserAddTag] got an error response`, { err });
+            throw err;
+        }
+    }
+
+    public async createTag(params: CreateTagParams): Promise<TagDto> {
+        try {
+            const resp = await this.axiosInstance.request<TagDto>({
+                method: 'post',
+                url: '/tags',
+                data: params
+            });
+            if (resp.status !== 201) {
+                throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
+            }
+            this.logger.info('[createTag] got 201 response', { data: resp.data });
+            return resp.data;
+        } catch (err) {
+            this.logger.error(`[createTag] got an error response`, { err });
             throw err;
         }
     }

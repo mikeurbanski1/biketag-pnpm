@@ -36,7 +36,7 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                         </li>
                     ))}
                 </ul>
-                <TagView game={game} />
+                <TagView game={game} user={this.props.user} />
                 <br></br>
                 {this.state.isCreator && <input type="button" name="editGame" value="Edit game" onClick={() => this.props.editGame()}></input>}
                 {this.state.isCreator && <input type="button" name="deleteGame" value="Delete game" onClick={() => this.props.deleteGame()}></input>}

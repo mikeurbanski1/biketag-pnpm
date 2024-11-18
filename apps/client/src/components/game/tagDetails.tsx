@@ -33,7 +33,7 @@ export const MinimalTag: React.FC<MinimalTagProps> = ({ tag, isSubtag }) => {
     logger.info(`[MinimalTag]`, { tag });
     return (
         <div className="minimal-tag">
-            {!isSubtag && <span className="tag-title">{tag.name}</span>}
+            <span className={isSubtag ? 'subtag-title' : 'tag-title'}>{isSubtag ? tag.contents : tag.name}</span>
             <span>
                 by <span className="tag-creator">{tag.creatorName}</span>
             </span>
