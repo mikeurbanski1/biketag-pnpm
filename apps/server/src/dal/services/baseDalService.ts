@@ -86,7 +86,9 @@ export abstract class BaseDalService<E extends BaseEntity> {
         this.logger.info(`[findAll] `, { filter, ignoreId });
         const searchFilter = ignoreId ? { ...filter, _id: { $ne: new UUID(ignoreId) } } : filter;
         const collection = await this.getCollection();
-        return (await collection.find(searchFilter).toArray()).map(this.convertFromDalEntity);
+        const queryRes = await collection.find(searchFilter).toArray();
+        this.logger.info(`[findAll]`, { queryRes });
+        return queryRes.map(this.convertFromDalEntity);
     }
 
     public async delete({ id }: { id: string }) {

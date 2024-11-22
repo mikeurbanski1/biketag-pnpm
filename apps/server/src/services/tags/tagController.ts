@@ -18,7 +18,7 @@ export class TagController extends Controller {
         if (!tag) {
             return notFoundResponse(404, { reason: 'Tag does not exist' });
         }
-        logger.info(`[getTag] result ${tag}`);
+        logger.info('[getTag] result', { tag });
         return tag;
     }
 
@@ -43,5 +43,14 @@ export class TagController extends Controller {
             },
             {} as Record<string, TagDto>
         );
+    }
+
+    @Get('/user/{userId}/in-chain/{tagId}')
+    @SuccessResponse('200', 'Ok')
+    public async userInTagChain(@Path() userId: string, @Path() tagId: string): Promise<boolean> {
+        logger.info(`[userInTagChain]`, { userId, tagId });
+        const res = await this.tagsService.userInTagChain({ userId, tagId });
+        logger.info('[userInTagChain] got result', { res });
+        return res;
     }
 }

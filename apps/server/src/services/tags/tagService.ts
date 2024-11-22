@@ -20,9 +20,10 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
     }
 
     protected convertToEntity(dto: CreateTagParams): BaseEntityWithoutId<TagEntity> {
+        this.logger.info(`[convertToEntity]`, { dto });
         return {
             ...dto,
-            postedDate: new Date().toISOString()
+            postedDate: dto.postedDate ?? new Date().toISOString()
         };
     }
 
@@ -61,16 +62,17 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         };
     }
 
-    private async updateTagLinks({ tagIdToUpdate, tagIdToSet, fields }: { tagIdToUpdate: string; tagIdToSet: string; fields: (typeof tagFields)[number][] }) {
+    private async updateTagLinks({ tagIdToUpdate, tagIdToSet, fields }: { tagIdToUpdate: string; tagIdToSet: string; fields: (typeof tagFields)[number][] }): Promise<TagEntity> {
         this.logger.info('[updateTagLink]', { tagIdToUpdate, tagIdToSet, fields });
         const updateFields = fields.reduce((params, field) => {
             params[field] = tagIdToSet;
             return params;
         }, {} as Partial<TagEntity>);
-        await this.dalService.update({ id: tagIdToUpdate, updateParams: updateFields });
+        return await this.dalService.update({ id: tagIdToUpdate, updateParams: updateFields });
     }
 
     public override async create(params: CreateTagParams): Promise<TagDto> {
+        this.logger.info(`[create]`, { params });
         const { isRoot, gameId } = params;
         if (isRoot) {
             await this.validateRootTagLinks(params);
@@ -79,7 +81,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         // create a new tag object id now so we can update references with fewer calls / cleaner flow
         const tagUUID = new UUID().toString();
 
-        const createParams: TagEntity = { ...params, id: tagUUID, postedDate: new Date().toISOString() };
+        const createParams: TagEntity = { ...params, id: tagUUID, postedDate: params.postedDate ?? new Date().toISOString() };
 
         if (isRoot) {
             // before we update the game, get the current latest root tag, and point it to this as the next root
@@ -92,12 +94,11 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
                 createParams.previousRootTagId = latestRootTagId;
             }
         } else {
-            const { parentTagId } = params;
-            // if this is not a root tag, we need to update the parent tag to point to this, and copy the previous and next roots
-            await this.updateTagLinks({ tagIdToUpdate: parentTagId!, tagIdToSet: tagUUID, fields: ['nextTagId'] });
-            const parentTag = await this.dalService.getByIdRequired({ id: parentTagId! });
+            const parentTag = await this.setLastTagInChain({ tag: createParams, tagId: tagUUID });
+
             createParams.nextRootTagId = parentTag.nextRootTagId;
             createParams.previousRootTagId = parentTag.previousRootTagId;
+            createParams.parentTagId = parentTag.id;
         }
 
         const tag = await this.dalService.create(createParams);
@@ -108,16 +109,66 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
     }
 
     /**
+     * Sets the tag ID to be the next tag of the current last tag in the chain. Returns that tag.
+     */
+    private async setLastTagInChain({ tag, tagId }: { tag: CreateTagParams; tagId: string }): Promise<TagEntity> {
+        this.logger.info(`[setLastTagInChain]`, { tag });
+        const rootTagId = tag.rootTagId!;
+        // find the tag that is in this game,
+        // and, either:
+        // - has the same root tag as the tag we are adding, or
+        // - is the rootTag of this chain (meaning we are adding the first subtag)
+        // and has no next tag (is the last in the chain)
+        const filter = {
+            $and: [
+                {
+                    gameId: tag.gameId
+                },
+                {
+                    $or: [
+                        {
+                            rootTagId
+                        },
+                        {
+                            $and: [
+                                {
+                                    ...this.dalService.getIdFilter(rootTagId),
+                                    isRoot: true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    nextTagId: { $exists: false }
+                }
+            ]
+        };
+        const parentTag = (await this.dalService.findOne({ filter }))!;
+        await this.updateTagLinks({ tagIdToUpdate: parentTag.id, tagIdToSet: tagId, fields: ['nextTagId'] });
+        return parentTag;
+    }
+
+    public async userInTagChain({ userId, tagId }: { userId: string; tagId: string }): Promise<boolean> {
+        this.logger.info(`[userInTagChain]`, { userId, tagId });
+        const tag = await this.dalService.getByIdRequired({ id: tagId });
+        if (tag.creatorId === userId) {
+            return true;
+        }
+        if (tag.nextTagId) {
+            return this.userInTagChain({ userId, tagId: tag.nextTagId });
+        }
+        return false;
+    }
+
+    /**
      * Validates the links for a new tag: creator, game, and parent and root tags
      */
     private async validateRootTagLinks(tag: CreateTagParams): Promise<void> {
         const promises = [validateExists(tag.creatorId, this.usersService), validateExists(tag.gameId, this.gamesService)];
 
-        if (tag.parentTagId) {
-            promises.push(validateExists(tag.parentTagId, this));
-            if (tag.rootTagId && tag.rootTagId !== tag.parentTagId) {
-                promises.push(validateExists(tag.rootTagId, this));
-            }
+        if (tag.rootTagId) {
+            promises.push(validateExists(tag.rootTagId, this));
         }
 
         await Promise.all(promises);

@@ -26,10 +26,10 @@ export interface CreateTagParams {
     name: string;
     creatorId: string;
     gameId: string;
-    parentTagId?: string;
     rootTagId?: string;
     isRoot: boolean;
     contents: string;
+    postedDate?: string; // used for bootstrapping
 }
 
 export const tagFields = ['parentTagId', 'nextTagId', 'rootTagId', 'previousRootTagId', 'nextRootTagId'] as const;
