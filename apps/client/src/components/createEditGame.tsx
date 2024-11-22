@@ -104,14 +104,16 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
                     <br></br>
                     {this.state.selectedUsers &&
                         this.state.selectedUsers.map((user, index) => (
-                            <div key={user.user.id}>
-                                <UserSelection
-                                    user={user.user}
-                                    gameRole={user.role}
-                                    index={index}
-                                    onSelect={(index: number, user: UserDto, role?: GameRoles) => this.handleUserSelect(index, user, role)}
-                                />
-                            </div>
+                            <table key={user.user.id}>
+                                <tbody>
+                                    <UserSelection
+                                        user={user.user}
+                                        gameRole={user.role}
+                                        index={index}
+                                        onSelect={(index: number, user: UserDto, role?: GameRoles) => this.handleUserSelect(index, user, role)}
+                                    />
+                                </tbody>
+                            </table>
                         ))}
                     <input type="button" name="createGame" value={`${this.state.isNewGame ? 'Create' : 'Save'} game`} onClick={() => this.createEditGame()} disabled={!this.state.canSaveGame}></input>
                     <br></br>

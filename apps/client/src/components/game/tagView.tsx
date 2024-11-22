@@ -16,6 +16,7 @@ interface TagViewState {
 interface TagViewProps {
     game: GameDto;
     user: UserDto;
+    setNewLatestTag: (tag: TagDto) => void;
 }
 
 export class TagView extends React.Component<TagViewProps, TagViewState> {
@@ -53,10 +54,14 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         this.setState({ rootTag: tag, addingTag: false });
     }
 
+    getMinimalTag(tag: MinimalTagType): React.ReactNode {
+        return <MinimalTag tag={tag} isSubtag={false} />;
+    }
+
     getMinimalTagAndButton(tag: MinimalTagType, previous: boolean): React.ReactNode {
         const tagElement = <MinimalTag tag={tag} isSubtag={false} />;
         const button = <input type="button" className="root-scroller-button" name={tag.id} value={previous ? '<<' : '>>'} onClick={() => this.setTagById(tag.id)}></input>;
-        return previous ? [tagElement, <br></br>, button] : [button, <br></br>, tagElement];
+        return previous ? [<div key={tag.id}>{tagElement}</div>, <div key={`${previous}`}>{button}</div>] : [<div key={tag.id}>{button}</div>, <div key={`${previous}`}>{tagElement}</div>];
     }
 
     setAddingTag(): void {
@@ -73,6 +78,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         };
         ApiManager.tagApi.createTag(tag).then((newTag) => {
             this.setTag(newTag);
+            this.props.setNewLatestTag(newTag);
         });
     }
 
@@ -113,7 +119,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
             return (
                 <div>
                     No tags yet!<br></br>
-                    {addTagButton}
+                    {addTagSection}
                 </div>
             );
         }
@@ -122,16 +128,12 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
             <div className="root-tag-scroller">
                 {this.state.rootTag.previousRootTag && this.getMinimalTagAndButton(this.state.rootTag.previousRootTag, true)}
                 <div className="root-tag">
-                    <TagDetails tag={this.state.rootTag} isSubtag={false} />
-                    {addTagSection ? (
-                        <div>
-                            <hr></hr>
-                            {addTagSection}
-                        </div>
-                    ) : undefined}
+                    {this.state.rootTag ? <TagDetails tag={this.state.rootTag} isSubtag={false} /> : 'No tags yet!'}
+
                     <hr></hr>
                     <SubtagView key={this.state.rootTag.id} rootTag={this.state.rootTag} user={this.props.user} saveNewSubtag={({ contents }) => this.saveNewSubtag({ contents })} />
                 </div>
+                {addTagSection && this.state.rootTag && !this.state.rootTag.nextRootTag ? <div>{addTagSection}</div> : undefined}
                 {this.state.rootTag.nextRootTag && this.getMinimalTagAndButton(this.state.rootTag.nextRootTag, false)}
             </div>
         );

@@ -1,4 +1,4 @@
-import { GameDto, UserDto } from '@biketag/models';
+import { GameDto, TagDto, UserDto } from '@biketag/models';
 import React from 'react';
 import { TagView } from './game/tagView';
 
@@ -9,6 +9,7 @@ interface ViewGameState {
 interface ViewGameProps {
     user: UserDto;
     game: GameDto;
+    updateGame: (updateParams: Partial<GameDto>) => void;
     doneViewingGame: () => void;
     editGame: () => void;
     deleteGame: () => void;
@@ -20,6 +21,12 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
         this.state = {
             isCreator: this.props.game.creator.id === this.props.user.id
         };
+    }
+
+    setNewLatestTag(tag: TagDto): void {
+        const latestRootTag = tag;
+        const updateParams = { latestRootTag };
+        this.props.updateGame(updateParams);
     }
 
     render() {
@@ -36,7 +43,7 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                         </li>
                     ))}
                 </ul>
-                <TagView game={game} user={this.props.user} />
+                <TagView game={game} user={this.props.user} setNewLatestTag={(tag: TagDto) => this.setNewLatestTag(tag)} />
                 <br></br>
                 {this.state.isCreator && <input type="button" name="editGame" value="Edit game" onClick={() => this.props.editGame()}></input>}
                 {this.state.isCreator && <input type="button" name="deleteGame" value="Delete game" onClick={() => this.props.deleteGame()}></input>}

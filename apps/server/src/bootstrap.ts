@@ -108,55 +108,55 @@ const bootstrapData = async () => {
     let obj: CreateTagParams = { name: 'China', creatorId: users[0].id, gameId: games[0].id, contents: 'I got here fast!', isRoot: true, postedDate: newRootDate() };
     let tag1a = await tagService.create(obj);
 
-    obj = { name: 'China', creatorId: users[1].id, gameId: games[0].id, contents: 'Me too, almost', isRoot: false, postedDate: newChainDate(), parentTagId: tag1a.id, rootTagId: tag1a.id };
+    obj = { name: 'China', creatorId: users[1].id, gameId: games[0].id, contents: 'Me too, almost', isRoot: false, postedDate: newChainDate(), rootTagId: tag1a.id };
     let tag1b = await tagService.create(obj);
 
-    obj = { name: 'China', creatorId: users[2].id, gameId: games[0].id, contents: 'I got there eventually', isRoot: false, postedDate: newChainDate(), parentTagId: tag1b.id, rootTagId: tag1a.id };
+    obj = { name: 'China', creatorId: users[2].id, gameId: games[0].id, contents: 'I got there eventually', isRoot: false, postedDate: newChainDate(), rootTagId: tag1a.id };
     let tag1c = await tagService.create(obj);
 
-    obj = { name: 'China', creatorId: users[3].id, gameId: games[0].id, contents: 'I got there eventually', isRoot: false, postedDate: newChainDate(), parentTagId: tag1c.id, rootTagId: tag1a.id };
+    obj = { name: 'China', creatorId: users[3].id, gameId: games[0].id, contents: 'I got there eventually', isRoot: false, postedDate: newChainDate(), rootTagId: tag1a.id };
     let tag1d = await tagService.create(obj);
 
-    obj = { name: 'China', creatorId: users[4].id, gameId: games[0].id, contents: 'I got there eventually', isRoot: false, postedDate: newChainDate(), parentTagId: tag1d.id, rootTagId: tag1a.id };
+    obj = { name: 'China', creatorId: users[4].id, gameId: games[0].id, contents: 'I got there eventually', isRoot: false, postedDate: newChainDate(), rootTagId: tag1a.id };
     let tag1e = await tagService.create(obj);
 
-    obj = { name: 'China', creatorId: users[5].id, gameId: games[0].id, contents: 'I got there eventually', isRoot: false, postedDate: newChainDate(), parentTagId: tag1e.id, rootTagId: tag1a.id };
+    obj = { name: 'China', creatorId: users[5].id, gameId: games[0].id, contents: 'I got there eventually', isRoot: false, postedDate: newChainDate(), rootTagId: tag1a.id };
     let tag1f = await tagService.create(obj);
 
     obj = { name: 'Brazil', creatorId: users[5].id, gameId: games[0].id, contents: 'Wet and wild', isRoot: true, postedDate: newRootDate() };
     let tag2a = await tagService.create(obj);
 
-    obj = { name: 'Brazil', creatorId: users[1].id, gameId: games[0].id, contents: 'Eat by snek', isRoot: false, postedDate: newChainDate(), parentTagId: tag2a.id, rootTagId: tag2a.id };
+    obj = { name: 'Brazil', creatorId: users[1].id, gameId: games[0].id, contents: 'Eat by snek', isRoot: false, postedDate: newChainDate(), rootTagId: tag2a.id };
     let tag2b = await tagService.create(obj);
 
-    obj = { name: 'Brazil', creatorId: users[3].id, gameId: games[0].id, contents: 'Snek eat by mongose', isRoot: false, postedDate: newChainDate(), parentTagId: tag2b.id, rootTagId: tag2a.id };
+    obj = { name: 'Brazil', creatorId: users[3].id, gameId: games[0].id, contents: 'Snek eat by mongose', isRoot: false, postedDate: newChainDate(), rootTagId: tag2a.id };
     let tag2c = await tagService.create(obj);
 
-    obj = { name: 'Brazil', creatorId: users[0].id, gameId: games[0].id, contents: 'mongose rules', isRoot: false, postedDate: newChainDate(), parentTagId: tag2c.id, rootTagId: tag2a.id };
+    obj = { name: 'Brazil', creatorId: users[0].id, gameId: games[0].id, contents: 'mongose rules', isRoot: false, postedDate: newChainDate(), rootTagId: tag2a.id };
     let tag2d = await tagService.create(obj);
 
     obj = { name: 'Italy', creatorId: users[0].id, gameId: games[0].id, contents: 'Et tu, Brute?', isRoot: true, postedDate: newRootDate() };
     let tag3a = await tagService.create(obj);
 
-    obj = { name: 'Italy', creatorId: users[1].id, gameId: games[0].id, contents: 'Giro is fun', isRoot: false, postedDate: newChainDate(), parentTagId: tag3a.id, rootTagId: tag3a.id };
+    obj = { name: 'Italy', creatorId: users[1].id, gameId: games[0].id, contents: 'Giro is fun', isRoot: false, postedDate: newChainDate(), rootTagId: tag3a.id };
     let tag3b = await tagService.create(obj);
 
-    obj = { name: 'Italy', creatorId: users[0].id, gameId: games[0].id, contents: 'I cannot ski', isRoot: false, postedDate: newChainDate(), parentTagId: tag3b.id, rootTagId: tag3a.id };
+    obj = { name: 'Italy', creatorId: users[0].id, gameId: games[0].id, contents: 'I cannot ski', isRoot: false, postedDate: newChainDate(), rootTagId: tag3a.id };
     let tag3c = await tagService.create(obj);
 
-    obj = { name: 'Italy', creatorId: users[4].id, gameId: games[0].id, contents: 'Fucking tourists...', isRoot: false, postedDate: newChainDate(), parentTagId: tag3c.id, rootTagId: tag3a.id };
+    obj = { name: 'Italy', creatorId: users[4].id, gameId: games[0].id, contents: 'Fucking tourists...', isRoot: false, postedDate: newChainDate(), rootTagId: tag3a.id };
     let tag3d = await tagService.create(obj);
 
-    obj = { name: 'Italy', creatorId: users[5].id, gameId: games[0].id, contents: 'Giro is still fun', isRoot: false, postedDate: newChainDate(), parentTagId: tag3d.id, rootTagId: tag3a.id };
+    obj = { name: 'Italy', creatorId: users[5].id, gameId: games[0].id, contents: 'Giro is still fun', isRoot: false, postedDate: newChainDate(), rootTagId: tag3a.id };
     let tag3e = await tagService.create(obj);
 
     obj = { name: 'Canada', creatorId: users[1].id, gameId: games[0].id, contents: 'OH CAH-NAH-DA', isRoot: true, postedDate: newRootDate() };
     let tag4a = await tagService.create(obj);
 
-    obj = { name: 'Canada', creatorId: users[0].id, gameId: games[0].id, contents: 'Our home and sacred land', isRoot: false, postedDate: newChainDate(), parentTagId: tag4a.id, rootTagId: tag4a.id };
+    obj = { name: 'Canada', creatorId: users[0].id, gameId: games[0].id, contents: 'Our home and sacred land', isRoot: false, postedDate: newChainDate(), rootTagId: tag4a.id };
     let tag4b = await tagService.create(obj);
 
-    obj = { name: 'Canada', creatorId: users[4].id, gameId: games[0].id, contents: 'Something something', isRoot: false, postedDate: newChainDate(), parentTagId: tag4b.id, rootTagId: tag4a.id };
+    obj = { name: 'Canada', creatorId: users[4].id, gameId: games[0].id, contents: 'Something something', isRoot: false, postedDate: newChainDate(), rootTagId: tag4a.id };
     let tag4c = await tagService.create(obj);
 
     obj = {
@@ -166,12 +166,12 @@ const bootstrapData = async () => {
         contents: 'Something something command',
         isRoot: false,
         postedDate: newChainDate(),
-        parentTagId: tag4c.id,
+
         rootTagId: tag4a.id
     };
     let tag4d = await tagService.create(obj);
 
-    obj = { name: 'Canada', creatorId: users[2].id, gameId: games[0].id, contents: "Tim Horton's rules!", isRoot: false, postedDate: newChainDate(), parentTagId: tag4d.id, rootTagId: tag4a.id };
+    obj = { name: 'Canada', creatorId: users[2].id, gameId: games[0].id, contents: "Tim Horton's rules!", isRoot: false, postedDate: newChainDate(), rootTagId: tag4a.id };
     let tag4e = await tagService.create(obj);
 
     obj = { name: 'Orange Crush', creatorId: users[2].id, gameId: games[1].id, contents: 'DRINK IT MOTHERFUCKER', isRoot: true, postedDate: newRootDate() };
@@ -184,7 +184,7 @@ const bootstrapData = async () => {
         contents: 'And lemon! And lime!',
         isRoot: false,
         postedDate: newChainDate(),
-        parentTagId: tag5a.id,
+
         rootTagId: tag5a.id
     };
     let tag5b = await tagService.create(obj);
@@ -196,7 +196,7 @@ const bootstrapData = async () => {
         contents: 'You are not drinking it...',
         isRoot: false,
         postedDate: newChainDate(),
-        parentTagId: tag5b.id,
+
         rootTagId: tag5a.id
     };
     let tag5c = await tagService.create(obj);
@@ -208,7 +208,7 @@ const bootstrapData = async () => {
         contents: 'Nor lemon! Nor lime!',
         isRoot: false,
         postedDate: newChainDate(),
-        parentTagId: tag5c.id,
+
         rootTagId: tag5a.id
     };
     let tag5d = await tagService.create(obj);
@@ -220,7 +220,7 @@ const bootstrapData = async () => {
         contents: 'And lemon! And lime!',
         isRoot: false,
         postedDate: newChainDate(),
-        parentTagId: tag5d.id,
+
         rootTagId: tag5a.id
     };
     let tag5e = await tagService.create(obj);
@@ -235,7 +235,7 @@ const bootstrapData = async () => {
         contents: 'High bridge is not low',
         isRoot: false,
         postedDate: newChainDate(),
-        parentTagId: tag6a.id,
+
         rootTagId: tag6a.id
     };
     let tag6b = await tagService.create(obj);
@@ -247,7 +247,7 @@ const bootstrapData = async () => {
         contents: 'So up high bridge to the clouds I go',
         isRoot: false,
         postedDate: newChainDate(),
-        parentTagId: tag6b.id,
+
         rootTagId: tag6a.id
     };
     let tag6c = await tagService.create(obj);
@@ -259,7 +259,7 @@ const bootstrapData = async () => {
         contents: 'Hi am I too late for the poem?',
         isRoot: false,
         postedDate: newChainDate(),
-        parentTagId: tag6c.id,
+
         rootTagId: tag6a.id
     };
     let tag6d = await tagService.create(obj);

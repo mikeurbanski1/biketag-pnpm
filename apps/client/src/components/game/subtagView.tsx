@@ -3,6 +3,9 @@ import { MinimalTag as MinimalTagType, TagDto, UserDto } from '@biketag/models';
 import { MinimalTag, TagDetails } from './tagDetails';
 import { ApiManager } from '../../api';
 import { AddSubtag } from './addTag';
+import { Logger } from '@biketag/utils';
+
+const logger = new Logger({ prefix: '[SubtagView]' });
 
 interface SubtagViewState {
     loading: boolean;
@@ -27,19 +30,32 @@ export class SubtagView extends React.Component<SubtagViewProps, SubtagViewState
         };
     }
 
-    setCanUserAddtag(tag: TagDto): void {
-        ApiManager.tagApi.canUserAddSubtag({ tagId: tag.id, userId: this.props.user.id }).then((canEdit) => {
-            this.setState({ userCanAddTag: canEdit });
-        });
+    /**
+     * Set the value either based on the tag value (will call the API to check) or the known value (override)
+     * Exactly one should be specified; behavior undefined if both or neither are specified
+     */
+    setCanUserAddtag({ tag, override }: { tag?: TagDto; override?: boolean }): void {
+        if (tag) {
+            ApiManager.tagApi.canUserAddSubtag({ tagId: tag.id, userId: this.props.user.id }).then((canEdit) => {
+                this.setState({ userCanAddTag: canEdit });
+            });
+        } else {
+            this.setState({ userCanAddTag: override! });
+        }
+    }
+
+    async getUserCanAddTag(tag: TagDto): Promise<boolean> {
+        return await ApiManager.tagApi.canUserAddSubtag({ tagId: tag.id, userId: this.props.user.id });
     }
 
     componentDidMount(): void {
         if (this.props.rootTag.nextTag) {
-            this.setCanUserAddtag(this.props.rootTag);
             ApiManager.tagApi.getTag({ id: this.props.rootTag.nextTag.id }).then((tag) => {
+                this.setCanUserAddtag({ tag: this.props.rootTag });
                 this.setState({ loading: false, currentTag: tag });
             });
         } else {
+            this.setCanUserAddtag({ tag: this.props.rootTag });
             this.setState({ loading: false, userCanAddTag: true });
         }
     }
@@ -50,9 +66,9 @@ export class SubtagView extends React.Component<SubtagViewProps, SubtagViewState
         });
     }
 
-    setTag({ tag, setUserCanAddTag }: { tag: TagDto; setUserCanAddTag?: boolean }): void {
-        if (setUserCanAddTag) {
-            this.setCanUserAddtag(tag);
+    setTag({ tag, userCanAddTagOverride }: { tag: TagDto; userCanAddTagOverride?: boolean }): void {
+        if (userCanAddTagOverride !== undefined) {
+            this.setCanUserAddtag({ override: userCanAddTagOverride });
         }
         this.setState({ currentTag: tag, addingTag: false });
     }
@@ -80,7 +96,7 @@ export class SubtagView extends React.Component<SubtagViewProps, SubtagViewState
     saveNewTag({ contents }: { contents: string }): void {
         this.props.saveNewSubtag({ contents }).then((tag) => {
             // user just added a tag, so we know this
-            this.setTag({ tag, setUserCanAddTag: false });
+            this.setTag({ tag, userCanAddTagOverride: false });
         });
     }
 
@@ -88,6 +104,8 @@ export class SubtagView extends React.Component<SubtagViewProps, SubtagViewState
         if (this.state.loading) {
             return <div className="subtag-scroller">Loading...</div>;
         }
+
+        logger.info(`[render]`, { state: JSON.parse(JSON.stringify(this.state)) });
 
         let addTagSection: React.ReactNode | undefined;
 
@@ -109,14 +127,14 @@ export class SubtagView extends React.Component<SubtagViewProps, SubtagViewState
             return (
                 <div className="subtag-scroller">
                     Nobody has been here yet!<br></br>
-                    {addTagButton}
+                    {addTagSection}
                 </div>
             );
         }
 
         if (this.state.loading) {
             return <div className="subtag-scroller">Loading...</div>;
-        } else if (this.state.currentTag) {
+        } else {
             const { currentTag } = this.state;
             return (
                 <div className="subtag-scroller">
@@ -133,8 +151,6 @@ export class SubtagView extends React.Component<SubtagViewProps, SubtagViewState
                     ) : undefined}
                 </div>
             );
-        } else {
-            return <div className="subtag-scroller">Nobody has been here yet!</div>;
         }
     }
 }

@@ -39,14 +39,14 @@ const UserSelection: React.FC<UserSelectionProps> = ({ user, index, onSelect, ga
             <td>
                 <button onClick={handleSelectClick}>{isSelected ? 'Remove' : 'Add'}</button>
             </td>
-            {isSelected && (
-                <td>
+            <td>
+                {isSelected && (
                     <select value={role || ''} onChange={handleRoleChange}>
                         <option value={GameRoles.PLAYER}>Player</option>
                         <option value={GameRoles.ADMIN}>Admin</option>
                     </select>
-                </td>
-            )}
+                )}
+            </td>
         </tr>
     );
 };

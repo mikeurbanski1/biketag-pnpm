@@ -98,6 +98,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
 
             createParams.nextRootTagId = parentTag.nextRootTagId;
             createParams.previousRootTagId = parentTag.previousRootTagId;
+            createParams.parentTagId = parentTag.id;
         }
 
         const tag = await this.dalService.create(createParams);
@@ -108,12 +109,41 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
     }
 
     /**
-     * Sets the tag ID to be the next tag of the last tag in the chain. Returns that tag.
+     * Sets the tag ID to be the next tag of the current last tag in the chain. Returns that tag.
      */
     private async setLastTagInChain({ tag, tagId }: { tag: CreateTagParams; tagId: string }): Promise<TagEntity> {
         this.logger.info(`[setLastTagInChain]`, { tag });
-        const { rootTagId } = tag;
-        const filter = { $and: [{ gameId: tag.gameId }, { rootTagId }, { nextTagId: undefined }] };
+        const rootTagId = tag.rootTagId!;
+        // find the tag that is in this game,
+        // and, either:
+        // - has the same root tag as the tag we are adding, or
+        // - is the rootTag of this chain (meaning we are adding the first subtag)
+        // and has no next tag (is the last in the chain)
+        const filter = {
+            $and: [
+                {
+                    gameId: tag.gameId
+                },
+                {
+                    $or: [
+                        {
+                            rootTagId
+                        },
+                        {
+                            $and: [
+                                {
+                                    ...this.dalService.getIdFilter(rootTagId),
+                                    isRoot: true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    nextTagId: { $exists: false }
+                }
+            ]
+        };
         const parentTag = (await this.dalService.findOne({ filter }))!;
         await this.updateTagLinks({ tagIdToUpdate: parentTag.id, tagIdToSet: tagId, fields: ['nextTagId'] });
         return parentTag;

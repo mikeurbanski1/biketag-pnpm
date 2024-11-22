@@ -59,6 +59,17 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         });
     }
 
+    updateGame(updateParams: Partial<GameDto>): void {
+        const game = this.state.game!;
+        this.setState({
+            game: {
+                ...game,
+                ...updateParams
+            },
+            games: this.state.games.map((g) => (g.id === game.id ? { ...g, ...updateParams } : g))
+        });
+    }
+
     editGame(): void {
         this.setState({
             creatingGame: true
@@ -77,6 +88,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         this.setState({
             game: undefined
         });
+        this.refreshGames().then(() => this.setState({ loadingGames: false }));
     }
 
     render(): ReactNode {
@@ -105,7 +117,16 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         }
 
         if (!this.state.creatingGame && this.state.game) {
-            return <ViewGame game={this.state.game} user={this.props.user} deleteGame={() => this.deleteGame()} editGame={() => this.editGame()} doneViewingGame={() => this.doneViewingGame()} />;
+            return (
+                <ViewGame
+                    game={this.state.game}
+                    updateGame={(updateParams: Partial<GameDto>) => this.updateGame(updateParams)}
+                    user={this.props.user}
+                    deleteGame={() => this.deleteGame()}
+                    editGame={() => this.editGame()}
+                    doneViewingGame={() => this.doneViewingGame()}
+                />
+            );
         }
 
         return <CreateEditGame user={this.props.user} doneCreatingGame={this.doneCreatingGame} game={this.state.game} />;
