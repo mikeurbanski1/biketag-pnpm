@@ -9,7 +9,11 @@ export class UserService extends BaseService<UserDto, CreateUserParams, UserEnti
         super({ prefix: 'UserService', dalService: new UserDalService(), serviceErrors: userServiceErrors });
     }
 
-    protected convertToEntity(dto: CreateUserParams): Promise<CreateUserParams> {
+    protected convertToUpsertEntity(dto: CreateUserParams): Promise<CreateUserParams> {
+        return Promise.resolve(dto);
+    }
+
+    protected convertToNewEntity(dto: CreateUserParams): Promise<CreateUserParams> {
         return Promise.resolve(dto);
     }
 

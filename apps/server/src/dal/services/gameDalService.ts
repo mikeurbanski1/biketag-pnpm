@@ -32,6 +32,14 @@ export class GameDalService extends BaseDalService<GameEntity> {
         return result;
     }
 
+    public async addScoreForPlayer({ gameId, playerId, score }: { gameId: string; playerId: string; score: number }): Promise<void> {
+        this.logger.info(`[addScoreForPlayer]`, { gameId, playerId, score });
+
+        const collection = await this.getCollection();
+
+        await collection.updateOne(this.getIdFilter(gameId), { $inc: { [`gameScore.playerScores.${playerId}`]: score } });
+    }
+
     // public setPlayerInGame({ gameId, userId, role }: { gameId: string; userId: string; role: GameRoles }): PlayerGameEntity {
     //     const game = this.getByIdRequired({ id: gameId });
     //     if (role === GameRoles.ADMIN) {

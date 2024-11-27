@@ -20,7 +20,11 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         this.gamesService = gamesService ?? new GameService({ tagsService: this });
     }
 
-    protected async convertToEntity(dto: CreateTagParams): Promise<BaseEntityWithoutId<TagEntity>> {
+    protected async convertToUpsertEntity(dto: CreateTagParams): Promise<BaseEntityWithoutId<TagEntity>> {
+        return await this.convertToNewEntity(dto);
+    }
+
+    protected async convertToNewEntity(dto: CreateTagParams): Promise<BaseEntityWithoutId<TagEntity>> {
         const postedDate = dto.postedDate ?? new Date().toISOString();
         this.logger.info(`[convertToEntity]`, { dto });
         return {
@@ -123,6 +127,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         const tag = await this.dalService.create(createParams);
 
         await this.gamesService.setTagInGame({ gameId, tagId: tagUUID, root: isRoot });
+        await this.gamesService.addScoreForPlayer({ gameId, playerId: tag.creatorId, score: tag.points });
 
         return await this.convertToDto(tag);
     }

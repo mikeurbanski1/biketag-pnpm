@@ -55,7 +55,7 @@ export class GameController extends Controller {
 
     @Patch('/{id}')
     @SuccessResponse('200', 'ok')
-    public async updateGame(@Path() id: string, @Body() requestBody: CreateGameParams, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<GameDto> {
+    public async updateGame(@Path() id: string, @Body() requestBody: Partial<CreateGameParams>, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<GameDto> {
         logger.info(`[updateGame]`, { id, requestBody });
         try {
             const game = await this.gamesService.update({ id, updateParams: requestBody });

@@ -7,4 +7,9 @@ export interface GameEntity extends BaseEntity {
     players: PlayerGame[];
     firstRootTagId?: string;
     latestRootTagId?: string;
+    gameScore: GameScore;
+}
+
+export interface GameScore {
+    playerScores: Record<string, number>;
 }
