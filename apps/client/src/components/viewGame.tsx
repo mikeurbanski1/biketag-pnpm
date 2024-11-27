@@ -53,7 +53,7 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
 
     refreshScores(): void {
         ApiManager.gameApi.getGame({ id: this.props.game.id }).then((game) => {
-            Object.assign(this.props.game, game);
+            this.props.updateGame(game);
             this.setState({ playerDetails: this.getPlayerDetails(game) });
         });
     }
