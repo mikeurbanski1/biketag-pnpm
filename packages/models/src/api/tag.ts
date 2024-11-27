@@ -20,6 +20,7 @@ export interface TagDto extends BaseDto {
     nextRootTag?: MinimalTag;
     postedDate: string;
     contents: string;
+    points: number;
 }
 
 export interface CreateTagParams {

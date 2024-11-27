@@ -1,4 +1,4 @@
-import { AxiosError } from 'axios';
+import axios, { AxiosError } from 'axios';
 import { CreateGameParams, GameDto, PlayerGame } from '@biketag/models';
 import { AbstractApi } from './abstractApi';
 
@@ -88,12 +88,12 @@ export class GameApi extends AbstractApi {
     }
 
     public async updateGame(id: string, game: CreateGameParams): Promise<GameDto> {
-        const { name, creatorId: creator, players } = game;
+        const { name, creatorId, players } = game;
         try {
             const resp = await this.axiosInstance.request<GameDto>({
                 method: 'patch',
                 url: `/games/${id}`,
-                data: { name, creator, players }
+                data: { name, creatorId, players }
             });
             if (resp.status !== 200) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
@@ -102,6 +102,10 @@ export class GameApi extends AbstractApi {
             return resp.data;
         } catch (err) {
             this.logger.error(`[updateGame] got an error response`, { err });
+            if (axios.isAxiosError(err)) {
+                const { status, data } = err.response ?? {};
+                this.logger.info(`[getGamesForPlayer] axios error details`, { status, data });
+            }
             throw err;
         }
     }

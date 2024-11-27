@@ -12,7 +12,7 @@ export interface LogOptions {
 }
 
 const logDefaults: LogOptions = {
-    pretty: true
+    pretty: false
 };
 
 export class Logger {
@@ -34,12 +34,12 @@ export class Logger {
 
         const levelName = LogLevel[level];
 
-        const logStr = `[${levelName}] [${new Date().toISOString()}] ${this.prefix} ${message}`;
-        logFn(logStr);
+        let logStr = `[${levelName}] [${new Date().toISOString()}] ${this.prefix} ${message}`;
         if (context) {
             const contextStr = this.logOptions.pretty ? stringify(context, 2) : stringify(context);
-            logFn(contextStr);
+            logStr += ` ${contextStr}`;
         }
+        logFn(logStr);
     }
 
     public debug(message: string, context?: Record<string, unknown>) {

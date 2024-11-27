@@ -12,4 +12,5 @@ export interface TagEntity extends BaseEntity {
     nextRootTagId?: string;
     postedDate: string;
     contents: string;
+    points: number;
 }

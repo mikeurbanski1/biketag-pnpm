@@ -99,6 +99,12 @@ input[type="button"] {
     text-align: center;
 }
 
+.game-view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 .root-tag-scroller {
     display: flex;
     gap: 1em;
@@ -156,5 +162,10 @@ input[type="button"] {
 
 .main-tag-creator {
     color: #535bf2;
+    font-size: 1.1em;
+}
+
+.main-tag-points {
+    color: #fb0000;
     font-size: 1.1em;
 }

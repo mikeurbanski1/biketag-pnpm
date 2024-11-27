@@ -10,8 +10,12 @@ const logger = new Logger({ prefix: '[Bootstrap]' });
 
 let rootCounter = 0;
 let chainCounter = 0;
-let startDate: Dayjs = dayjs('2024-11-15 11:44');
+
+// let now = dayjs();
+
+let startDate: Dayjs = dayjs(`${dayjs().format('YYYY-MM-DD')} 06:44`);
 const newRootDate = () => {
+    logger.info(`[newRootDate] rootCounter: ${rootCounter}`);
     rootCounter++;
     chainCounter = 0;
     return startDate
@@ -27,6 +31,8 @@ const newChainDate = () => {
     const lateDays = chainCounter > 3 ? 2 + (chainCounter - 3) : 0;
     return startDate
         .add(rootCounter + lateDays, 'days')
+        .add(rootCounter * 2, 'hours')
+        .add(rootCounter * 3, 'minutes')
         .add(chainCounter * 2, 'hours')
         .add(chainCounter * 3, 'minutes')
         .toISOString();

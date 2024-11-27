@@ -8,6 +8,7 @@ import { UserService } from '../users/userService';
 import { validateExists } from '../../common/entityValidators';
 import { tagServiceErrors } from '../../common/errors';
 import { UUID } from 'mongodb';
+import dayjs from 'dayjs';
 
 export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, TagDalService> {
     private readonly usersService: UserService;
@@ -19,12 +20,32 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         this.gamesService = gamesService ?? new GameService({ tagsService: this });
     }
 
-    protected convertToEntity(dto: CreateTagParams): BaseEntityWithoutId<TagEntity> {
+    protected async convertToUpsertEntity(dto: CreateTagParams): Promise<BaseEntityWithoutId<TagEntity>> {
+        return await this.convertToNewEntity(dto);
+    }
+
+    protected async convertToNewEntity(dto: CreateTagParams): Promise<BaseEntityWithoutId<TagEntity>> {
+        const postedDate = dto.postedDate ?? new Date().toISOString();
         this.logger.info(`[convertToEntity]`, { dto });
         return {
             ...dto,
-            postedDate: dto.postedDate ?? new Date().toISOString()
+            postedDate,
+            points: await this.calculateNewTagPoints(dto)
         };
+    }
+
+    private async calculateNewTagPoints(dto: CreateTagParams): Promise<number> {
+        if (dto.isRoot) {
+            return 5;
+        }
+        this.logger.info(`[calculateNewTagPoints] for non-root tag`, { postedDate: dto.postedDate ?? 'undefined' });
+        const postedDate = dayjs(dto.postedDate);
+        const rootTag = await this.dalService.getByIdRequired({ id: dto.rootTagId! });
+        const rootTagPostedDate = dayjs(rootTag.postedDate);
+        this.logger.info(`[calculateNewTagPoints]`, { postedDate, rootTagPostedDate });
+        const sameDate = postedDate.format('YYYY-MM-DD') === rootTagPostedDate.format('YYYY-MM-DD');
+        this.logger.info(`[calculateNewTagPoints] is same date: ${sameDate}`);
+        return sameDate ? 5 : 1;
     }
 
     protected async convertToDto(entity: TagEntity): Promise<TagDto>;
@@ -45,7 +66,8 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             previousRootTag: entity.previousRootTagId ? await this.getMinimalTag({ id: entity.previousRootTagId }) : undefined,
             nextRootTag: entity.nextRootTagId ? await this.getMinimalTag({ id: entity.nextRootTagId }) : undefined,
             postedDate: entity.postedDate,
-            contents: entity.contents
+            contents: entity.contents,
+            points: entity.points
         };
     }
 
@@ -80,8 +102,9 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
 
         // create a new tag object id now so we can update references with fewer calls / cleaner flow
         const tagUUID = new UUID().toString();
+        const points = await this.calculateNewTagPoints(params);
 
-        const createParams: TagEntity = { ...params, id: tagUUID, postedDate: params.postedDate ?? new Date().toISOString() };
+        const createParams: TagEntity = { ...params, id: tagUUID, postedDate: params.postedDate ?? new Date().toISOString(), points };
 
         if (isRoot) {
             // before we update the game, get the current latest root tag, and point it to this as the next root
@@ -104,6 +127,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         const tag = await this.dalService.create(createParams);
 
         await this.gamesService.setTagInGame({ gameId, tagId: tagUUID, root: isRoot });
+        await this.gamesService.addScoreForPlayer({ gameId, playerId: tag.creatorId, score: tag.points });
 
         return await this.convertToDto(tag);
     }

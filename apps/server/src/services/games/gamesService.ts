@@ -1,7 +1,7 @@
 import { GameDalService } from '../../dal/services/gameDalService';
 import { UserService } from '../users/userService';
 import { CannotRemovePlayerError, gameServiceErrors, UserNotFoundError } from '../../common/errors';
-import { CreateGameParams, GameDto, GameRoles, PlayerGame } from '@biketag/models';
+import { CreateGameParams, GameDto, GameRoles, GameScoreDto, PlayerGame } from '@biketag/models';
 import { BaseEntityWithoutId, GameEntity } from '../../dal/models';
 import { BaseService } from '../../common/baseService';
 import { copyDefinedProperties } from '@biketag/utils';
@@ -24,22 +24,41 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
         if (!entity) {
             return null;
         }
+        const { gameScore } = entity;
+
+        let gameScoreDto: GameScoreDto = { playerScores: [] };
+
+        for (const [playerId, score] of Object.entries(gameScore.playerScores)) {
+            const { name: userName } = await this.usersService.getRequired({ id: playerId });
+            gameScoreDto.playerScores.push({ player: { id: playerId, name: userName }, score });
+        }
+
         return {
             id: entity.id,
             name: entity.name,
             creator: await this.usersService.getRequired({ id: entity.creatorId }),
             players: await Promise.all(entity.players.map(async (p) => ({ ...p, user: await this.usersService.getRequired({ id: p.userId }) }))),
             firstRootTag: entity.firstRootTagId ? await this.tagsService.getRequired({ id: entity.firstRootTagId }) : undefined,
-            latestRootTag: entity.latestRootTagId ? await this.tagsService.getRequired({ id: entity.latestRootTagId }) : undefined
+            latestRootTag: entity.latestRootTagId ? await this.tagsService.getRequired({ id: entity.latestRootTagId }) : undefined,
+            gameScore: gameScoreDto
         };
     }
 
-    protected convertToEntity(dto: CreateGameParams): BaseEntityWithoutId<GameEntity> {
-        return {
+    protected convertToUpsertEntity(dto: CreateGameParams): Promise<Partial<BaseEntityWithoutId<GameEntity>>> {
+        return Promise.resolve({
             name: dto.name,
             creatorId: dto.creatorId,
             players: dto.players
-        };
+        });
+    }
+
+    protected convertToNewEntity(dto: CreateGameParams): Promise<BaseEntityWithoutId<GameEntity>> {
+        return Promise.resolve({
+            name: dto.name,
+            creatorId: dto.creatorId,
+            players: dto.players,
+            gameScore: { playerScores: {} }
+        });
     }
 
     public override async create(params: CreateGameParams): Promise<GameDto> {
@@ -51,11 +70,11 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
 
         GameService.sortPlayersByAdmins(players);
 
-        const game = await this.dalService.create(params);
+        const game = await this.dalService.create({ ...params, gameScore: { playerScores: {} } });
         return await this.convertToDto(game);
     }
 
-    public override async update({ id, updateParams }: { id: string; updateParams: CreateGameParams }): Promise<GameDto> {
+    public override async update({ id, updateParams }: { id: string; updateParams: Partial<CreateGameParams> }): Promise<GameDto> {
         if (updateParams.creatorId) {
             await validateExists(updateParams.creatorId, this.usersService);
         }
@@ -87,6 +106,11 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
             }
             await this.dalService.update({ id: gameId, updateParams });
         }
+    }
+
+    public async addScoreForPlayer({ gameId, playerId, score }: { gameId: string; playerId: string; score: number }): Promise<GameDto> {
+        await this.dalService.addScoreForPlayer({ gameId, playerId, score });
+        return await this.getRequired({ id: gameId });
     }
 
     public async addPlayerInGame({ gameId, userId, role }: { gameId: string; userId: string; role: string }): Promise<GameDto> {

@@ -24,7 +24,7 @@ export abstract class BaseDalService<E extends BaseEntity> {
         return this.convertFromDalEntity(entity);
     }
 
-    public async update({ id, updateParams }: { id: string; updateParams: Partial<E> }): Promise<E> {
+    public async update({ id, updateParams }: { id: string; updateParams: Partial<BaseEntityWithoutId<E>> }): Promise<E> {
         this.logger.info(`[update] `, { updateParams, id });
 
         const objectId = new UUID(id);
@@ -33,7 +33,7 @@ export abstract class BaseDalService<E extends BaseEntity> {
         const oldEntity = await this.validateId({ id });
         this.logger.info(`[update] updating entity`, { oldEntity });
 
-        await collection.updateOne(this.getIdFilter(objectId), { $set: updateParams });
+        await collection.updateOne(this.getIdFilter(objectId), { $set: updateParams as Partial<E> });
         return (await this.getByIdRequired({ id })) as E;
     }
 
