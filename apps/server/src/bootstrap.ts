@@ -31,6 +31,8 @@ const newChainDate = () => {
     const lateDays = chainCounter > 3 ? 2 + (chainCounter - 3) : 0;
     return startDate
         .add(rootCounter + lateDays, 'days')
+        .add(rootCounter * 2, 'hours')
+        .add(rootCounter * 3, 'minutes')
         .add(chainCounter * 2, 'hours')
         .add(chainCounter * 3, 'minutes')
         .toISOString();
