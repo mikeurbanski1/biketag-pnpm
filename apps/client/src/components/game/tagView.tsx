@@ -4,7 +4,8 @@ import { CreateTagParams, GameDto, MinimalTag as MinimalTagType, TagDto, UserDto
 import { MinimalTag, TagDetails } from './tagDetails';
 import { ApiManager } from '../../api';
 import { SubtagView } from './subtagView';
-import { AddRootTag } from './addTag';
+import { AddTag } from './addTag';
+import dayjs from 'dayjs';
 
 interface TagViewState {
     loading: boolean;
@@ -68,13 +69,15 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         this.setState({ addingTag: true });
     }
 
-    saveNewTag({ name, contents }: { name: string; contents: string }): void {
+    saveNewTag({ name, contents, date }: { name: string; contents: string; date: string }): void {
+        console.log(`saving new tag, date: ${date}`);
         const tag: CreateTagParams = {
             name: name!,
             creatorId: this.props.user.id,
             gameId: this.props.game.id,
             isRoot: true,
-            contents
+            contents,
+            postedDate: dayjs(date).toISOString()
         };
         ApiManager.tagApi.createTag(tag).then((newTag) => {
             this.setTag(newTag);
@@ -82,14 +85,16 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         });
     }
 
-    async saveNewSubtag({ contents }: { contents: string }): Promise<TagDto> {
+    async saveNewSubtag({ contents, date }: { contents: string; date: string }): Promise<TagDto> {
+        console.log(`saving new subtag, date: ${date}`);
         const tag: CreateTagParams = {
             name: this.state.rootTag!.name,
             creatorId: this.props.user.id,
             gameId: this.props.game.id,
             isRoot: false,
             rootTagId: this.state.rootTag!.id,
-            contents
+            contents,
+            postedDate: dayjs(date).toISOString()
         };
         return await ApiManager.tagApi.createTag(tag);
     }
@@ -105,9 +110,10 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
 
         if (this.state.addingTag) {
             addTagSection = (
-                <AddRootTag
-                    saveTag={({ name, contents }) => {
-                        this.saveNewTag({ name, contents });
+                <AddTag
+                    isRootTag={true}
+                    saveTag={({ name, contents, date }) => {
+                        this.saveNewTag({ name, contents, date });
                     }}
                 />
             );
@@ -131,7 +137,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
                     {this.state.rootTag ? <TagDetails tag={this.state.rootTag} isSubtag={false} /> : 'No tags yet!'}
 
                     <hr></hr>
-                    <SubtagView key={this.state.rootTag.id} rootTag={this.state.rootTag} user={this.props.user} saveNewSubtag={({ contents }) => this.saveNewSubtag({ contents })} />
+                    <SubtagView key={this.state.rootTag.id} rootTag={this.state.rootTag} user={this.props.user} saveNewSubtag={({ contents, date }) => this.saveNewSubtag({ contents, date })} />
                 </div>
                 {addTagSection && this.state.rootTag && !this.state.rootTag.nextRootTag ? <div>{addTagSection}</div> : undefined}
                 {this.state.rootTag.nextRootTag && this.getMinimalTagAndButton(this.state.rootTag.nextRootTag, false)}
