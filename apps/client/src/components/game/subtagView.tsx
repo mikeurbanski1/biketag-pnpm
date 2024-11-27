@@ -2,8 +2,8 @@ import React from 'react';
 import { MinimalTag as MinimalTagType, TagDto, UserDto } from '@biketag/models';
 import { MinimalTag, TagDetails } from './tagDetails';
 import { ApiManager } from '../../api';
-import { AddSubtag } from './addTag';
 import { Logger } from '@biketag/utils';
+import { AddTag } from './addTag';
 
 const logger = new Logger({ prefix: '[SubtagView]' });
 
@@ -17,7 +17,7 @@ interface SubtagViewState {
 interface SubtagViewProps {
     user: UserDto;
     rootTag: TagDto;
-    saveNewSubtag: ({ contents }: { contents: string }) => Promise<TagDto>;
+    saveNewSubtag: ({ contents, date }: { contents: string; date: string }) => Promise<TagDto>;
 }
 
 export class SubtagView extends React.Component<SubtagViewProps, SubtagViewState> {
@@ -93,8 +93,8 @@ export class SubtagView extends React.Component<SubtagViewProps, SubtagViewState
         return previous ? [tagElement, br, button] : [button, br, tagElement];
     }
 
-    saveNewTag({ contents }: { contents: string }): void {
-        this.props.saveNewSubtag({ contents }).then((tag) => {
+    saveNewTag({ contents, date }: { contents: string; date: string }): void {
+        this.props.saveNewSubtag({ contents, date }).then((tag) => {
             // user just added a tag, so we know this
             this.setTag({ tag, userCanAddTagOverride: false });
         });
@@ -113,9 +113,10 @@ export class SubtagView extends React.Component<SubtagViewProps, SubtagViewState
 
         if (this.state.addingTag) {
             addTagSection = (
-                <AddSubtag
-                    saveTag={({ contents }) => {
-                        this.saveNewTag({ contents });
+                <AddTag
+                    isRootTag={false}
+                    saveTag={({ contents, date }) => {
+                        this.saveNewTag({ contents, date });
                     }}
                 />
             );
