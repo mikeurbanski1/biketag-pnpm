@@ -23,14 +23,17 @@ export interface TagDto extends BaseDto {
     points: number;
 }
 
-export interface CreateTagParams {
+export interface CreateTagDto {
     name: string;
-    creatorId: string;
     gameId: string;
     rootTagId?: string;
     isRoot: boolean;
     contents: string;
     postedDate?: string; // used for bootstrapping
+}
+
+export interface CreateTagParams extends CreateTagDto {
+    creatorId: string;
 }
 
 export const tagFields = ['parentTagId', 'nextTagId', 'rootTagId', 'previousRootTagId', 'nextRootTagId'] as const;

@@ -1,4 +1,4 @@
-import { CreateTagParams, TagDto } from '@biketag/models';
+import { CreateTagDto, TagDto } from '@biketag/models';
 import { AbstractApi } from './abstractApi';
 import { AxiosError } from 'axios';
 
@@ -70,7 +70,7 @@ export class TagApi extends AbstractApi {
         }
     }
 
-    public async createTag(params: CreateTagParams): Promise<TagDto> {
+    public async createTag(params: CreateTagDto): Promise<TagDto> {
         try {
             const resp = await this.axiosInstance.request<TagDto>({
                 method: 'post',

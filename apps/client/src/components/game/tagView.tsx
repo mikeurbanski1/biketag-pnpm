@@ -1,6 +1,5 @@
 import React from 'react';
-// import { ApiManager } from '../../api';
-import { CreateTagParams, GameDto, MinimalTag as MinimalTagType, TagDto, UserDto } from '@biketag/models';
+import { CreateTagDto, GameDto, MinimalTag as MinimalTagType, TagDto, UserDto } from '@biketag/models';
 import { MinimalTag, TagDetails } from './tagDetails';
 import { ApiManager } from '../../api';
 import { SubtagView } from './subtagView';
@@ -72,9 +71,8 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
 
     saveNewTag({ name, contents, date }: { name: string; contents: string; date: string }): void {
         console.log(`saving new tag, date: ${date}`);
-        const tag: CreateTagParams = {
+        const tag: CreateTagDto = {
             name: name!,
-            creatorId: this.props.user.id,
             gameId: this.props.game.id,
             isRoot: true,
             contents,
@@ -89,9 +87,8 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
 
     async saveNewSubtag({ contents, date }: { contents: string; date: string }): Promise<TagDto> {
         console.log(`saving new subtag, date: ${date}`);
-        const tag: CreateTagParams = {
+        const tag: CreateTagDto = {
             name: this.state.rootTag!.name,
-            creatorId: this.props.user.id,
             gameId: this.props.game.id,
             isRoot: false,
             rootTagId: this.state.rootTag!.id,

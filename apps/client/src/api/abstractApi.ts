@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { getUrl } from './config';
-import { Logger } from '@biketag/utils';
+import { CLIENT_ID_HEADER, Logger, USER_ID_HEADER } from '@biketag/utils';
 
 export class AbstractApi {
     protected readonly logger;
@@ -10,8 +10,8 @@ export class AbstractApi {
             baseURL: getUrl(),
             headers: {
                 'Content-Type': 'application/json',
-                'X-Accept': 'application/json',
-                'X-Client-Id': clientId
+                Accept: 'application/json',
+                [CLIENT_ID_HEADER]: clientId
             }
         });
         this.logger = new Logger({ prefix: logPrefix });
@@ -22,15 +22,15 @@ export class AbstractApi {
      */
     public setUser({ userId, clientId }: { userId?: string | null; clientId?: string | null }) {
         if (userId) {
-            this.axiosInstance.defaults.headers['X-User-Id'] = userId;
+            this.axiosInstance.defaults.headers[USER_ID_HEADER] = userId;
         } else if (userId === null) {
-            delete this.axiosInstance.defaults.headers['X-User-Id'];
+            delete this.axiosInstance.defaults.headers[USER_ID_HEADER];
         }
 
         if (clientId) {
-            this.axiosInstance.defaults.headers['X-Client-Id'] = clientId;
+            this.axiosInstance.defaults.headers[CLIENT_ID_HEADER] = clientId;
         } else if (clientId === null) {
-            delete this.axiosInstance.defaults.headers['X-Client-Id'];
+            delete this.axiosInstance.defaults.headers[CLIENT_ID_HEADER];
         }
     }
 }
