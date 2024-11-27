@@ -107,6 +107,6 @@ export abstract class BaseService<ResponseDto extends BaseDto, UpsertDTO, E exte
         return (await Promise.all(entity.map((e) => this.convertToDto(e)))) as ResponseDto[];
     }
 
-    protected abstract convertToEntity(dto: UpsertDTO): BaseEntityWithoutId<E>;
+    protected abstract convertToEntity(dto: UpsertDTO): Promise<BaseEntityWithoutId<E>>;
     protected abstract convertToDto(entity: E | null): Promise<ResponseDto | null>;
 }

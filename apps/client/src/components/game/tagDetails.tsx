@@ -24,6 +24,9 @@ export const TagDetails: React.FC<TagProps> = ({ tag, isSubtag }) => {
             <span>
                 by <span className={`tag-creator`}>{tag.creator.name}</span>
             </span>
+            <span className="tag-points">
+                {tag.points} point{tag.points === 1 ? '' : 's'}
+            </span>
             <span>{dayjs(tag.postedDate).format(DATE_FORMAT)}</span>
         </div>
     );

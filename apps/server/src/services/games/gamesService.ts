@@ -34,12 +34,12 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
         };
     }
 
-    protected convertToEntity(dto: CreateGameParams): BaseEntityWithoutId<GameEntity> {
-        return {
+    protected convertToEntity(dto: CreateGameParams): Promise<BaseEntityWithoutId<GameEntity>> {
+        return Promise.resolve({
             name: dto.name,
             creatorId: dto.creatorId,
             players: dto.players
-        };
+        });
     }
 
     public override async create(params: CreateGameParams): Promise<GameDto> {
