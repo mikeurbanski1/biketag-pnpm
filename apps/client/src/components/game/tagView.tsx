@@ -18,6 +18,7 @@ interface TagViewProps {
     game: GameDto;
     user: UserDto;
     setNewLatestTag: (tag: TagDto) => void;
+    refreshScores: () => void;
 }
 
 export class TagView extends React.Component<TagViewProps, TagViewState> {
@@ -82,6 +83,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         ApiManager.tagApi.createTag(tag).then((newTag) => {
             this.setTag(newTag);
             this.props.setNewLatestTag(newTag);
+            this.props.refreshScores();
         });
     }
 
@@ -96,7 +98,9 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
             contents,
             postedDate: dayjs(date).toISOString()
         };
-        return await ApiManager.tagApi.createTag(tag);
+        const newTag = await ApiManager.tagApi.createTag(tag);
+        this.props.refreshScores();
+        return newTag;
     }
 
     render() {
