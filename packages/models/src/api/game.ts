@@ -16,11 +16,15 @@ export interface GameScoreDto {
     playerScores: { player: { id: string; name: string }; score: number }[];
 }
 
-export interface CreateGameParams extends Pick<GameDto, 'name'> {
-    creatorId: string;
+export interface CreateGameDto {
+    name: string;
     players: PlayerGame[];
     firstRootTagId?: string;
     latestRootTagId?: string;
+}
+
+export interface CreateGameParams extends CreateGameDto {
+    creatorId: string;
 }
 
 export interface RoleDto {

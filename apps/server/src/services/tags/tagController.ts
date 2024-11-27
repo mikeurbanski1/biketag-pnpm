@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Path, Post, Res, Route, SuccessResponse, TsoaResponse } from 'tsoa';
-import { Logger } from '@biketag/utils';
-import { CreateTagParams, TagDto } from '@biketag/models';
+import { Body, Controller, Get, Path, Post, Res, Route, SuccessResponse, TsoaResponse, Header } from 'tsoa';
+import { Logger, USER_ID_HEADER } from '@biketag/utils';
+import { CreateTagDto, TagDto } from '@biketag/models';
 
 import { TagService } from './tagService';
 
@@ -24,9 +24,9 @@ export class TagController extends Controller {
 
     @Post('/')
     @SuccessResponse('201', 'Created')
-    public async createTag(@Body() requestBody: CreateTagParams): Promise<TagDto> {
-        logger.info(`[createTag]`, { requestBody });
-        const tag = await this.tagsService.create(requestBody);
+    public async createTag(@Body() requestBody: CreateTagDto, @Header(USER_ID_HEADER) userId: string): Promise<TagDto> {
+        logger.info(`[createTag]`, { userId, requestBody });
+        const tag = await this.tagsService.create({ ...requestBody, creatorId: userId });
         return tag;
     }
 

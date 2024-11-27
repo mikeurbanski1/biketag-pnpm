@@ -1,8 +1,8 @@
 // src/users/usersController.ts
-import { Body, Controller, Delete, Get, Patch, Path, Post, Put, Res, Route, SuccessResponse, TsoaResponse } from 'tsoa';
-import { Logger } from '@biketag/utils';
+import { Body, Controller, Delete, Get, Header, Patch, Path, Post, Put, Res, Route, SuccessResponse, TsoaResponse } from 'tsoa';
+import { Logger, USER_ID_HEADER } from '@biketag/utils';
 import { GameService } from './gamesService';
-import { CreateGameParams, GameDto, AddPlayerInGameParams } from '@biketag/models';
+import { CreateGameParams, GameDto, AddPlayerInGameParams, CreateGameDto } from '@biketag/models';
 import { GameNotFoundError, UserNotFoundError } from '../../common/errors';
 
 const logger = new Logger({ prefix: '[GameController]' });
@@ -40,10 +40,10 @@ export class GameController extends Controller {
 
     @Post()
     @SuccessResponse('201', 'Created')
-    public async createGame(@Body() requestBody: CreateGameParams, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<GameDto> {
+    public async createGame(@Body() requestBody: CreateGameDto, @Header(USER_ID_HEADER) userId: string, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<GameDto> {
         logger.info(`[createGame]`, { requestBody });
         try {
-            const game = await this.gamesService.create(requestBody);
+            const game = await this.gamesService.create({ ...requestBody, creatorId: userId });
             return game;
         } catch (err) {
             if (err instanceof UserNotFoundError) {
