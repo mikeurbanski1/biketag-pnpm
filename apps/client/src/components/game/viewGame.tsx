@@ -106,7 +106,7 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                     refreshScores={() => this.refreshScores()}
                     setCurrentRootTag={(tag: TagDto) => this.setCurrentRootTag(tag)}
                 />
-                {this.state.currentRootTag && (
+                {/* {this.state.currentRootTag && (
                     <TagView
                         key={this.state.currentRootTag.id}
                         isSubtag={true}
@@ -115,7 +115,7 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                         subtagRootTag={this.state.currentRootTag}
                         refreshScores={() => this.refreshScores()}
                     />
-                )}
+                )} */}
                 {this.state.isCreator && <input type="button" name="editGame" value="Edit game" onClick={() => this.props.editGame()}></input>}
                 {this.state.isCreator && <input type="button" name="deleteGame" value="Delete game" onClick={() => this.props.deleteGame()}></input>}
                 <br></br>

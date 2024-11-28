@@ -194,10 +194,26 @@ export class TagView extends React.Component<TagView2Props, TagView2State> {
 
         const nextTag = this.props.isSubtag ? this.state.currentTag.nextTag : this.state.currentTag.nextRootTag;
 
+        const innerDiv = this.props.isSubtag ? (
+            <TagDetails tag={this.state.currentTag} isSubtag={this.props.isSubtag} />
+        ) : (
+            <div>
+                <TagDetails tag={this.state.currentTag} isSubtag={this.props.isSubtag} />
+                <TagView
+                    key={this.state.currentTag.nextTag?.id}
+                    isSubtag={true}
+                    game={this.props.game}
+                    user={this.props.user}
+                    subtagRootTag={this.state.currentTag}
+                    refreshScores={this.props.refreshScores}
+                />
+            </div>
+        );
+
         return (
             <div className={className}>
                 {this.getMinimalTag(previousTag)}
-                <TagDetails tag={this.state.currentTag} isSubtag={this.props.isSubtag} />
+                {innerDiv}
                 {this.getMinimalTag(nextTag)}
                 {addTagSection}
             </div>

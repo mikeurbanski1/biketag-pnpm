@@ -109,7 +109,7 @@ input[type="button"] {
     display: flex;
     gap: 1em;
     justify-content: space-between;
-    align-items: center;
+    align-items: top;
 }
 
 .main-tag {
