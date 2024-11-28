@@ -77,20 +77,21 @@ export class SubtagView extends React.Component<SubtagViewProps, SubtagViewState
         this.setState({ addingTag: true });
     }
 
-    getMinimalTagAndButton(tag: MinimalTagType, previous: boolean): React.ReactNode[] {
-        const tagElement = <MinimalTag key={`${previous ? 'prev' : 'next'}-tag-${tag.id}`} tag={tag} isSubtag={true} />;
-        const button = (
-            <input
-                key={`${previous ? 'prev' : 'next'}-tag-button-${tag.id}`}
-                type="button"
-                className="root-scroller-button"
-                name={tag.id}
-                value={previous ? '^^' : 'vv'}
-                onClick={() => this.setTagById(tag.id)}
-            ></input>
-        );
-        const br = <br key={`${previous ? 'prev' : 'next'}-br-${tag.id}`}></br>;
-        return previous ? [tagElement, br, button] : [button, br, tagElement];
+    getMinimalTag(tag: MinimalTagType): React.ReactNode {
+        const tagElement = <MinimalTag key={tag.id} tag={tag} isSubtag={true} selectTag={() => this.setTagById(tag.id)} />;
+        // const button = (
+        //     <input
+        //         key={`${previous ? 'prev' : 'next'}-tag-button-${tag.id}`}
+        //         type="button"
+        //         className="root-scroller-button"
+        //         name={tag.id}
+        //         value={previous ? '^^' : 'vv'}
+        //         onClick={() => this.setTagById(tag.id)}
+        //     ></input>
+        // );
+        // const br = <br key={`${previous ? 'prev' : 'next'}-br-${tag.id}`}></br>;
+        // return previous ? [tagElement, br, button] : [button, br, tagElement];
+        return tagElement;
     }
 
     saveNewTag({ contents, date }: { contents: string; date: string }): void {
@@ -139,11 +140,11 @@ export class SubtagView extends React.Component<SubtagViewProps, SubtagViewState
             const { currentTag } = this.state;
             return (
                 <div className="subtag-scroller">
-                    {currentTag.parentTag && currentTag.parentTag.id !== this.props.rootTag.id && this.getMinimalTagAndButton(currentTag.parentTag, true)}
+                    {currentTag.parentTag && currentTag.parentTag.id !== this.props.rootTag.id && this.getMinimalTag(currentTag.parentTag)}
                     <div className="subtag">
                         <TagDetails tag={this.state.currentTag} isSubtag={true} />
                     </div>
-                    {currentTag.nextTag && this.getMinimalTagAndButton(currentTag.nextTag, false)}
+                    {currentTag.nextTag && this.getMinimalTag(currentTag.nextTag)}
                     {addTagSection ? (
                         <div>
                             <hr></hr>

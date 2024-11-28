@@ -13,6 +13,7 @@ interface TagProps {
 interface MinimalTagProps {
     tag: MinimalTagType;
     isSubtag: boolean;
+    selectTag: () => void;
 }
 
 export const TagDetails: React.FC<TagProps> = ({ tag, isSubtag }) => {
@@ -32,10 +33,10 @@ export const TagDetails: React.FC<TagProps> = ({ tag, isSubtag }) => {
     );
 };
 
-export const MinimalTag: React.FC<MinimalTagProps> = ({ tag, isSubtag }) => {
+export const MinimalTag: React.FC<MinimalTagProps> = ({ tag, isSubtag, selectTag }) => {
     logger.info(`[MinimalTag]`, { tag });
     return (
-        <div className="minimal-tag">
+        <div className="minimal-tag flex-spread" onClick={selectTag}>
             <span className={isSubtag ? 'subtag-title' : 'tag-title'}>{isSubtag ? tag.contents : tag.name}</span>
             <span>
                 by <span className="tag-creator">{tag.creatorName}</span>

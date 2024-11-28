@@ -117,6 +117,7 @@ input[type="button"] {
     flex-direction: column;
     align-items: center;
     font-size: 1.2em;
+    background-color: #ececec;
 }
 
 .sub-tag {
@@ -124,6 +125,7 @@ input[type="button"] {
     flex-direction: column;
     align-items: center;
     font-size: 1em;
+    background-color: #ececec;
 }
 
 .tag-title {
@@ -136,16 +138,24 @@ input[type="button"] {
     font-size: 1.2em;
     font-weight: 400;
     margin-bottom: 0.5em;
-    color: #0058fb;
     font-style: italic;
+    color: #0058fb;
 }
-
-
 
 .minimal-tag {
     display: flex;
     flex-direction: column;
     align-items: center;
+    background-color: #bcbcbc;
+    cursor: pointer;
+}
+
+.minimal-tag:hover {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #e8e8e8;
+    cursor: pointer;
 }
 
 .minimal-tag .tag-title {
@@ -160,12 +170,12 @@ input[type="button"] {
     margin-bottom: 0.5em;
 }
 
-.main-tag-creator {
+.tag-creator {
     color: #535bf2;
     font-size: 1.1em;
 }
 
-.main-tag-points {
+.tag-points {
     color: #fb0000;
     font-size: 1.1em;
 }

@@ -57,14 +57,14 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
     }
 
     getMinimalTag(tag: MinimalTagType): React.ReactNode {
-        return <MinimalTag tag={tag} isSubtag={false} />;
+        return <MinimalTag tag={tag} isSubtag={false} selectTag={() => this.setTagById(tag.id)} />;
     }
 
-    getMinimalTagAndButton(tag: MinimalTagType, previous: boolean): React.ReactNode {
-        const tagElement = <MinimalTag tag={tag} isSubtag={false} />;
-        const button = <input type="button" className="root-scroller-button" name={tag.id} value={previous ? '<<' : '>>'} onClick={() => this.setTagById(tag.id)}></input>;
-        return previous ? [<div key={tag.id}>{tagElement}</div>, <div key={`${previous}`}>{button}</div>] : [<div key={tag.id}>{button}</div>, <div key={`${previous}`}>{tagElement}</div>];
-    }
+    // getMinimalTagAndButton(tag: MinimalTagType, previous: boolean): React.ReactNode {
+    //     const tagElement = <MinimalTag tag={tag} isSubtag={false} />;
+    //     const button = <input type="button" className="root-scroller-button" name={tag.id} value={previous ? '<<' : '>>'} onClick={() => this.setTagById(tag.id)}></input>;
+    //     return previous ? [<div key={tag.id}>{tagElement}</div>, <div key={`${previous}`}>{button}</div>] : [<div key={tag.id}>{button}</div>, <div key={`${previous}`}>{tagElement}</div>];
+    // }
 
     setAddingTag(): void {
         this.setState({ addingTag: true });
@@ -134,15 +134,14 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
 
         return (
             <div className="root-tag-scroller">
-                {this.state.rootTag.previousRootTag && this.getMinimalTagAndButton(this.state.rootTag.previousRootTag, true)}
+                {this.state.rootTag.previousRootTag && this.getMinimalTag(this.state.rootTag.previousRootTag)}
                 <div className="root-tag">
                     {this.state.rootTag ? <TagDetails tag={this.state.rootTag} isSubtag={false} /> : 'No tags yet!'}
-
                     <hr></hr>
                     <SubtagView key={this.state.rootTag.id} rootTag={this.state.rootTag} user={this.props.user} saveNewSubtag={({ contents, date }) => this.saveNewSubtag({ contents, date })} />
                 </div>
                 {addTagSection && this.state.rootTag && !this.state.rootTag.nextRootTag ? <div>{addTagSection}</div> : undefined}
-                {this.state.rootTag.nextRootTag && this.getMinimalTagAndButton(this.state.rootTag.nextRootTag, false)}
+                {this.state.rootTag.nextRootTag && this.getMinimalTag(this.state.rootTag.nextRootTag)}
             </div>
         );
     }
