@@ -8,7 +8,7 @@ import { UserService } from '../users/userService';
 import { validateExists } from '../../common/entityValidators';
 import { CannotPostTagError, tagServiceErrors } from '../../common/errors';
 import { UUID } from 'mongodb';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import { isSameDate } from '@biketag/utils';
 
 export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, TagDalService> {
@@ -96,7 +96,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         this.logger.info(`[create]`, { params });
         const { isRoot, gameId } = params;
         if (isRoot) {
-            const { result, reason } = await this.canPostNewTag({ userId: params.creatorId, gameId });
+            const { result, reason } = await this.canPostNewTag({ userId: params.creatorId, gameId, dateOverride: params.postedDate ? dayjs(params.postedDate) : undefined });
             if (!result) {
                 throw new CannotPostTagError(reason);
             }
@@ -192,13 +192,13 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         return false;
     }
 
-    public async canPostNewTag({ userId, gameId }: { userId?: string; gameId: string }): Promise<{ result: boolean; reason?: string }> {
+    public async canPostNewTag({ userId, gameId, dateOverride = dayjs() }: { userId?: string; gameId: string; dateOverride?: Dayjs }): Promise<{ result: boolean; reason?: string }> {
         const game = await this.gamesService.getRequiredAsEntity({ id: gameId });
         if (!game.latestRootTagId) {
             return { result: true };
         }
         const latestRootTag = await this.dalService.getByIdRequired({ id: game.latestRootTagId });
-        if (isSameDate(dayjs(), latestRootTag.postedDate)) {
+        if (isSameDate(dateOverride, latestRootTag.postedDate)) {
             return { result: false, reason: 'A tag has already been posted today' };
         }
         if (latestRootTag.creatorId === userId) {

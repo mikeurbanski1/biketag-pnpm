@@ -1,7 +1,7 @@
 import { GameDalService } from '../../dal/services/gameDalService';
 import { UserService } from '../users/userService';
 import { CannotRemovePlayerError, gameServiceErrors, UserNotFoundError } from '../../common/errors';
-import { CreateGameParams, GameDto, GameRoles, GameScoreDto, PlayerGame } from '@biketag/models';
+import { CreateGameParams, GameDto, GameRoles, PlayerGame } from '@biketag/models';
 import { BaseEntityWithoutId, GameEntity } from '../../dal/models';
 import { BaseService } from '../../common/baseService';
 import { copyDefinedProperties } from '@biketag/utils';
@@ -24,14 +24,15 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
         if (!entity) {
             return null;
         }
-        const { gameScore } = entity;
+        const { gameScore, players } = entity;
 
-        let gameScoreDto: GameScoreDto = { playerScores: [] };
-
-        for (const [playerId, score] of Object.entries(gameScore.playerScores)) {
-            const { name: userName } = await this.usersService.getRequired({ id: playerId });
-            gameScoreDto.playerScores.push({ player: { id: playerId, name: userName }, score });
-        }
+        const playerScores = players.reduce(
+            (scores, player) => {
+                scores[player.userId] = gameScore.playerScores[player.userId] ?? 0;
+                return scores;
+            },
+            {} as Record<string, number>
+        );
 
         return {
             id: entity.id,
@@ -40,7 +41,7 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
             players: await Promise.all(entity.players.map(async (p) => ({ ...p, user: await this.usersService.getRequired({ id: p.userId }) }))),
             firstRootTag: entity.firstRootTagId ? await this.tagsService.getRequired({ id: entity.firstRootTagId }) : undefined,
             latestRootTag: entity.latestRootTagId ? await this.tagsService.getRequired({ id: entity.latestRootTagId }) : undefined,
-            gameScore: gameScoreDto
+            gameScore: { playerScores }
         };
     }
 
