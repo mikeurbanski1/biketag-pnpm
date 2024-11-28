@@ -17,9 +17,9 @@ interface MinimalTagProps {
 }
 
 export const TagDetails: React.FC<TagProps> = ({ tag, isSubtag }) => {
-    const prefix = isSubtag ? 'sub' : 'main';
+    const className = isSubtag ? 'subtag' : 'main-tag';
     return (
-        <div className={`${prefix}-tag`}>
+        <div className={className}>
             {!isSubtag && <span className={`tag-title`}>{tag.name}</span>}
             <span className={`tag-contents`}>{tag.contents}</span>
             <span>

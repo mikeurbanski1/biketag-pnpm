@@ -147,7 +147,7 @@ const bootstrapData = async () => {
     obj = { name: 'Italy', creatorId: users[1].id, gameId: games[0].id, contents: 'Giro is fun', isRoot: false, postedDate: newChainDate(), rootTagId: tag3a.id };
     let tag3b = await tagService.create(obj);
 
-    obj = { name: 'Italy', creatorId: users[0].id, gameId: games[0].id, contents: 'I cannot ski', isRoot: false, postedDate: newChainDate(), rootTagId: tag3a.id };
+    obj = { name: 'Italy', creatorId: users[2].id, gameId: games[0].id, contents: 'I cannot ski', isRoot: false, postedDate: newChainDate(), rootTagId: tag3a.id };
     let tag3c = await tagService.create(obj);
 
     obj = { name: 'Italy', creatorId: users[4].id, gameId: games[0].id, contents: 'Fucking tourists...', isRoot: false, postedDate: newChainDate(), rootTagId: tag3a.id };
@@ -156,7 +156,7 @@ const bootstrapData = async () => {
     obj = { name: 'Italy', creatorId: users[5].id, gameId: games[0].id, contents: 'Giro is still fun', isRoot: false, postedDate: newChainDate(), rootTagId: tag3a.id };
     let tag3e = await tagService.create(obj);
 
-    obj = { name: 'Canada', creatorId: users[1].id, gameId: games[0].id, contents: 'OH CAH-NAH-DA', isRoot: true, postedDate: newRootDate() };
+    obj = { name: 'Canada', creatorId: users[3].id, gameId: games[0].id, contents: 'OH CAH-NAH-DA', isRoot: true, postedDate: newRootDate() };
     let tag4a = await tagService.create(obj);
 
     obj = { name: 'Canada', creatorId: users[0].id, gameId: games[0].id, contents: 'Our home and sacred land', isRoot: false, postedDate: newChainDate(), rootTagId: tag4a.id };
@@ -231,7 +231,7 @@ const bootstrapData = async () => {
     };
     let tag5e = await tagService.create(obj);
 
-    obj = { name: 'High Bridge', creatorId: users[2].id, gameId: games[1].id, contents: 'High bridge is high', isRoot: true, postedDate: newRootDate() };
+    obj = { name: 'High Bridge', creatorId: users[1].id, gameId: games[1].id, contents: 'High bridge is high', isRoot: true, postedDate: newRootDate() };
     let tag6a = await tagService.create(obj);
 
     obj = {
@@ -248,7 +248,7 @@ const bootstrapData = async () => {
 
     obj = {
         name: 'High Bridge',
-        creatorId: users[1].id,
+        creatorId: users[2].id,
         gameId: games[1].id,
         contents: 'So up high bridge to the clouds I go',
         isRoot: false,

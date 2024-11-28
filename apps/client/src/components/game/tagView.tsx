@@ -2,146 +2,204 @@ import React from 'react';
 import { CreateTagDto, GameDto, MinimalTag as MinimalTagType, TagDto, UserDto } from '@biketag/models';
 import { MinimalTag, TagDetails } from './tagDetails';
 import { ApiManager } from '../../api';
-import { SubtagView } from './subtagView';
 import { AddTag } from './addTag';
 import dayjs from 'dayjs';
 
-interface TagViewState {
-    loading: boolean;
-    rootTag?: TagDto;
+interface TagView2State {
+    loadingTag: boolean;
+    currentTag?: TagDto;
     userCanAddTag: boolean;
     addingTag: boolean;
 }
 
-interface TagViewProps {
+interface TagView2Props {
     game: GameDto;
     user: UserDto;
-    setNewLatestTag: (tag: TagDto) => void;
+    subtagRootTag?: TagDto;
+    isSubtag: boolean;
     refreshScores: () => void;
+    createNewRootTag?: (tag: TagDto) => void;
+    setCurrentRootTag?: (tag: TagDto) => void;
 }
 
-export class TagView extends React.Component<TagViewProps, TagViewState> {
-    constructor(props: TagViewProps) {
-        console.log('in tag view constructor');
+export class TagView extends React.Component<TagView2Props, TagView2State> {
+    constructor(props: TagView2Props) {
         super(props);
+
+        let userCanAddTag;
+        if (props.isSubtag) {
+            if (!props.subtagRootTag) {
+                throw new Error('Subtag view must have a root tag');
+            }
+            // if the root tag was not created by us and has no children (that might be ours), we can add a tag
+            // otherwise, we do not know, so set to false for now
+            userCanAddTag = !props.subtagRootTag.nextTag && props.subtagRootTag.creator.id !== props.user.id;
+        } else {
+            if (!props.setCurrentRootTag) {
+                throw new Error('Root tag view must have a setCurrentRootTag function');
+            }
+            // if the game has no tags, we can add a tag
+            // otherwise, we do not know, so set to false for now
+            userCanAddTag = props.game.latestRootTag === undefined;
+        }
+
+        // we have to load the next tag if we are a subtag
+        const currentTag = props.isSubtag ? undefined : this.props.game.latestRootTag;
+
         this.state = {
-            loading: false,
-            rootTag: this.props.game.latestRootTag,
-            userCanAddTag: props.game.latestRootTag === undefined,
+            loadingTag: props.isSubtag,
+            currentTag,
+            userCanAddTag,
             addingTag: false
         };
     }
 
-    setCanUserAddtag(): void {
-        ApiManager.tagApi.canUserAddTag({ userId: this.props.user.id, gameId: this.props.game.id }).then((userCanAddTag) => {
-            this.setState({ userCanAddTag });
-        });
-    }
-
     componentDidMount(): void {
-        this.setCanUserAddtag();
-    }
-
-    setTagById(id: string): void {
-        if (id === this.state.rootTag?.id) {
-            return;
+        this.fetchAndSetCanUserAddTag();
+        if (this.props.isSubtag) {
+            this.setTagById(this.props.subtagRootTag!.nextTag?.id);
+        } else {
+            this.setState({ loadingTag: false });
         }
-        ApiManager.tagApi.getTag({ id }).then((tag) => {
-            this.setTag(tag);
-        });
     }
 
-    setTag(tag: TagDto): void {
-        // this.setCanUserAddtag();
-        this.setState({ rootTag: tag, addingTag: false });
+    fetchAndSetCanUserAddTag(): void {
+        if (this.props.isSubtag) {
+            const tagId = this.props.subtagRootTag!.id;
+            ApiManager.tagApi.canUserAddSubtag({ tagId, userId: this.props.user.id }).then((userCanAddTag) => {
+                this.setState({ userCanAddTag });
+            });
+        } else {
+            ApiManager.tagApi.canUserAddTag({ userId: this.props.user.id, gameId: this.props.game.id }).then((userCanAddTag) => {
+                this.setState({ userCanAddTag });
+            });
+        }
     }
 
-    getMinimalTag(tag: MinimalTagType): React.ReactNode {
-        return <MinimalTag tag={tag} isSubtag={false} selectTag={() => this.setTagById(tag.id)} />;
+    setAddingTag(addingTag = true): void {
+        this.setState({ addingTag });
     }
 
-    // getMinimalTagAndButton(tag: MinimalTagType, previous: boolean): React.ReactNode {
-    //     const tagElement = <MinimalTag tag={tag} isSubtag={false} />;
-    //     const button = <input type="button" className="root-scroller-button" name={tag.id} value={previous ? '<<' : '>>'} onClick={() => this.setTagById(tag.id)}></input>;
-    //     return previous ? [<div key={tag.id}>{tagElement}</div>, <div key={`${previous}`}>{button}</div>] : [<div key={tag.id}>{button}</div>, <div key={`${previous}`}>{tagElement}</div>];
+    setTagById(id?: string): void {
+        if (!id) {
+            this.setState({ currentTag: undefined, addingTag: false, loadingTag: false, userCanAddTag: true });
+        } else if (id !== this.state.currentTag?.id) {
+            // make sure we did not somehow view the same tag
+            ApiManager.tagApi.getTag({ id }).then((tag) => {
+                this.setTag({ tag });
+            });
+        }
+    }
+
+    // setTag(tag: TagDto): void {
+    //     this.setState({ currentTag: tag, addingTag: false, loadingTag: false, loadingCanAddTag: false, userCanAddTag: false });
+    //     if (!this.props.isSubtag) {
+    //         this.props.setCurrentRootTag!(tag);
+    //     }
     // }
 
-    setAddingTag(): void {
-        this.setState({ addingTag: true });
+    setTag({ tag, userCanAddTagOverride }: { tag?: TagDto; userCanAddTagOverride?: boolean }): void {
+        const userCanAddTagUpdate = userCanAddTagOverride !== undefined ? { userCanAddTag: userCanAddTagOverride } : ({} as TagView2State);
+        this.setState({ currentTag: tag, loadingTag: false, addingTag: false, ...userCanAddTagUpdate });
+        if (!this.props.isSubtag && tag) {
+            this.props.setCurrentRootTag!(tag);
+        }
     }
 
-    saveNewTag({ name, contents, date }: { name: string; contents: string; date: string }): void {
+    getMinimalTag(tag?: MinimalTagType): React.ReactNode {
+        return tag ? <MinimalTag tag={tag} isSubtag={this.props.isSubtag} selectTag={() => this.setTagById(tag.id)} /> : undefined;
+    }
+
+    saveNewTag({ name, contents, date }: { name?: string; contents: string; date: string }): void {
         console.log(`saving new tag, date: ${date}`);
-        const tag: CreateTagDto = {
-            name: name!,
-            gameId: this.props.game.id,
-            isRoot: true,
-            contents,
-            postedDate: dayjs(date).toISOString()
-        };
+        let tag: CreateTagDto;
+        if (this.props.isSubtag) {
+            tag = {
+                name: this.props.subtagRootTag!.name,
+                gameId: this.props.game.id,
+                isRoot: false,
+                rootTagId: this.props.subtagRootTag!.id,
+                contents,
+                postedDate: dayjs(date).toISOString()
+            };
+        } else {
+            tag = {
+                name: name!,
+                gameId: this.props.game.id,
+                isRoot: true,
+                contents,
+                postedDate: dayjs(date).toISOString()
+            };
+        }
         ApiManager.tagApi.createTag(tag).then((newTag) => {
-            this.setTag(newTag);
-            this.props.setNewLatestTag(newTag);
+            this.setTag({ tag: newTag, userCanAddTagOverride: false });
+            if (!this.props.isSubtag) {
+                this.props.createNewRootTag!(newTag);
+            }
             this.props.refreshScores();
         });
     }
 
-    async saveNewSubtag({ contents, date }: { contents: string; date: string }): Promise<TagDto> {
-        console.log(`saving new subtag, date: ${date}`);
-        const tag: CreateTagDto = {
-            name: this.state.rootTag!.name,
-            gameId: this.props.game.id,
-            isRoot: false,
-            rootTagId: this.state.rootTag!.id,
-            contents,
-            postedDate: dayjs(date).toISOString()
-        };
-        const newTag = await ApiManager.tagApi.createTag(tag);
-        this.props.refreshScores();
-        return newTag;
-    }
-
     render() {
-        if (this.state.loading) {
-            return <div>Loading...</div>;
+        const classType = this.props.isSubtag ? 'subtag' : 'root-tag';
+        const className = `${classType}-scroller`;
+
+        if (this.state.loadingTag) {
+            return <div className={className}>Loading...</div>;
         }
 
         let addTagSection: React.ReactNode | undefined;
 
-        const addTagButton = !this.state.addingTag && this.state.userCanAddTag ? <input type="button" name="add-tag" value="Add a new tag!" onClick={() => this.setAddingTag()}></input> : undefined;
-
         if (this.state.addingTag) {
             addTagSection = (
                 <AddTag
-                    isRootTag={true}
+                    isRootTag={!this.props.isSubtag}
                     saveTag={({ name, contents, date }) => {
                         this.saveNewTag({ name, contents, date });
                     }}
                 />
             );
+        } else if (!this.state.addingTag && this.state.userCanAddTag) {
+            addTagSection = <input type="button" name="add-tag" value="Add a new tag!" onClick={() => this.setAddingTag()}></input>;
         } else {
-            addTagSection = addTagButton;
+            addTagSection = undefined;
         }
 
-        if (!this.state.rootTag) {
+        addTagSection = <div>{addTagSection}</div>;
+
+        if (!this.state.currentTag) {
             return (
-                <div>
-                    No tags yet!<br></br>
-                    {addTagSection}
+                <div className={className}>
+                    <div>
+                        {this.props.isSubtag ? 'Nobody else has been here yet!' : 'Nobody has gone anywhere!'}
+                        <br></br>
+                        {addTagSection}
+                    </div>
                 </div>
             );
         }
 
+        // we will not show the add tag for a new root tag unless viewing the most recent root
+        if (!this.props.isSubtag && this.state.currentTag.id !== this.props.game.latestRootTag?.id) {
+            addTagSection = undefined;
+        }
+
+        let previousTag: MinimalTagType | undefined;
+        if (this.props.isSubtag) {
+            // if the previous tag of the subtag is the root tag, then we do not want to show it
+            previousTag = this.state.currentTag.parentTag?.id !== this.props.subtagRootTag!.id ? this.state.currentTag.parentTag : undefined;
+        } else {
+            previousTag = this.state.currentTag.previousRootTag;
+        }
+
+        const nextTag = this.props.isSubtag ? this.state.currentTag.nextTag : this.state.currentTag.nextRootTag;
+
         return (
-            <div className="root-tag-scroller">
-                {this.state.rootTag.previousRootTag && this.getMinimalTag(this.state.rootTag.previousRootTag)}
-                <div className="root-tag">
-                    {this.state.rootTag ? <TagDetails tag={this.state.rootTag} isSubtag={false} /> : 'No tags yet!'}
-                    <hr></hr>
-                    <SubtagView key={this.state.rootTag.id} rootTag={this.state.rootTag} user={this.props.user} saveNewSubtag={({ contents, date }) => this.saveNewSubtag({ contents, date })} />
-                </div>
-                {addTagSection && this.state.rootTag && !this.state.rootTag.nextRootTag ? <div>{addTagSection}</div> : undefined}
-                {this.state.rootTag.nextRootTag && this.getMinimalTag(this.state.rootTag.nextRootTag)}
+            <div className={className}>
+                {this.getMinimalTag(previousTag)}
+                <TagDetails tag={this.state.currentTag} isSubtag={this.props.isSubtag} />
+                {this.getMinimalTag(nextTag)}
+                {addTagSection}
             </div>
         );
     }
