@@ -6,9 +6,10 @@ import { BaseEntityWithoutId } from '../../dal/models';
 import { GameService } from '../games/gamesService';
 import { UserService } from '../users/userService';
 import { validateExists } from '../../common/entityValidators';
-import { tagServiceErrors } from '../../common/errors';
+import { CannotPostTagError, tagServiceErrors } from '../../common/errors';
 import { UUID } from 'mongodb';
 import dayjs from 'dayjs';
+import { isSameDate } from '@biketag/utils';
 
 export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, TagDalService> {
     private readonly usersService: UserService;
@@ -41,9 +42,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         this.logger.info(`[calculateNewTagPoints] for non-root tag`, { postedDate: dto.postedDate ?? 'undefined' });
         const postedDate = dayjs(dto.postedDate);
         const rootTag = await this.dalService.getByIdRequired({ id: dto.rootTagId! });
-        const rootTagPostedDate = dayjs(rootTag.postedDate);
-        this.logger.info(`[calculateNewTagPoints]`, { postedDate, rootTagPostedDate });
-        const sameDate = postedDate.format('YYYY-MM-DD') === rootTagPostedDate.format('YYYY-MM-DD');
+        const sameDate = isSameDate(postedDate, rootTag.postedDate);
         this.logger.info(`[calculateNewTagPoints] is same date: ${sameDate}`);
         return sameDate ? 5 : 1;
     }
@@ -97,7 +96,15 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         this.logger.info(`[create]`, { params });
         const { isRoot, gameId } = params;
         if (isRoot) {
+            const { result, reason } = await this.canPostNewTag({ userId: params.creatorId, gameId });
+            if (!result) {
+                throw new CannotPostTagError(reason);
+            }
             await this.validateRootTagLinks(params);
+        } else {
+            if (await this.userInTagChain({ userId: params.creatorId, tagId: params.rootTagId! })) {
+                throw new CannotPostTagError(`User ${params.creatorId} has already posted a tag for ${params.rootTagId}`);
+            }
         }
 
         // create a new tag object id now so we can update references with fewer calls / cleaner flow
@@ -183,6 +190,21 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             return this.userInTagChain({ userId, tagId: tag.nextTagId });
         }
         return false;
+    }
+
+    public async canPostNewTag({ userId, gameId }: { userId?: string; gameId: string }): Promise<{ result: boolean; reason?: string }> {
+        const game = await this.gamesService.getRequiredAsEntity({ id: gameId });
+        if (!game.latestRootTagId) {
+            return { result: true };
+        }
+        const latestRootTag = await this.dalService.getByIdRequired({ id: game.latestRootTagId });
+        if (isSameDate(dayjs(), latestRootTag.postedDate)) {
+            return { result: false, reason: 'A tag has already been posted today' };
+        }
+        if (latestRootTag.creatorId === userId) {
+            return { result: false, reason: 'User cannot post consecutive tags' };
+        }
+        return { result: true };
     }
 
     /**

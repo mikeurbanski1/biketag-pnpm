@@ -27,19 +27,20 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         this.state = {
             loading: false,
             rootTag: this.props.game.latestRootTag,
-            userCanAddTag: true,
+            userCanAddTag: props.game.latestRootTag === undefined,
             addingTag: false
         };
     }
 
-    // setCanUserAddtag(): void {
-    //     // TODO check if game allows a new tag (from this user)
-    //     this.setState({ userCanAddTag: true });
-    // }
+    setCanUserAddtag(): void {
+        ApiManager.tagApi.canUserAddTag({ userId: this.props.user.id, gameId: this.props.game.id }).then((userCanAddTag) => {
+            this.setState({ userCanAddTag });
+        });
+    }
 
-    // componentDidMount(): void {
-    //     this.setCanUserAddtag();
-    // }
+    componentDidMount(): void {
+        this.setCanUserAddtag();
+    }
 
     setTagById(id: string): void {
         if (id === this.state.rootTag?.id) {

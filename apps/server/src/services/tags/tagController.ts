@@ -53,4 +53,13 @@ export class TagController extends Controller {
         logger.info('[userInTagChain] got result', { res });
         return res;
     }
+
+    @Get('/user/{userId}/game/{gameId}/can-post-new-tag')
+    @SuccessResponse('200', 'Ok')
+    public async canPostNewTag(@Path() userId: string, @Path() gameId: string): Promise<{ result: boolean; reason?: string }> {
+        logger.info(`[canPostNewTag]`, { userId, gameId });
+        const res = await this.tagsService.canPostNewTag({ userId, gameId });
+        logger.info('[canPostNewTag] got result', { res });
+        return res;
+    }
 }

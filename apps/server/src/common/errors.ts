@@ -25,6 +25,8 @@ export class TagExistsError extends BaseExistsCheckError {
     public static entityName = 'Tag';
 }
 
+export class CannotPostTagError extends Error {}
+
 export interface IError<E extends Error> {
     new (message: string): E;
 }

@@ -53,6 +53,24 @@ export class TagApi extends AbstractApi {
         }
     }
 
+    public async canUserAddTag({ userId, gameId }: { userId: string; gameId: string }): Promise<boolean> {
+        try {
+            const resp = await this.axiosInstance.request<{ result: boolean }>({
+                method: 'get',
+                url: `/tags/user/${userId}/game/${gameId}/can-post-new-tag`
+            });
+            if (resp.status !== 200) {
+                throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
+            }
+            const { result } = resp.data;
+            this.logger.info('[canUserAddTag] got response', { data: resp.data });
+            return result;
+        } catch (err) {
+            this.logger.error(`[canUserAddTag] got an error response`, { err });
+            throw err;
+        }
+    }
+
     public async canUserAddSubtag({ userId, tagId }: { userId: string; tagId: string }): Promise<boolean> {
         try {
             const resp = await this.axiosInstance.request<boolean>({
@@ -62,10 +80,10 @@ export class TagApi extends AbstractApi {
             if (resp.status !== 200) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
             }
-            this.logger.info('[canUserAddTag] got response', { data: resp.data });
+            this.logger.info('[canUserAddSubtag] got response', { data: resp.data });
             return !resp.data; // if the user is in the chain than we cannot add a tag
         } catch (err) {
-            this.logger.error(`[canUserAddTag] got an error response`, { err });
+            this.logger.error(`[canUserAddSubtag] got an error response`, { err });
             throw err;
         }
     }

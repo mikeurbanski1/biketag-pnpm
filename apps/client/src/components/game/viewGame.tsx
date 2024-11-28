@@ -1,8 +1,8 @@
 import { GameDto, GameRoles, TagDto, UserDto } from '@biketag/models';
 import React from 'react';
-import { TagView } from './game/tagView';
+import { TagView } from './tagView';
 // import { Logger } from '@biketag/utils';
-import { ApiManager } from '../api';
+import { ApiManager } from '../../api';
 
 // const logger = new Logger({ prefix: '[ViewGame]' });
 
