@@ -1,16 +1,16 @@
 import { GameDto, GameRoles, TagDto, UserDto } from '@biketag/models';
 import React from 'react';
-// import { Logger } from '@biketag/utils';
+import { Logger } from '@biketag/utils';
 import { ApiManager } from '../../api';
 import { TagView } from './tagView';
 
-// const logger = new Logger({ prefix: '[ViewGame]' });
+const logger = new Logger({ prefix: '[ViewGame]' });
 
 type PlayerTableRole = GameRoles | 'OWNER';
 
 interface ViewGameState {
     isCreator: boolean;
-    playerDetails: { id: string; name: string; role: PlayerTableRole }[];
+    playerDetailsTable: { id: string; name: string; role: PlayerTableRole; score: number }[];
     currentRootTag?: TagDto;
 }
 
@@ -28,7 +28,7 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
         super(props);
         this.state = {
             isCreator: this.props.game.creator.id === this.props.user.id,
-            playerDetails: this.getPlayerDetails(),
+            playerDetailsTable: this.getPlayerDetailsTable(),
             currentRootTag: this.props.game.latestRootTag
         };
     }
@@ -43,31 +43,29 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
         this.props.updateGame(updateParams);
     }
 
-    getPlayerDetails(game?: GameDto): { id: string; name: string; role: PlayerTableRole }[] {
+    getPlayerDetailsTable(game?: GameDto): { id: string; name: string; role: PlayerTableRole; score: number }[] {
         if (!game) {
             game = this.props.game;
         }
-        return game.gameScore.playerScores.map((playerScore) => {
-            const role: PlayerTableRole = game.creator.id === playerScore.player.id ? 'OWNER' : game.players.find((p) => p.user.id === playerScore.player.id)!.role;
-            return {
-                id: playerScore.player.id,
-                name: playerScore.player.name,
-                role
-            };
-        });
+        logger.info(`[getPlayerDetailsTable]`, { game });
+        return [{ id: game.creator.id, name: game.creator.name, role: 'OWNER' as PlayerTableRole, score: game.gameScore.playerScores[game.creator.id] ?? 0 }].concat(
+            game.players.map((player) => {
+                return { id: player.user.id, name: player.user.name, role: player.role, score: game.gameScore.playerScores[player.user.id] ?? 0 };
+            })
+        );
     }
 
     refreshScores(): void {
         ApiManager.gameApi.getGame({ id: this.props.game.id }).then((game) => {
             this.props.updateGame(game);
-            this.setState({ playerDetails: this.getPlayerDetails(game) });
+            this.setState({ playerDetailsTable: this.getPlayerDetailsTable(game) });
         });
     }
 
     render() {
         const { game } = this.props;
 
-        game.gameScore.playerScores.sort((a, b) => b.score - a.score);
+        const sortedPlayerDetails = this.state.playerDetailsTable.sort((a, b) => b.score - a.score);
 
         return (
             <div className="game-view">
@@ -88,13 +86,12 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                             </tr>
                         </thead>
                         <tbody>
-                            {game.gameScore.playerScores.map((playerScore) => {
-                                const role: PlayerTableRole = this.state.playerDetails.find((pd) => pd.id === playerScore.player.id)!.role;
+                            {sortedPlayerDetails.map((player) => {
                                 return (
-                                    <tr key={playerScore.player.id}>
-                                        <td>{playerScore.player.name}</td>
-                                        <td>{role}</td>
-                                        <td>{playerScore.score}</td>
+                                    <tr key={player.id}>
+                                        <td>{player.name}</td>
+                                        <td>{player.role}</td>
+                                        <td>{player.score}</td>
                                     </tr>
                                 );
                             })}

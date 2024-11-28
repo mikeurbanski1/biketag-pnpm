@@ -13,7 +13,7 @@ export interface GameDto extends BaseDto {
 }
 
 export interface GameScoreDto {
-    playerScores: { player: { id: string; name: string }; score: number }[];
+    playerScores: Record<string, number>;
 }
 
 export interface CreateGameDto {
