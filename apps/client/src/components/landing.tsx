@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { GameDto, UserDto } from '@biketag/models';
 import { CreateEditGame } from './createEditGame';
-import { ViewGame } from './viewGame';
+import { ViewGame } from './game/viewGame';
 import { ApiManager } from '../api';
 
 interface LandingState {

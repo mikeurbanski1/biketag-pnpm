@@ -65,3 +65,4 @@ export const copyDefinedProperties = <T>(source: T, filters?: (keyof T)[]): Part
 
 export { Logger, LogLevel };
 export * from './consts';
+export * from './date';
