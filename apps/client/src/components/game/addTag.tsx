@@ -3,10 +3,11 @@ import React, { useState } from 'react';
 
 interface AddTagProps {
     saveTag: ({ name, contents, date }: { name: string; contents: string; date: string }) => void;
+    cancelAddTag: () => void;
     isRootTag: boolean;
 }
 
-export const AddTag: React.FC<AddTagProps> = ({ saveTag, isRootTag }) => {
+export const AddTag: React.FC<AddTagProps> = ({ saveTag, cancelAddTag, isRootTag }) => {
     const [name, setName] = useState('');
     const [contents, setContents] = useState('');
     const [date, setDate] = useState(dayjs().format('YYYY-MM-DDTHH:mm'));
@@ -37,6 +38,7 @@ export const AddTag: React.FC<AddTagProps> = ({ saveTag, isRootTag }) => {
             <input aria-label="Date and time" type="datetime-local" defaultValue={date} onChange={handleDateChange} />
             <br></br>
             <input type="button" name="save-tag" value="Save" disabled={!canSave} onClick={() => saveTag({ name, contents, date })}></input>
+            <input type="button" name="cancel-tag" value="Cancel" onClick={() => cancelAddTag()}></input>
         </div>
     );
 };

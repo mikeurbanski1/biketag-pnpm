@@ -157,6 +157,7 @@ export class TagView extends React.Component<TagView2Props, TagView2State> {
                     saveTag={({ name, contents, date }) => {
                         this.saveNewTag({ name, contents, date });
                     }}
+                    cancelAddTag={() => this.setAddingTag(false)}
                 />
             );
         } else if (!this.state.addingTag && this.state.userCanAddTag) {
