@@ -3,6 +3,7 @@ import { GameDto, UserDto } from '@biketag/models';
 import { CreateEditGame } from './createEditGame';
 import { ViewGame } from './game/viewGame';
 import { ApiManager } from '../api';
+import { Dayjs } from 'dayjs';
 
 interface LandingState {
     loadingGames: boolean;
@@ -13,6 +14,7 @@ interface LandingState {
 
 interface LandingProps {
     user: UserDto;
+    dateOverride: Dayjs;
 }
 
 export class Landing extends React.Component<LandingProps, LandingState> {
@@ -100,7 +102,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
             return (
                 <div>
                     <div>
-                        <h1>Your games:</h1>
+                        <h2>Your games:</h2>
                         <ul>
                             {this.state.games.map((game) => (
                                 <a key={'a' + game.id} onClick={() => this.setState({ game })}>
@@ -125,6 +127,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
                     deleteGame={() => this.deleteGame()}
                     editGame={() => this.editGame()}
                     doneViewingGame={() => this.doneViewingGame()}
+                    dateOverride={this.props.dateOverride}
                 />
             );
         }

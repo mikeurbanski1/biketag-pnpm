@@ -3,6 +3,7 @@ import React from 'react';
 import { Logger } from '@biketag/utils';
 import { ApiManager } from '../../api';
 import { TagView } from './tagView';
+import { Dayjs } from 'dayjs';
 
 const logger = new Logger({ prefix: '[ViewGame]' });
 
@@ -21,6 +22,7 @@ interface ViewGameProps {
     doneViewingGame: () => void;
     editGame: () => void;
     deleteGame: () => void;
+    dateOverride: Dayjs;
 }
 
 export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
@@ -105,6 +107,7 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                     user={this.props.user}
                     createNewTag={(tag: TagDto) => this.createNewRootTag(tag)}
                     refreshScores={() => this.refreshScores()}
+                    dateOverride={this.props.dateOverride}
                     // setCurrentRootTag={(tag: TagDto) => this.setCurrentRootTag(tag)}
                 />
                 {/* {this.state.currentRootTag && (

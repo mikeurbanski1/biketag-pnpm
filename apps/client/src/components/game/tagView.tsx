@@ -3,8 +3,8 @@ import { CreateTagDto, GameDto, MinimalTag as MinimalTagType, TagDto, UserDto } 
 import { MinimalTag, TagDetails } from './tagDetails';
 import { ApiManager } from '../../api';
 import { AddTag } from './addTag';
-import dayjs from 'dayjs';
-import { Logger } from '@biketag/utils';
+import dayjs, { Dayjs } from 'dayjs';
+import { isSameDate, Logger } from '@biketag/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const logger = new Logger({ prefix: '[TagView]' });
@@ -25,6 +25,7 @@ interface TagViewProps {
     // general handler for notifying the parent component that a new tag was created, so it can refresh anything it needs to
     createNewTag: (tag: TagDto) => void;
     // setCurrentRootTag?: (tag: TagDto) => void;
+    dateOverride: Dayjs;
 }
 
 export class TagView extends React.Component<TagViewProps, TagViewState> {
@@ -77,7 +78,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
                 this.setState({ userCanAddTag });
             });
         } else {
-            ApiManager.tagApi.canUserAddTag({ userId: this.props.user.id, gameId: this.props.game.id }).then((userCanAddTag) => {
+            ApiManager.tagApi.canUserAddTag({ userId: this.props.user.id, gameId: this.props.game.id, dateOverride: this.props.dateOverride }).then((userCanAddTag) => {
                 this.setState({ userCanAddTag });
             });
         }
@@ -122,8 +123,8 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         this.fetchAndSetCanUserAddTag();
     }
 
-    saveNewTag({ name, contents, date }: { name?: string; contents: string; date: string }): void {
-        logger.info(`[saveNewTag]`, { name, contents, date });
+    saveNewTag({ name, contents }: { name?: string; contents: string }): void {
+        logger.info(`[saveNewTag]`, { name, contents, dateOverride: this.props.dateOverride });
         let tag: CreateTagDto;
         if (this.props.isSubtag) {
             tag = {
@@ -132,7 +133,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
                 isRoot: false,
                 rootTagId: this.props.subtagRootTag!.id,
                 contents,
-                postedDate: dayjs(date).toISOString()
+                postedDate: this.props.dateOverride.toISOString()
             };
         } else {
             tag = {
@@ -140,7 +141,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
                 gameId: this.props.game.id,
                 isRoot: true,
                 contents,
-                postedDate: dayjs(date).toISOString()
+                postedDate: this.props.dateOverride.toISOString()
             };
         }
         ApiManager.tagApi.createTag(tag).then((newTag) => {
@@ -164,18 +165,22 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
 
         const previousRootTagDate = !this.props.isSubtag && this.props.game.latestRootTag?.postedDate ? dayjs(this.props.game.latestRootTag?.postedDate) : undefined;
 
+        // handle re-rendering when changing the date override - only applies to new root tags
+        const userCanAddTagWithDateOverride = this.props.isSubtag || !this.props.game.latestRootTag ? true : !isSameDate(this.props.dateOverride, this.props.game.latestRootTag.postedDate);
+
         if (this.state.addingTag) {
             addTagSection = (
                 <AddTag
                     isRootTag={!this.props.isSubtag}
-                    saveTag={({ name, contents, date }) => {
-                        this.saveNewTag({ name, contents, date });
+                    saveTag={({ name, contents }) => {
+                        this.saveNewTag({ name, contents });
                     }}
                     cancelAddTag={() => this.setAddingTag(false)}
                     previousRootTagDate={previousRootTagDate}
+                    dateOverride={this.props.dateOverride}
                 />
             );
-        } else if (!this.state.addingTag && this.state.userCanAddTag) {
+        } else if (!this.state.addingTag && this.state.userCanAddTag && userCanAddTagWithDateOverride) {
             addTagSection = <input type="button" name="add-tag" value="Add a new tag!" onClick={() => this.setAddingTag()}></input>;
         } else {
             addTagSection = undefined;
@@ -224,6 +229,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
                     subtagRootTag={this.state.currentTag}
                     refreshScores={this.props.refreshScores}
                     createNewTag={(tag: TagDto) => this.createNewSubtag(tag)}
+                    dateOverride={this.props.dateOverride}
                 />
             </div>
         );

@@ -6,6 +6,7 @@ import { Login } from './components/login';
 import { ApiManager } from './api';
 import { Landing } from './components/landing';
 import { UserDto } from '@biketag/models';
+import dayjs, { Dayjs } from 'dayjs';
 
 const logger = new Logger({});
 
@@ -25,6 +26,7 @@ interface AppComponentState {
     clientId: string;
     userId?: string;
     user?: UserDto;
+    dateOverride: Dayjs;
 }
 
 export default class App extends React.Component<AppProps, AppComponentState> {
@@ -40,7 +42,8 @@ export default class App extends React.Component<AppProps, AppComponentState> {
             state: AppState.HOME,
             name,
             clientId: clientId || uuidv4(),
-            loggedIn: false
+            loggedIn: false,
+            dateOverride: dayjs()
         };
 
         ApiManager.initialize({ clientId: this.state.clientId });
@@ -75,13 +78,21 @@ export default class App extends React.Component<AppProps, AppComponentState> {
         ApiManager.setUser({ userId: null });
     }
 
+    handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (!event.target['validity'].valid || !dayjs(event.target.value).isValid()) return;
+        this.setState({ dateOverride: dayjs(event.target.value) });
+        // just a hack to redraw everything (e.g., to hide or show the "add tag" button)
+        // obviously this goes away for production
+        // this.forceUpdate();
+    };
+
     render(): ReactNode {
         let inner: ReactNode;
 
         if (this.state.state === AppState.HOME) {
             inner = <Login key="login" setUser={({ name, id }: { name: string; id: string }) => this.setUser({ name, id })}></Login>;
         } else if (this.state.state === AppState.LOGGED_IN) {
-            inner = [<br key="br1"></br>, <Landing key="landing" user={this.state.user!}></Landing>, <br key="br2"></br>];
+            inner = [<br key="br1"></br>, <Landing key="landing" user={this.state.user!} dateOverride={this.state.dateOverride}></Landing>, <br key="br2"></br>];
         }
 
         return (
@@ -89,11 +100,15 @@ export default class App extends React.Component<AppProps, AppComponentState> {
                 <header className="App-header">
                     <h1 key="h1">Bike Tag</h1>
                     {this.state.user && (
-                        <p>
-                            Logged in as {this.state.user.name} ({this.state.userId})
-                        </p>
+                        <div>
+                            Logged in as {this.state.user.name} ({this.state.userId})<br></br>
+                            <div>
+                                Date override: <input aria-label="Date" type="date" defaultValue={this.state.dateOverride.format('YYYY-MM-DD')} onChange={(event) => this.handleDateChange(event)} />
+                            </div>
+                        </div>
                     )}
                     <hr></hr>
+
                     {inner}
                     <hr></hr>
                     {this.state.user && [<input key="logout-button" type="button" name="login" value="Log out" onClick={() => this.handleLogOut()}></input>, <br key="login-br"></br>]}

@@ -1,6 +1,7 @@
 import { CreateTagDto, TagDto } from '@biketag/models';
 import { AbstractApi } from './abstractApi';
 import { AxiosError } from 'axios';
+import { Dayjs } from 'dayjs';
 
 export class TagNotFoundError extends Error {}
 
@@ -53,11 +54,12 @@ export class TagApi extends AbstractApi {
         }
     }
 
-    public async canUserAddTag({ userId, gameId }: { userId: string; gameId: string }): Promise<boolean> {
+    public async canUserAddTag({ userId, gameId, dateOverride }: { userId: string; gameId: string; dateOverride?: Dayjs }): Promise<boolean> {
         try {
             const resp = await this.axiosInstance.request<{ result: boolean }>({
                 method: 'get',
-                url: `/tags/user/${userId}/game/${gameId}/can-post-new-tag`
+                url: `/tags/user/${userId}/game/${gameId}/can-post-new-tag`,
+                params: dateOverride ? { dateOverride: dateOverride.toISOString() } : {}
             });
             if (resp.status !== 200) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
