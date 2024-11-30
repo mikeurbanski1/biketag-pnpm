@@ -20,7 +20,7 @@ export const AddTag: React.FC<AddTagProps> = ({ saveTag, cancelAddTag, isRootTag
     const [date, setDate] = useState(dayjs().format('YYYY-MM-DDTHH:mm'));
 
     const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!event.target['validity'].valid || !dayjs(date).isValid()) return;
+        if (!event.target['validity'].valid || !dayjs(event.target.value).isValid()) return;
         setDate(event.target.value);
     };
 

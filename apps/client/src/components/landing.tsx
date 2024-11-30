@@ -3,12 +3,14 @@ import { GameDto, UserDto } from '@biketag/models';
 import { CreateEditGame } from './createEditGame';
 import { ViewGame } from './game/viewGame';
 import { ApiManager } from '../api';
+import dayjs, { Dayjs } from 'dayjs';
 
 interface LandingState {
     loadingGames: boolean;
     games: GameDto[];
     game?: GameDto;
     creatingGame: boolean;
+    dateOverride: Dayjs;
 }
 
 interface LandingProps {
@@ -21,7 +23,8 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         this.state = {
             loadingGames: true,
             games: [],
-            creatingGame: false
+            creatingGame: false,
+            dateOverride: dayjs()
         };
         this.doneCreatingGame = this.doneCreatingGame.bind(this);
         // this.editGame = this.editGame.bind(this);
@@ -91,6 +94,11 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         this.refreshGames().then(() => this.setState({ loadingGames: false }));
     }
 
+    handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (!event.target['validity'].valid || !dayjs(event.target.value).isValid()) return;
+        this.setState({ dateOverride: dayjs(event.target.value) });
+    };
+
     render(): ReactNode {
         if (this.state.loadingGames) {
             return <h1>Loading games...</h1>;
@@ -100,7 +108,10 @@ export class Landing extends React.Component<LandingProps, LandingState> {
             return (
                 <div>
                     <div>
-                        <h1>Your games:</h1>
+                        Date override: <input aria-label="Date" type="date" defaultValue={this.state.dateOverride.format('YYYY-MM-DD')} onChange={(event) => this.handleDateChange(event)} />
+                    </div>
+                    <div>
+                        <h2>Your games:</h2>
                         <ul>
                             {this.state.games.map((game) => (
                                 <a key={'a' + game.id} onClick={() => this.setState({ game })}>
