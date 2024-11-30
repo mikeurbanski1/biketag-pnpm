@@ -1,12 +1,15 @@
-import { isSameDate } from '@biketag/utils';
+import { isSameDate, Logger } from '@biketag/utils';
 import dayjs, { Dayjs } from 'dayjs';
 import React, { useState } from 'react';
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const logger = new Logger({ prefix: '[AddTag]' });
 
 interface AddTagProps {
     saveTag: ({ name, contents, date }: { name: string; contents: string; date: string }) => void;
     cancelAddTag: () => void;
     isRootTag: boolean;
-    // will br provided for a root tag (if there is a previous root tag)
+    // will be provided for a new root tag (if there is a previous root tag)
     // hacky workaround to allow testing of creating tags at different times
     previousRootTagDate?: Dayjs;
 }
@@ -21,9 +24,9 @@ export const AddTag: React.FC<AddTagProps> = ({ saveTag, cancelAddTag, isRootTag
         setDate(event.target.value);
     };
 
-    const canPostOnDate = !previousRootTagDate || !isSameDate(dayjs(date), previousRootTagDate!);
+    const canPostOnDate = !previousRootTagDate || !isSameDate(dayjs(date), previousRootTagDate);
 
-    const canSave = contents.length > 0 && canPostOnDate && dayjs(date).isValid() && (name.length > 0 || !isRootTag);
+    const canSave = contents.length > 0 && canPostOnDate && dayjs(date).isValid() && (!isRootTag || name.length > 0);
 
     const locationElements = isRootTag
         ? [

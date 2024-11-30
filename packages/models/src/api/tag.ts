@@ -3,7 +3,7 @@ import { UserDto } from './user';
 
 export interface MinimalTag extends BaseDto {
     name: string;
-    creatorName: string;
+    creator: Pick<UserDto, 'id' | 'name'>;
     contents: string;
     postedDate: string;
 }

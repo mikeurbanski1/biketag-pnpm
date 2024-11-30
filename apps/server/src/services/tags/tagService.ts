@@ -78,7 +78,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             id: tag.id,
             name: tag.name,
             postedDate: tag.postedDate,
-            creatorName: (await this.usersService.getRequired({ id: tag.creatorId })).name,
+            creator: await this.usersService.getRequired({ id: tag.creatorId }),
             contents: tag.contents
         };
     }
@@ -180,6 +180,9 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         return parentTag;
     }
 
+    /**
+     * Returns whether the given user is the creator of this tag or any tag in the chain below this one (should generally be called with the root tag)
+     */
     public async userInTagChain({ userId, tagId }: { userId: string; tagId: string }): Promise<boolean> {
         this.logger.info(`[userInTagChain]`, { userId, tagId });
         const tag = await this.dalService.getByIdRequired({ id: tagId });
@@ -192,17 +195,22 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         return false;
     }
 
+    /**
+     * Returns whether a user can post a new tag for the given game
+     * - Must be the winner of the previous tag
+     */
     public async canPostNewTag({ userId, gameId, dateOverride = dayjs() }: { userId?: string; gameId: string; dateOverride?: Dayjs }): Promise<{ result: boolean; reason?: string }> {
         const game = await this.gamesService.getRequiredAsEntity({ id: gameId });
         if (!game.latestRootTagId) {
             return { result: true };
         }
-        const latestRootTag = await this.dalService.getByIdRequired({ id: game.latestRootTagId });
+        const latestRootTag = await this.getRequired({ id: game.latestRootTagId });
         if (isSameDate(dateOverride, latestRootTag.postedDate)) {
             return { result: false, reason: 'A tag has already been posted today' };
         }
-        if (latestRootTag.creatorId === userId) {
-            return { result: false, reason: 'User cannot post consecutive tags' };
+        const tagWinner = latestRootTag.nextTag?.creator.id;
+        if (tagWinner !== userId) {
+            return { result: false, reason: 'User did not win the previous tag' };
         }
         return { result: true };
     }
