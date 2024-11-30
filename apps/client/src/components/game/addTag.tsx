@@ -1,23 +1,29 @@
-import dayjs from 'dayjs';
+import { isSameDate } from '@biketag/utils';
+import dayjs, { Dayjs } from 'dayjs';
 import React, { useState } from 'react';
 
 interface AddTagProps {
     saveTag: ({ name, contents, date }: { name: string; contents: string; date: string }) => void;
     cancelAddTag: () => void;
     isRootTag: boolean;
+    // will br provided for a root tag (if there is a previous root tag)
+    // hacky workaround to allow testing of creating tags at different times
+    previousRootTagDate?: Dayjs;
 }
 
-export const AddTag: React.FC<AddTagProps> = ({ saveTag, cancelAddTag, isRootTag }) => {
+export const AddTag: React.FC<AddTagProps> = ({ saveTag, cancelAddTag, isRootTag, previousRootTagDate }) => {
     const [name, setName] = useState('');
     const [contents, setContents] = useState('');
     const [date, setDate] = useState(dayjs().format('YYYY-MM-DDTHH:mm'));
 
     const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!event.target['validity'].valid) return;
+        if (!event.target['validity'].valid || !dayjs(date).isValid()) return;
         setDate(event.target.value);
     };
 
-    const canSave = contents.length > 0 && dayjs(date).isValid() && (isRootTag ? name.length > 0 : true);
+    const canPostOnDate = !previousRootTagDate || !isSameDate(dayjs(date), previousRootTagDate!);
+
+    const canSave = contents.length > 0 && canPostOnDate && dayjs(date).isValid() && (name.length > 0 || !isRootTag);
 
     const locationElements = isRootTag
         ? [
