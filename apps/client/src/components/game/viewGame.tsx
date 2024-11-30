@@ -33,14 +33,15 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
         };
     }
 
-    setCurrentRootTag(tag: TagDto): void {
-        this.setState({ currentRootTag: tag });
-    }
+    // setCurrentRootTag(tag: TagDto): void {
+    //     this.setState({ currentRootTag: tag });
+    // }
 
     createNewRootTag(tag: TagDto): void {
         const latestRootTag = tag;
         const updateParams = { latestRootTag };
         this.props.updateGame(updateParams);
+        this.setState({ currentRootTag: tag });
     }
 
     getPlayerDetailsTable(game?: GameDto): { id: string; name: string; role: PlayerTableRole; score: number }[] {
@@ -102,9 +103,9 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                     isSubtag={false}
                     game={game}
                     user={this.props.user}
-                    createNewRootTag={(tag: TagDto) => this.createNewRootTag(tag)}
+                    createNewTag={(tag: TagDto) => this.createNewRootTag(tag)}
                     refreshScores={() => this.refreshScores()}
-                    setCurrentRootTag={(tag: TagDto) => this.setCurrentRootTag(tag)}
+                    // setCurrentRootTag={(tag: TagDto) => this.setCurrentRootTag(tag)}
                 />
                 {/* {this.state.currentRootTag && (
                     <TagView

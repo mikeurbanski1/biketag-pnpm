@@ -4,6 +4,7 @@ import React from 'react';
 import dayjs from 'dayjs';
 import { DATE_FORMAT } from '../../utils/consts';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const logger = new Logger({});
 
 interface TagProps {
@@ -36,7 +37,6 @@ export const TagDetails: React.FC<TagProps> = ({ tag, isSubtag }) => {
 };
 
 export const MinimalTag: React.FC<MinimalTagProps> = ({ tag, isSubtag, selectTag }) => {
-    logger.info(`[MinimalTag]`, { tag });
     return (
         <div className="minimal-tag flex-spread" onClick={selectTag}>
             <span className={isSubtag ? 'subtag-title' : 'tag-title'}>{isSubtag ? tag.contents : tag.name}</span>
