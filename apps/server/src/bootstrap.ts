@@ -129,10 +129,10 @@ const bootstrapData = async () => {
     obj = { name: 'China', creatorId: users[5].id, gameId: games[0].id, contents: 'I got there eventually', isRoot: false, postedDate: newChainDate(), rootTagId: tag1a.id };
     let tag1f = await tagService.create(obj);
 
-    obj = { name: 'Brazil', creatorId: users[5].id, gameId: games[0].id, contents: 'Wet and wild', isRoot: true, postedDate: newRootDate() };
+    obj = { name: 'Brazil', creatorId: users[1].id, gameId: games[0].id, contents: 'Wet and wild', isRoot: true, postedDate: newRootDate() };
     let tag2a = await tagService.create(obj);
 
-    obj = { name: 'Brazil', creatorId: users[1].id, gameId: games[0].id, contents: 'Eat by snek', isRoot: false, postedDate: newChainDate(), rootTagId: tag2a.id };
+    obj = { name: 'Brazil', creatorId: users[5].id, gameId: games[0].id, contents: 'Eat by snek', isRoot: false, postedDate: newChainDate(), rootTagId: tag2a.id };
     let tag2b = await tagService.create(obj);
 
     obj = { name: 'Brazil', creatorId: users[3].id, gameId: games[0].id, contents: 'Snek eat by mongose', isRoot: false, postedDate: newChainDate(), rootTagId: tag2a.id };
@@ -141,7 +141,7 @@ const bootstrapData = async () => {
     obj = { name: 'Brazil', creatorId: users[0].id, gameId: games[0].id, contents: 'mongose rules', isRoot: false, postedDate: newChainDate(), rootTagId: tag2a.id };
     let tag2d = await tagService.create(obj);
 
-    obj = { name: 'Italy', creatorId: users[0].id, gameId: games[0].id, contents: 'Et tu, Brute?', isRoot: true, postedDate: newRootDate() };
+    obj = { name: 'Italy', creatorId: users[5].id, gameId: games[0].id, contents: 'Et tu, Brute?', isRoot: true, postedDate: newRootDate() };
     let tag3a = await tagService.create(obj);
 
     obj = { name: 'Italy', creatorId: users[1].id, gameId: games[0].id, contents: 'Giro is fun', isRoot: false, postedDate: newChainDate(), rootTagId: tag3a.id };
@@ -153,10 +153,10 @@ const bootstrapData = async () => {
     obj = { name: 'Italy', creatorId: users[4].id, gameId: games[0].id, contents: 'Fucking tourists...', isRoot: false, postedDate: newChainDate(), rootTagId: tag3a.id };
     let tag3d = await tagService.create(obj);
 
-    obj = { name: 'Italy', creatorId: users[5].id, gameId: games[0].id, contents: 'Giro is still fun', isRoot: false, postedDate: newChainDate(), rootTagId: tag3a.id };
+    obj = { name: 'Italy', creatorId: users[0].id, gameId: games[0].id, contents: 'Giro is still fun', isRoot: false, postedDate: newChainDate(), rootTagId: tag3a.id };
     let tag3e = await tagService.create(obj);
 
-    obj = { name: 'Canada', creatorId: users[3].id, gameId: games[0].id, contents: 'OH CAH-NAH-DA', isRoot: true, postedDate: newRootDate() };
+    obj = { name: 'Canada', creatorId: users[1].id, gameId: games[0].id, contents: 'OH CAH-NAH-DA', isRoot: true, postedDate: newRootDate() };
     let tag4a = await tagService.create(obj);
 
     obj = { name: 'Canada', creatorId: users[0].id, gameId: games[0].id, contents: 'Our home and sacred land', isRoot: false, postedDate: newChainDate(), rootTagId: tag4a.id };
@@ -231,12 +231,12 @@ const bootstrapData = async () => {
     };
     let tag5e = await tagService.create(obj);
 
-    obj = { name: 'High Bridge', creatorId: users[1].id, gameId: games[1].id, contents: 'High bridge is high', isRoot: true, postedDate: newRootDate() };
+    obj = { name: 'High Bridge', creatorId: users[3].id, gameId: games[1].id, contents: 'High bridge is high', isRoot: true, postedDate: newRootDate() };
     let tag6a = await tagService.create(obj);
 
     obj = {
         name: 'High Bridge',
-        creatorId: users[3].id,
+        creatorId: users[1].id,
         gameId: games[1].id,
         contents: 'High bridge is not low',
         isRoot: false,
