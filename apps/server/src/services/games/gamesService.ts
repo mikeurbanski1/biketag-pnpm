@@ -42,6 +42,7 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
             players: await Promise.all(entity.players.map(async (p) => ({ ...p, user: await this.usersService.getRequired({ id: p.userId }) }))),
             firstRootTag: entity.firstRootTagId ? await this.tagsService.getRequired({ id: entity.firstRootTagId }) : undefined,
             latestRootTag: entity.latestRootTagId ? await this.tagsService.getRequired({ id: entity.latestRootTagId }) : undefined,
+            pendingRootTag: entity.pendingRootTagId ? await this.tagsService.getPendingTag({ id: entity.pendingRootTagId }) : undefined,
             gameScore: { playerScores }
         };
     }
@@ -97,12 +98,23 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
         return await this.convertToDto(newGame);
     }
 
-    public async setTagInGame({ gameId, tagId, root = false }: { gameId: string; tagId: string; root?: boolean }): Promise<void> {
-        this.logger.info(`[setTagInGame]`, { gameId, tagId, root });
+    public async setTagInGame({ gameId, tagId, root = false, isPending }: { gameId: string; tagId: string; root?: boolean; isPending: boolean }): Promise<void> {
+        this.logger.info(`[setTagInGame]`, { gameId, tagId, root, isPending });
         if (root) {
             const game = await this.dalService.getByIdRequired({ id: gameId });
 
-            const updateParams: Partial<GameEntity> = { latestRootTagId: tagId };
+            if (!game.firstRootTagId && isPending) {
+                throw new Error('Cannot set pending tag as first root tag');
+            }
+
+            // if isPending is true, set it. Otherwise, we know that this tag is the latest root tag
+            const updateParams: Partial<GameEntity> = isPending ? { pendingRootTagId: tagId } : { latestRootTagId: tagId };
+
+            // but if this is the pending tag for the game (previously set), then we should unset set
+            if (game.pendingRootTagId === tagId) {
+                updateParams.pendingRootTagId = undefined;
+            }
+
             if (!game.firstRootTagId) {
                 updateParams.firstRootTagId = tagId;
             }

@@ -167,6 +167,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
 
         // handle re-rendering when changing the date override - only applies to new root tags
         const userCanAddTagWithDateOverride = this.props.isSubtag || !this.props.game.latestRootTag ? true : !isEarlierDate(this.props.dateOverride, this.props.game.latestRootTag.postedDate);
+        logger.info(`[render] userCanAddTagWithDateOverride ${userCanAddTagWithDateOverride}`);
 
         if (this.state.addingTag) {
             addTagSection = (

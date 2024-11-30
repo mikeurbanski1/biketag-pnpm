@@ -1,4 +1,4 @@
-import { CreateTagParams, TagDto, MinimalTag, tagFields } from '@biketag/models';
+import { CreateTagParams, TagDto, MinimalTag, tagFields, PendingTag } from '@biketag/models';
 import { BaseService } from '../../common/baseService';
 import { TagEntity } from '../../dal/models/tag';
 import { TagDalService } from '../../dal/services/tagDalService';
@@ -9,7 +9,7 @@ import { validateExists } from '../../common/entityValidators';
 import { CannotPostTagError, tagServiceErrors } from '../../common/errors';
 import { UUID } from 'mongodb';
 import dayjs, { Dayjs } from 'dayjs';
-import { isSameDate } from '@biketag/utils';
+import { isEarlierDate, isSameDate } from '@biketag/utils';
 
 export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, TagDalService> {
     private readonly usersService: UserService;
@@ -70,7 +70,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         };
     }
 
-    protected async getMinimalTag({ id }: { id: string }): Promise<MinimalTag> {
+    public async getMinimalTag({ id }: { id: string }): Promise<MinimalTag> {
         this.logger.info(`[getMinimalTag]`, { id });
         // must go straight to the DAL service to avoid infinite loop
         const tag = await this.dalService.getByIdRequired({ id });
@@ -80,6 +80,14 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             postedDate: tag.postedDate,
             creator: await this.usersService.getRequired({ id: tag.creatorId }),
             contents: tag.contents
+        };
+    }
+
+    public async getPendingTag({ id }: { id: string }): Promise<PendingTag> {
+        const tag = await this.dalService.getByIdRequired({ id });
+        return {
+            id: tag.id,
+            creator: await this.usersService.getRequired({ id: tag.creatorId })
         };
     }
 
@@ -95,7 +103,9 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
     public override async create(params: CreateTagParams): Promise<TagDto> {
         this.logger.info(`[create]`, { params });
         const { isRoot, gameId } = params;
+        let isPending = false;
         if (isRoot) {
+            isPending = await this.checkForPendingTag({ params, gameId, dateOverride: params.postedDate ? dayjs(params.postedDate) : undefined });
             const { result, reason } = await this.canPostNewTag({ userId: params.creatorId, gameId, dateOverride: params.postedDate ? dayjs(params.postedDate) : undefined });
             if (!result) {
                 throw new CannotPostTagError(reason);
@@ -119,8 +129,11 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             const game = await this.gamesService.getRequiredAsEntity({ id: gameId });
             const { latestRootTagId } = game;
             if (latestRootTagId) {
-                await this.updateTagLinks({ tagIdToUpdate: latestRootTagId, tagIdToSet: tagUUID, fields: ['nextRootTagId'] });
-                await this.dalService.updateMany({ filter: { gameId, rootTagId: latestRootTagId }, updateParams: { nextRootTagId: tagUUID } });
+                // if this is a pending tag, we will update the tag links once it goes live
+                if (!isPending) {
+                    await this.updateTagLinks({ tagIdToUpdate: latestRootTagId, tagIdToSet: tagUUID, fields: ['nextRootTagId'] });
+                    await this.dalService.updateMany({ filter: { gameId, rootTagId: latestRootTagId }, updateParams: { nextRootTagId: tagUUID } });
+                }
                 createParams.previousRootTagId = latestRootTagId;
             }
         } else {
@@ -133,10 +146,28 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
 
         const tag = await this.dalService.create(createParams);
 
-        await this.gamesService.setTagInGame({ gameId, tagId: tagUUID, root: isRoot });
+        await this.gamesService.setTagInGame({ gameId, tagId: tagUUID, root: isRoot, isPending });
         await this.gamesService.addScoreForPlayer({ gameId, playerId: tag.creatorId, score: tag.points });
 
         return await this.convertToDto(tag);
+    }
+
+    /**
+     * Checks if the given tag should be a pending tag, which means it was posted the same day as the latest root tag in the game.
+     * If so, then set the posted date to be the next day, and return true. Else, return false.
+     */
+    private async checkForPendingTag({ params, gameId, dateOverride = dayjs() }: { params: CreateTagParams; gameId: string; dateOverride?: Dayjs }): Promise<boolean> {
+        const game = await this.gamesService.getRequiredAsEntity({ id: gameId });
+        if (game.latestRootTagId) {
+            const latestGameTag = await this.dalService.getByIdRequired({ id: game.latestRootTagId });
+            const sameDate = isSameDate(dateOverride, latestGameTag.postedDate);
+            if (sameDate) {
+                this.logger.info(`[checkForPendingTag] found pending tag, setting date to tomorrow`);
+                params.postedDate = dateOverride.add(1, 'day').toISOString();
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -198,6 +229,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
     /**
      * Returns whether a user can post a new tag for the given game
      * - Must be the winner of the previous tag
+     * - Date must be same or later than the previous tag
      */
     public async canPostNewTag({ userId, gameId, dateOverride = dayjs() }: { userId?: string; gameId: string; dateOverride?: Dayjs }): Promise<{ result: boolean; reason?: string }> {
         const game = await this.gamesService.getRequiredAsEntity({ id: gameId });
@@ -205,10 +237,10 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             return { result: true };
         }
         const latestRootTag = await this.getRequired({ id: game.latestRootTagId });
-        if (isSameDate(dateOverride, latestRootTag.postedDate)) {
-            return { result: false, reason: 'A tag has already been posted today' };
-        }
         const tagWinner = latestRootTag.nextTag?.creator.id;
+        if (isEarlierDate(dateOverride, latestRootTag.postedDate)) {
+            return { result: false, reason: 'This date is older than the current tag' };
+        }
         if (tagWinner !== userId) {
             return { result: false, reason: 'User did not win the previous tag' };
         }
