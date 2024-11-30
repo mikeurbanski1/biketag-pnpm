@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Path, Post, Res, Route, SuccessResponse, TsoaResponse, Header } from 'tsoa';
+import { Body, Controller, Get, Path, Post, Res, Route, SuccessResponse, TsoaResponse, Header, Query } from 'tsoa';
 import { Logger, USER_ID_HEADER } from '@biketag/utils';
 import { CreateTagDto, TagDto } from '@biketag/models';
 
 import { TagService } from './tagService';
+import dayjs from 'dayjs';
 
 const logger = new Logger({ prefix: '[TagController]' });
 
@@ -56,9 +57,9 @@ export class TagController extends Controller {
 
     @Get('/user/{userId}/game/{gameId}/can-post-new-tag')
     @SuccessResponse('200', 'Ok')
-    public async canPostNewTag(@Path() userId: string, @Path() gameId: string): Promise<{ result: boolean; reason?: string }> {
+    public async canPostNewTag(@Path() userId: string, @Path() gameId: string, @Query('dateOverride') dateOverride?: string): Promise<{ result: boolean; reason?: string }> {
         logger.info(`[canPostNewTag]`, { userId, gameId });
-        const res = await this.tagsService.canPostNewTag({ userId, gameId });
+        const res = await this.tagsService.canPostNewTag({ userId, gameId, dateOverride: dateOverride ? dayjs(dateOverride) : undefined });
         logger.info('[canPostNewTag] got result', { res });
         return res;
     }

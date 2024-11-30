@@ -33,6 +33,7 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
             },
             {} as Record<string, number>
         );
+        playerScores[entity.creatorId] = gameScore.playerScores[entity.creatorId] ?? 0;
 
         return {
             id: entity.id,
