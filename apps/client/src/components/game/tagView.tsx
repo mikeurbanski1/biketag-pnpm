@@ -4,7 +4,7 @@ import { MinimalTag, TagDetails } from './tagDetails';
 import { ApiManager } from '../../api';
 import { AddTag } from './addTag';
 import dayjs, { Dayjs } from 'dayjs';
-import { isSameDate, Logger } from '@biketag/utils';
+import { isEarlierDate, isSameDate, Logger } from '@biketag/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const logger = new Logger({ prefix: '[TagView]' });
@@ -166,7 +166,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         const previousRootTagDate = !this.props.isSubtag && this.props.game.latestRootTag?.postedDate ? dayjs(this.props.game.latestRootTag?.postedDate) : undefined;
 
         // handle re-rendering when changing the date override - only applies to new root tags
-        const userCanAddTagWithDateOverride = this.props.isSubtag || !this.props.game.latestRootTag ? true : !isSameDate(this.props.dateOverride, this.props.game.latestRootTag.postedDate);
+        const userCanAddTagWithDateOverride = this.props.isSubtag || !this.props.game.latestRootTag ? true : !isEarlierDate(this.props.dateOverride, this.props.game.latestRootTag.postedDate);
 
         if (this.state.addingTag) {
             addTagSection = (
@@ -181,7 +181,19 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
                 />
             );
         } else if (!this.state.addingTag && this.state.userCanAddTag && userCanAddTagWithDateOverride) {
-            addTagSection = <input type="button" name="add-tag" value="Add a new tag!" onClick={() => this.setAddingTag()}></input>;
+            let text;
+            if (this.props.isSubtag) {
+                text = 'Tag this spot!';
+            } else {
+                if (!this.props.game.latestRootTag) {
+                    text = 'Add the first tag!';
+                } else if (isSameDate(this.props.dateOverride, this.props.game.latestRootTag!.postedDate)) {
+                    text = 'Add your new tag for tomorrow';
+                } else {
+                    text = 'Add the next new tag!';
+                }
+            }
+            addTagSection = <input type="button" name="add-tag" value={text} onClick={() => this.setAddingTag()}></input>;
         } else {
             addTagSection = undefined;
         }

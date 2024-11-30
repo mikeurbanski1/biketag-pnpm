@@ -81,9 +81,6 @@ export default class App extends React.Component<AppProps, AppComponentState> {
     handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target['validity'].valid || !dayjs(event.target.value).isValid()) return;
         this.setState({ dateOverride: dayjs(event.target.value) });
-        // just a hack to redraw everything (e.g., to hide or show the "add tag" button)
-        // obviously this goes away for production
-        // this.forceUpdate();
     };
 
     render(): ReactNode {
