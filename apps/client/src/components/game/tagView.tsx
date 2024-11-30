@@ -201,6 +201,7 @@ export class TagView extends React.Component<TagView2Props, TagView2State> {
         ) : (
             <div>
                 <TagDetails tag={this.state.currentTag} isSubtag={this.props.isSubtag} />
+                <div>Other tags:</div>
                 <TagView
                     key={this.state.currentTag.nextTag?.id}
                     isSubtag={true}

@@ -6,7 +6,7 @@ interface AddTagProps {
     saveTag: ({ name, contents, date }: { name: string; contents: string; date: string }) => void;
     cancelAddTag: () => void;
     isRootTag: boolean;
-    // will br provided for a root tag (if there is a previous root tag)
+    // will be provided for a new root tag (if there is a previous root tag)
     // hacky workaround to allow testing of creating tags at different times
     previousRootTagDate?: Dayjs;
 }
@@ -23,7 +23,7 @@ export const AddTag: React.FC<AddTagProps> = ({ saveTag, cancelAddTag, isRootTag
 
     const canPostOnDate = !previousRootTagDate || !isSameDate(dayjs(date), previousRootTagDate!);
 
-    const canSave = contents.length > 0 && canPostOnDate && dayjs(date).isValid() && (name.length > 0 || !isRootTag);
+    const canSave = contents.length > 0 && canPostOnDate && dayjs(date).isValid() && (!isRootTag || name.length > 0);
 
     const locationElements = isRootTag
         ? [

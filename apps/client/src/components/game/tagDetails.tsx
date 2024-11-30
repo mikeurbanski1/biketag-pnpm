@@ -18,6 +18,7 @@ interface MinimalTagProps {
 
 export const TagDetails: React.FC<TagProps> = ({ tag, isSubtag }) => {
     const className = isSubtag ? 'subtag' : 'main-tag';
+    const tagWinner = isSubtag ? undefined : <span>Winner: {tag.nextTag?.creatorName}</span>;
     return (
         <div className={className}>
             {!isSubtag && <span className={`tag-title`}>{tag.name}</span>}
@@ -29,6 +30,7 @@ export const TagDetails: React.FC<TagProps> = ({ tag, isSubtag }) => {
                 {tag.points} point{tag.points === 1 ? '' : 's'}
             </span>
             <span>{dayjs(tag.postedDate).format(DATE_FORMAT)}</span>
+            {tagWinner}
         </div>
     );
 };
