@@ -157,6 +157,8 @@ export class TagView extends React.Component<TagView2Props, TagView2State> {
                     saveTag={({ name, contents, date }) => {
                         this.saveNewTag({ name, contents, date });
                     }}
+                    cancelAddTag={() => this.setAddingTag(false)}
+                    previousRootTagDate={!this.props.isSubtag ? dayjs(this.props.game.latestRootTag?.postedDate) : undefined}
                 />
             );
         } else if (!this.state.addingTag && this.state.userCanAddTag) {
