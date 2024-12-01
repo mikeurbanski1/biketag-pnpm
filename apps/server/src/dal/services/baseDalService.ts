@@ -1,8 +1,8 @@
 import { Collection, Filter, OptionalUnlessRequiredId, UUID, WithId } from 'mongodb';
-import { ServiceErrors } from 'src/common/errors';
 
 import { Logger } from '@biketag/utils';
 
+import { ServiceErrors } from '../../common/errors';
 import { BaseEntity, BaseEntityWithoutId } from '../models';
 import { CollectionName, MongoDbProvider } from '../providers/mongoProvider';
 
