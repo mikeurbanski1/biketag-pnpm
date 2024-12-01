@@ -110,7 +110,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         };
     }
 
-    private async updateTagLinks({ tagIdToUpdate, tagIdToSet, fields }: { tagIdToUpdate: string; tagIdToSet: string; fields: (typeof tagFields)[number][] }): Promise<TagEntity> {
+    public async updateTagLinks({ tagIdToUpdate, tagIdToSet, fields }: { tagIdToUpdate: string; tagIdToSet: string; fields: (typeof tagFields)[number][] }): Promise<TagEntity> {
         this.logger.info('[updateTagLink]', { tagIdToUpdate, tagIdToSet, fields });
         const updateFields = fields.reduce((params, field) => {
             params[field] = tagIdToSet;
@@ -154,7 +154,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
                 // if this is a pending tag, we will update the tag links once it goes live
                 if (!isPending) {
                     await this.updateTagLinks({ tagIdToUpdate: latestRootTagId, tagIdToSet: tagUUID, fields: ['nextRootTagId'] });
-                    await this.dalService.updateMany({ filter: { gameId, rootTagId: latestRootTagId }, updateParams: { nextRootTagId: tagUUID } });
+                    // await this.dalService.updateMany({ filter: { gameId, rootTagId: latestRootTagId }, updateParams: { nextRootTagId: tagUUID } });
                 }
                 createParams.previousRootTagId = latestRootTagId;
             }

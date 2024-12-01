@@ -1,9 +1,9 @@
 import { Logger } from '@biketag/utils';
 import { GameRoles, TagDto, CreateTagParams } from '@biketag/models';
-import { MongoDbProvider } from './dal/providers/mongoProvider';
-import { GameService } from './services/games/gamesService';
-import { TagService } from './services/tags/tagService';
-import { UserService } from './services/users/userService';
+import { MongoDbProvider } from '../dal/providers/mongoProvider';
+import { GameService } from '../services/games/gamesService';
+import { TagService } from '../services/tags/tagService';
+import { UserService } from '../services/users/userService';
 import dayjs, { Dayjs } from 'dayjs';
 
 const logger = new Logger({ prefix: '[Bootstrap]' });

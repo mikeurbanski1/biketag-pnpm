@@ -7,7 +7,8 @@
         "dev": "concurrently \"nodemon\" \"nodemon -x tsoa routes\"",
         "test": "vitest test/**/*.test.ts",
         "start": "ts-node src/server.ts",
-        "bootstrap": "ts-node src/bootstrap.ts"
+        "bootstrap": "ts-node src/scripts/bootstrap.ts",
+        "update-pending-tag": "ts-node src/scripts/updatePendingTag.ts"
     },
     "keywords": [],
     "author": "",

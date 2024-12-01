@@ -98,6 +98,24 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
         return await this.convertToDto(newGame);
     }
 
+    public async updatePendingTag({ gameId }: { gameId: string }): Promise<GameDto> {
+        const game = await this.getRequiredAsEntity({ id: gameId });
+        if (!game.pendingRootTagId) {
+            this.logger.info(`[updatePendingTag] there is no pending tag to update`);
+            return await this.convertToDto(game);
+        }
+
+        const pendingTag = await this.tagsService.getRequired({ id: game.pendingRootTagId });
+        const latestRootTag = await this.tagsService.getRequired({ id: game.latestRootTagId! });
+
+        // the pending tag will have been created with the previous tag link, but we did not yet
+        // link the latest root tag to the pending one.
+        await this.tagsService.updateTagLinks({ tagIdToUpdate: latestRootTag.id, tagIdToSet: pendingTag.id, fields: ['nextRootTagId'] });
+
+        const newGame = await this.dalService.update({ id: gameId, updateParams: { latestRootTagId: game.pendingRootTagId, pendingRootTagId: undefined } });
+        return await this.convertToDto(newGame);
+    }
+
     public async setTagInGame({ gameId, tagId, root = false, isPending }: { gameId: string; tagId: string; root?: boolean; isPending: boolean }): Promise<void> {
         this.logger.info(`[setTagInGame]`, { gameId, tagId, root, isPending });
         if (root) {
