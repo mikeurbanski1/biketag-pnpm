@@ -4,7 +4,7 @@
     "description": "",
     "scripts": {
         "build": "mkdir -p build && tsoa routes && tsc",
-        "dev": "concurrently \"nodemon\" \"nodemon -x tsoa routes\" \"pnpm run /^start-worker:.*/\"",
+        "dev": "concurrently \"nodemon\" \"nodemon -x tsoa routes\" \"ts-node src/queue/jobs/updatePendingTagJob.ts\"",
         "test": "vitest test/**/*.test.ts",
         "start": "ts-node src/server.ts",
         "bootstrap": "ts-node src/scripts/bootstrap.ts",
