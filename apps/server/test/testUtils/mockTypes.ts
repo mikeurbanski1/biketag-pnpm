@@ -5,7 +5,6 @@ import { BaseDalService } from '../../src/dal/services/baseDalService';
 
 export interface MockType extends BaseEntity {
     name: string;
-    phone: string;
 }
 
 export class ExistsError extends BaseExistsCheckError {
@@ -31,10 +30,17 @@ export class MockService extends BaseService<MockType, MockType, MockType, MockD
         super({ prefix: 'MockService', dalService: new MockDalService(), serviceErrors: mockServiceErrors });
     }
 
-    protected convertToEntity(dto: MockType): Pick<MockType, 'name' | 'phone'> {
+    protected convertToEntity(dto: MockType): Pick<MockType, 'name'> {
         return dto;
     }
     protected async convertToDto(entity: MockType | null): Promise<MockType | null> {
         return entity;
+    }
+
+    protected convertToUpsertEntity(dto: MockType): Promise<Partial<Pick<MockType, 'name'>>> {
+        return Promise.resolve(dto);
+    }
+    protected convertToNewEntity(dto: MockType): Promise<Pick<MockType, 'name'>> {
+        return Promise.resolve(dto);
     }
 }

@@ -8,16 +8,18 @@ import { GameDalService } from '../../../src/dal/services/gameDalService';
 import { CreateTagParams, GameRoles } from '@biketag/models';
 import { UserDalService } from '../../../src/dal/services/userDalService';
 import { TagService } from '../../../src/services/tags/tagService';
+import { generateGameEntity } from '../../testUtils/generators';
 
 const MOCK_USER: UserEntity = { id: '1', name: 'testUser' };
 
 describe('TagService tests', () => {
     describe('create tests', () => {
         let tagDb: Record<string, TagEntity>;
+        let mockGameId = new UUID().toString();
         let mockGame: GameEntity;
 
         beforeEach(() => {
-            mockGame = { id: '1', name: 'testGame', creatorId: '1', players: [{ userId: '2', role: GameRoles.ADMIN }] };
+            mockGame = generateGameEntity({ id: mockGameId });
             tagDb = {};
             vitest.spyOn(TagDalService.prototype, 'create').mockImplementation(async (params: TagEntity | BaseEntityWithoutId<TagEntity>): Promise<TagEntity> => {
                 const entity = 'id' in params ? params : { ...params, id: new UUID().toString() };
@@ -54,9 +56,13 @@ describe('TagService tests', () => {
             vitest.spyOn(UserDalService.prototype, 'getByIdRequired').mockResolvedValue(MOCK_USER);
         });
 
+        afterEach(() => {
+            vitest.restoreAllMocks();
+        });
+
         it('should create a new tag in different iterations', async () => {
             const service = new TagService();
-            let obj: CreateTagParams = { name: 'Chain 1', creatorId: '1', gameId: '1', contents: 'tag 1A', isRoot: true };
+            let obj: CreateTagParams = { name: 'Chain 1', creatorId: '1', gameId: mockGameId, contents: 'tag 1A', isRoot: true };
             let tag1a = await service.create(obj);
             expect(tag1a).toHaveProperty('id');
             const { id: tag1aId } = tag1a;
@@ -64,7 +70,7 @@ describe('TagService tests', () => {
                 id: expect.any(String),
                 name: 'Chain 1',
                 creator: { id: '1', name: 'testUser' },
-                gameId: '1',
+                gameId: mockGameId,
                 parentTag: undefined,
                 nextTag: undefined,
                 rootTag: undefined,
@@ -72,14 +78,15 @@ describe('TagService tests', () => {
                 previousRootTag: undefined,
                 nextRootTag: undefined,
                 postedDate: expect.any(String),
-                contents: 'tag 1A'
+                contents: 'tag 1A',
+                points: 5
             });
 
-            expect(tagDb[tag1a.id]).toEqual({ ...obj, id: tag1aId, postedDate: tag1a.postedDate }); // test the system
+            expect(tagDb[tag1a.id]).toEqual({ ...obj, id: tag1aId, postedDate: tag1a.postedDate, points: 5 }); // test the system
             expect(mockGame.latestRootTagId).toEqual(tag1aId);
             expect(mockGame.firstRootTagId).toEqual(tag1aId);
 
-            obj = { name: 'Chain 1', creatorId: '1', gameId: '1', contents: 'tag 1B', isRoot: false, parentTagId: tag1aId, rootTagId: tag1aId };
+            obj = { name: 'Chain 1', creatorId: '2', gameId: mockGameId, contents: 'tag 1B', isRoot: false, rootTagId: tag1aId };
             let tag1b = await service.create(obj);
             const { id: tag1bId } = tag1b;
             expect(tag1b).toEqual({
@@ -103,7 +110,7 @@ describe('TagService tests', () => {
             expect(tag1a.nextTag).toBeDefined();
             expect(tag1a.nextTag!.id).toEqual(tag1bId);
 
-            obj = { name: 'Chain 1', creatorId: '1', gameId: '1', contents: 'tag 1C', isRoot: false, parentTagId: tag1bId, rootTagId: tag1aId };
+            obj = { name: 'Chain 1', creatorId: '1', gameId: '1', contents: 'tag 1C', isRoot: false, rootTagId: tag1aId };
             let tag1c = await service.create(obj);
             const { id: tag1cId } = tag1c;
             expect(tag1c).toEqual({
@@ -150,7 +157,7 @@ describe('TagService tests', () => {
             expect(tag1b.nextRootTag!.id).toEqual(tag2aId);
             expect(tag1c.nextRootTag!.id).toEqual(tag2aId);
 
-            obj = { name: 'Chain 2', creatorId: '1', gameId: '1', contents: 'tag 2B', isRoot: false, parentTagId: tag2aId, rootTagId: tag2aId };
+            obj = { name: 'Chain 2', creatorId: '1', gameId: '1', contents: 'tag 2B', isRoot: false, rootTagId: tag2aId };
             let tag2b = await service.create(obj);
             const { id: _tag2bId } = tag2b;
             expect(tag2b).toEqual({

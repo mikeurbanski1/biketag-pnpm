@@ -10,7 +10,9 @@ describe('GamesService tests', () => {
         beforeEach(() => {
             vitest.spyOn(UserService.prototype, 'get').mockResolvedValue({ id: '1', name: 'test' });
             vitest.spyOn(UserService.prototype, 'getRequired').mockImplementation(async ({ id }) => ({ id, name: 'test' }));
-            vitest.spyOn(GameDalService.prototype, 'create').mockResolvedValue({ id: '1', name: 'test', creatorId: '1', players: [{ userId: '2', role: GameRoles.ADMIN }] });
+            vitest
+                .spyOn(GameDalService.prototype, 'create')
+                .mockResolvedValue({ id: '1', name: 'test', creatorId: '1', players: [{ userId: '2', role: GameRoles.ADMIN }], gameScore: { playerScores: {} } });
         });
         afterEach(() => {
             vitest.restoreAllMocks();
@@ -26,8 +28,10 @@ describe('GamesService tests', () => {
                 name: 'test',
                 creator: { id: '1', name: 'test' },
                 players: [{ userId: '2', role: GameRoles.ADMIN, user: { id: '2', name: 'test' } }],
+                gameScore: { playerScores: { 1: 0, 2: 0 } },
                 firstRootTag: undefined,
-                latestRootTag: undefined
+                latestRootTag: undefined,
+                pendingRootTag: undefined
             });
         });
     });

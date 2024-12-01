@@ -88,7 +88,7 @@ describe('baseDalService tests', () => {
         it('should throw an error if the object is not found', async () => {
             const id = new UUID().toString();
             collection.findOne = vitest.fn().mockResolvedValue(null);
-            await expect(instance.getByIdRequired({ id })).rejects.toThrow(`Object with ID ${id} does not exist`);
+            await expect(instance.getByIdRequired({ id })).rejects.toThrow(`Mock with ID ${id} does not exist`);
             expect(collection.findOne).toHaveBeenCalledTimes(1);
         });
     });
