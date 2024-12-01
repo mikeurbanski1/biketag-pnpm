@@ -156,22 +156,6 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         });
     }
 
-    generateAddTagButton(): React.ReactNode {
-        let text;
-        if (this.props.isSubtag) {
-            text = 'Tag this spot!';
-        } else {
-            if (!this.props.game.latestRootTag) {
-                text = 'Add the first tag!';
-            } else if (isSameDate(this.props.dateOverride, this.props.game.latestRootTag!.postedDate)) {
-                text = 'Add your new tag for tomorrow';
-            } else {
-                text = 'Add the next new tag!';
-            }
-        }
-        return <input type="button" name="add-tag" value={text} onClick={() => this.setAddingTag()}></input>;
-    }
-
     render() {
         const classType = this.props.isSubtag ? 'subtag' : 'root-tag';
         const className = `${classType}-scroller`;
@@ -188,14 +172,41 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         const userCanAddTagWithDateOverride = this.props.isSubtag || !this.props.game.latestRootTag ? true : !isEarlierDate(this.props.dateOverride, this.props.game.latestRootTag.postedDate);
         const actualCanAddTag = !this.state.addingTag && this.state.userCanAddTag && userCanAddTagWithDateOverride;
 
+        // we have a bit of a circular mess here, so until we fix that (I love that I write "we"), we will generate some elements that may or may not be used
+        let text;
+        if (this.props.isSubtag) {
+            text = 'Tag this spot!';
+        } else {
+            if (!this.props.game.latestRootTag) {
+                text = 'Add the first tag!';
+            } else if (isSameDate(this.props.dateOverride, this.props.game.latestRootTag!.postedDate)) {
+                text = 'Add your new tag for tomorrow';
+            } else {
+                text = 'Add the next new tag!';
+            }
+        }
+        const addTagButton = <input type="button" name="add-tag" value={text} onClick={() => this.setAddingTag()}></input>;
+        const addTagPanel = (
+            <AddTag
+                isRootTag={!this.props.isSubtag}
+                saveTag={({ name, contents }) => {
+                    this.saveNewTag({ name, contents });
+                }}
+                cancelAddTag={() => this.setAddingTag(false)}
+                previousRootTagDate={previousRootTagDate}
+                dateOverride={this.props.dateOverride}
+            />
+        );
+
         // start with the simple case of no tag to display
         if (!this.state.currentTag) {
+            const addTagSection = this.state.addingTag ? addTagPanel : addTagButton;
             return (
                 <div className={className}>
                     <div>
                         {this.props.isSubtag ? 'Nobody else has been here yet!' : 'Nobody has gone anywhere!'}
                         <br></br>
-                        {this.state.userCanAddTag && this.generateAddTagButton()}
+                        {this.state.userCanAddTag && addTagSection}
                     </div>
                 </div>
             );
@@ -205,19 +216,9 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         let nextTagPanel;
 
         if (this.state.addingTag) {
-            nextTagPanel = (
-                <AddTag
-                    isRootTag={!this.props.isSubtag}
-                    saveTag={({ name, contents }) => {
-                        this.saveNewTag({ name, contents });
-                    }}
-                    cancelAddTag={() => this.setAddingTag(false)}
-                    previousRootTagDate={previousRootTagDate}
-                    dateOverride={this.props.dateOverride}
-                />
-            );
+            nextTagPanel = addTagPanel;
         } else if (actualCanAddTag) {
-            nextTagPanel = this.generateAddTagButton();
+            nextTagPanel = addTagButton;
         } else if (this.props.game.latestRootTag?.id === this.state.currentTag.id && this.props.game.pendingRootTag) {
             // if we are viewing a root tag, and there is a pending tag, show the preview
             nextTagPanel = `The next tag posted by ${this.props.game.pendingRootTag.creator.name} will go live at midnight!`;
