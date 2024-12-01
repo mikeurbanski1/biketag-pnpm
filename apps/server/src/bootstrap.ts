@@ -270,6 +270,12 @@ const bootstrapData = async () => {
     };
     let tag6d = await tagService.create(obj);
 
+    // get a same day tag post
+    rootCounter--;
+
+    obj = { name: 'MIA', creatorId: users[1].id, gameId: games[1].id, contents: 'We like big art', isRoot: true, postedDate: newRootDate() };
+    let tag7a = await tagService.create(obj);
+
     tags.push(
         tag1a,
         tag1b,
@@ -299,7 +305,8 @@ const bootstrapData = async () => {
         tag1d,
         tag1e,
         tag1f,
-        tag2d
+        tag2d,
+        tag7a
     );
 
     // logger.info(`[bootstrapData] created tags`, { tags });
