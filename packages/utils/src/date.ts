@@ -41,3 +41,9 @@ export function isLaterDate(date1: Dayjs | string, date2: Dayjs | string): boole
     }
     return date1.format('YYYY-MM-DD') > date2.format('YYYY-MM-DD');
 }
+
+export function getDateOnly(date: Dayjs): Dayjs;
+export function getDateOnly(date: string): Dayjs;
+export function getDateOnly(date: string | Dayjs): Dayjs {
+    return (typeof date === 'string' ? dayjs(date) : date).startOf('day');
+}

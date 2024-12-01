@@ -1,9 +1,11 @@
-import { Queue, QueueEvents } from 'bullmq';
+import { QueueEvents } from 'bullmq';
 import dayjs from 'dayjs';
+import { QueueManager } from '../queue/manager';
+import { PENDING_TAG_QUEUE_NAME } from '../queue/consts';
 
-const myQueue = new Queue('foo');
+// const myQueue = new Queue<PendingTagJobData>(PENDING_TAG_QUEUE_NAME);
 
-const queueEvents = new QueueEvents('foo');
+const queueEvents = new QueueEvents(PENDING_TAG_QUEUE_NAME);
 
 queueEvents.on('waiting', ({ jobId }) => {
     console.log(`A job with ID ${jobId} is waiting`);
@@ -22,18 +24,20 @@ queueEvents.on('failed', ({ jobId, failedReason }) => {
 });
 
 const date = dayjs();
-const date2 = date.add(5, 'seconds');
+const date2 = date.add(10, 'seconds');
 console.log(date.toISOString());
 console.log(date.valueOf());
 
 console.log(date2.toISOString());
 console.log(date2.valueOf());
 
-async function addJobs() {
-    await myQueue.add('myJobName', { foo: 'bar' }, { delay: date2.valueOf() - date.valueOf() });
-}
+// async function addJobs() {
+//     await myQueue.add('myJobName', { gameId: 'f4986655-84d7-4b7a-9c99-c98ebbd5071b' }, { delay: date2.valueOf() - date.valueOf() });
+// }
 
 (async () => {
-    await addJobs();
-    console.log(await myQueue.getJobCounts());
+    const queueManager = QueueManager.getInstance();
+    const date = dayjs();
+    const date2 = date.add(10, 'seconds');
+    await queueManager.addPendingTagJob({ jobParams: { gameId: 'f4986655-84d7-4b7a-9c99-c98ebbd5071b' }, triggerTime: date2 });
 })();

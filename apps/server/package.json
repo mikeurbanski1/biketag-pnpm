@@ -4,11 +4,12 @@
     "description": "",
     "scripts": {
         "build": "mkdir -p build && tsoa routes && tsc",
-        "dev": "concurrently \"nodemon\" \"nodemon -x tsoa routes\"",
+        "dev": "concurrently \"nodemon\" \"nodemon -x tsoa routes\" \"pnpm run /^start-worker:.*/\"",
         "test": "vitest test/**/*.test.ts",
         "start": "ts-node src/server.ts",
         "bootstrap": "ts-node src/scripts/bootstrap.ts",
-        "update-pending-tag": "ts-node src/scripts/updatePendingTag.ts"
+        "update-pending-tag": "ts-node src/scripts/updatePendingTag.ts",
+        "start-worker:update-pending-tag": "ts-node src/queue/jobs/updatePendingTagJob.ts"
     },
     "keywords": [],
     "author": "",

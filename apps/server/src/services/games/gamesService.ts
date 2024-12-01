@@ -112,8 +112,9 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
         // link the latest root tag to the pending one.
         await this.tagsService.updateTagLinks({ tagIdToUpdate: latestRootTag.id, tagIdToSet: pendingTag.id, fields: ['nextRootTagId'] });
 
-        const newGame = await this.dalService.update({ id: gameId, updateParams: { latestRootTagId: game.pendingRootTagId, pendingRootTagId: undefined } });
         await this.addScoreForPlayer({ gameId, playerId: pendingTag.creator.id, score: pendingTag.points });
+        const newGame = await this.dalService.update({ id: gameId, updateParams: { latestRootTagId: game.pendingRootTagId, pendingRootTagId: undefined } });
+
         return await this.convertToDto(newGame);
     }
 

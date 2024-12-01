@@ -50,7 +50,6 @@ run()
     })
     .finally(() => {
         if (provider) {
-            provider.close();
-            logger.info('closed connection');
+            provider.close().then(() => logger.info('closed connection'));
         }
     });

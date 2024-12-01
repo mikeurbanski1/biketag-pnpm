@@ -9,7 +9,8 @@ import { validateExists } from '../../common/entityValidators';
 import { CannotPostTagError, tagServiceErrors } from '../../common/errors';
 import { UUID } from 'mongodb';
 import dayjs, { Dayjs } from 'dayjs';
-import { isEarlierDate, isSameDate } from '@biketag/utils';
+import { getDateOnly, isEarlierDate, isSameDate } from '@biketag/utils';
+import { QueueManager } from '../../queue/manager';
 
 export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, TagDalService> {
     private readonly usersService: UserService;
@@ -123,13 +124,16 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         this.logger.info(`[create]`, { params });
         const { isRoot, gameId } = params;
         const game = await this.gamesService.getRequiredAsEntity({ id: gameId });
+        if (!params.postedDate) {
+            params.postedDate = dayjs().toISOString();
+        }
         let isPending = false;
         if (isRoot) {
-            isPending = await this.checkIfTagShouldBePending({ params, gameId, dateOverride: params.postedDate ? dayjs(params.postedDate) : undefined });
+            isPending = await this.checkIfTagShouldBePending({ params, gameId, dateOverride: dayjs(params.postedDate) });
             if (isPending && game.pendingRootTagId) {
                 throw new CannotPostTagError('There is already a pending tag for this game');
             }
-            const { result, reason } = await this.canPostNewTag({ userId: params.creatorId, gameId, dateOverride: params.postedDate ? dayjs(params.postedDate) : undefined });
+            const { result, reason } = await this.canPostNewTag({ userId: params.creatorId, gameId, dateOverride: dayjs(params.postedDate) });
             if (!result) {
                 throw new CannotPostTagError(reason);
             }
@@ -144,7 +148,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         const tagUUID = new UUID().toString();
         const points = await this.calculateNewTagPoints(params);
 
-        const createParams: TagEntity = { ...params, id: tagUUID, postedDate: params.postedDate ?? new Date().toISOString(), points };
+        const createParams: TagEntity = { ...params, id: tagUUID, postedDate: params.postedDate, points };
 
         if (isRoot) {
             // before we update the game, get the current latest root tag, and point it to this as the next root
@@ -172,6 +176,8 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
 
         if (!isPending) {
             await this.gamesService.addScoreForPlayer({ gameId, playerId: tag.creatorId, score: tag.points });
+        } else {
+            await QueueManager.getInstance().addPendingTagJob({ jobParams: { gameId }, triggerTime: getDateOnly(createParams.postedDate) });
         }
 
         return await this.convertToDto(tag);
