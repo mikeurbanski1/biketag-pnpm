@@ -38,7 +38,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
             if (!props.subtagRootTag) {
                 throw new Error('Subtag view must have a root tag');
             }
-            // if the root tag was not created by us and has no children (that might be ours), we can add a tag
+            // if the root tag was not created by us and has no children, we can add a tag
             // otherwise, we do not know, so set to false for now
             userCanAddTag = !props.subtagRootTag.nextTag && props.subtagRootTag.creator.id !== props.user.id;
         } else {
@@ -75,6 +75,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         if (this.props.isSubtag) {
             const tagId = this.props.subtagRootTag!.id;
             ApiManager.tagApi.canUserAddSubtag({ tagId, userId: this.props.user.id }).then((userCanAddTag) => {
+                logger.info(`[fetchAndSetCanUserAddTag] result`, { userCanAddTag });
                 this.setState({ userCanAddTag });
             });
         } else {
@@ -194,7 +195,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
                     <div>
                         {this.props.isSubtag ? 'Nobody else has been here yet!' : 'Nobody has gone anywhere!'}
                         <br></br>
-                        {this.generateAddTagButton()}
+                        {this.state.userCanAddTag && this.generateAddTagButton()}
                     </div>
                 </div>
             );
