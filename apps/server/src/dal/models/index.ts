@@ -1,4 +1,4 @@
-import { EnhancedOmit, UUID, WithId } from 'mongodb';
+import { EnhancedOmit, UUID } from 'mongodb';
 
 export * from './user';
 export * from './game';

@@ -1,8 +1,28 @@
 {
     "semi": true,
-    "trailingComma": "none",
+    "trailingComma": "es5",
     "singleQuote": true,
     "printWidth": 200,
     "tabWidth": 4,
-    "endOfLine": "lf"
+    "endOfLine": "lf",
+    "plugins": [
+        "@ianvs/prettier-plugin-sort-imports"
+    ],
+    "importOrder": [
+        "<BUILTIN_MODULES>",
+        "",
+        "<THIRD_PARTY_MODULES>",
+        "",
+        "^@biketag/.*$",
+        "",
+        "^@.*$",
+        "^[./]"
+    ],
+    "importOrderParserPlugins": [
+        "typescript",
+        "jsx",
+        "decorators-legacy"
+    ],
+    "importOrderTypeScriptVersion": "5.0.0",
+    "importOrderCaseSensitive": false
 }

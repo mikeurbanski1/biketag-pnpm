@@ -1,11 +1,9 @@
+import { parseArgs } from 'node:util';
+
 import { Logger } from '@biketag/utils';
-// import { GameRoles, TagDto, CreateTagParams } from '@biketag/models';
+
 import { MongoDbProvider } from '../dal/providers/mongoProvider';
 import { GameService } from '../services/games/gamesService';
-// import { TagService } from '../services/tags/tagService';
-// import { UserService } from '../services/users/userService';
-// import dayjs, { Dayjs } from 'dayjs';
-import { parseArgs } from 'node:util';
 
 const logger = new Logger({ prefix: '[UpdatePendingGame]' });
 
@@ -15,14 +13,14 @@ const run = async () => {
     provider = await MongoDbProvider.getInstance();
 
     const {
-        values: { gameId }
+        values: { gameId },
     } = parseArgs({
         options: {
             gameId: {
                 type: 'string',
-                short: 'g'
-            }
-        }
+                short: 'g',
+            },
+        },
     });
     if (!gameId) {
         throw new Error('Game ID not provided');

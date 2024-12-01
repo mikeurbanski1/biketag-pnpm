@@ -1,9 +1,11 @@
+import { Dayjs } from 'dayjs';
 import React, { ReactNode } from 'react';
+
 import { GameDto, UserDto } from '@biketag/models';
+
+import { ApiManager } from '../api';
 import { CreateEditGame } from './createEditGame';
 import { ViewGame } from './game/viewGame';
-import { ApiManager } from '../api';
-import { Dayjs } from 'dayjs';
 
 interface LandingState {
     loadingGames: boolean;
@@ -23,7 +25,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         this.state = {
             loadingGames: true,
             games: [],
-            creatingGame: false
+            creatingGame: false,
         };
         this.doneCreatingGame = this.doneCreatingGame.bind(this);
         // this.editGame = this.editGame.bind(this);
@@ -37,25 +39,25 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         const games = await ApiManager.gameApi.getGamesForPlayer({ userId: this.props.user.id });
         console.log('got games:', games);
         this.setState({
-            games
+            games,
         });
     }
 
     doneCreatingGame(game?: GameDto): void {
         this.setState({
-            loadingGames: true
+            loadingGames: true,
         });
         this.refreshGames().then(() => {
             if (game) {
                 this.setState({
                     game,
                     creatingGame: false,
-                    loadingGames: false
+                    loadingGames: false,
                 });
             } else {
                 this.setState({
                     creatingGame: false,
-                    loadingGames: false
+                    loadingGames: false,
                 });
             }
         });
@@ -66,29 +68,29 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         this.setState({
             game: {
                 ...game,
-                ...updateParams
+                ...updateParams,
             },
-            games: this.state.games.map((g) => (g.id === game.id ? { ...g, ...updateParams } : g))
+            games: this.state.games.map((g) => (g.id === game.id ? { ...g, ...updateParams } : g)),
         });
     }
 
     editGame(): void {
         this.setState({
-            creatingGame: true
+            creatingGame: true,
         });
     }
 
     deleteGame(): void {
         this.setState({
             game: undefined,
-            loadingGames: true
+            loadingGames: true,
         });
         ApiManager.gameApi.deleteGame({ gameId: this.state.game!.id }).then(() => this.refreshGames().then(() => this.setState({ loadingGames: false })));
     }
 
     doneViewingGame(): void {
         this.setState({
-            game: undefined
+            game: undefined,
         });
         this.refreshGames().then(() => this.setState({ loadingGames: false }));
     }

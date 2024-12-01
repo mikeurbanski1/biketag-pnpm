@@ -1,9 +1,12 @@
+import { parseArgs } from 'node:util';
+
 import { Queue } from 'bullmq';
 import dayjs from 'dayjs';
-import { PENDING_TAG_QUEUE_NAME } from '../queue/consts';
-import { parseArgs } from 'node:util';
-import { MongoDbProvider } from '../dal/providers/mongoProvider';
+
 import { Logger } from '@biketag/utils';
+
+import { MongoDbProvider } from '../dal/providers/mongoProvider';
+import { PENDING_TAG_QUEUE_NAME } from '../queue/consts';
 import { PendingTagJobData } from '../queue/models';
 
 const logger = new Logger({ prefix: `[QueueReport]` });
@@ -18,22 +21,22 @@ const queueToJobMap: Record<string, (queue: Queue) => Promise<void>> = {
         jobs.forEach((job) => {
             logger.info(`Job`, { job, startTime: dayjs(job.timestamp).add(job.delay, 'milliseconds').toISOString() });
         });
-    }
+    },
 };
 
 const run = async () => {
     provider = await MongoDbProvider.getInstance();
 
     const {
-        values: { queue }
+        values: { queue },
     } = parseArgs({
         options: {
             queue: {
                 type: 'string',
                 short: 'q',
-                default: PENDING_TAG_QUEUE_NAME
-            }
-        }
+                default: PENDING_TAG_QUEUE_NAME,
+            },
+        },
     });
     if (!queue) {
         throw new Error('Queue to check not provided');

@@ -1,6 +1,8 @@
 import React, { ChangeEvent, ReactNode } from 'react';
-import { ApiManager } from '../api';
+
 import { UserDto } from '@biketag/models';
+
+import { ApiManager } from '../api';
 
 interface LoginState {
     name: string;
@@ -20,7 +22,7 @@ export class Login extends React.Component<LoginProps, LoginState> {
         this.state = {
             name: '',
             canLogin: false,
-            canSignup: false
+            canSignup: false,
         };
         // this.handleNameChange = this.handleNameChange.bind(this);
         // this.handleIdChange = this.handleIdChange.bind(this);
@@ -30,7 +32,7 @@ export class Login extends React.Component<LoginProps, LoginState> {
 
     private handleNameChange(event: ChangeEvent<HTMLInputElement>) {
         const newState: Partial<LoginState> = {
-            name: event.target.value
+            name: event.target.value,
         };
         newState.canLogin = this.canLogin(newState);
         newState.canSignup = this.canSignup(newState);
@@ -55,7 +57,7 @@ export class Login extends React.Component<LoginProps, LoginState> {
         } catch (err) {
             if (err instanceof Error) {
                 this.setState({
-                    errorMessage: err.message
+                    errorMessage: err.message,
                 });
             }
         }
@@ -69,7 +71,7 @@ export class Login extends React.Component<LoginProps, LoginState> {
         } catch (err) {
             if (err instanceof Error) {
                 this.setState({
-                    errorMessage: err.message
+                    errorMessage: err.message,
                 });
             }
         }

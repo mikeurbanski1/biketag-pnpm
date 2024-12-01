@@ -1,6 +1,8 @@
 import axios from 'axios';
-import { getUrl } from './config';
+
 import { CLIENT_ID_HEADER, Logger, USER_ID_HEADER } from '@biketag/utils';
+
+import { getUrl } from './config';
 
 export class AbstractApi {
     protected readonly logger;
@@ -11,8 +13,8 @@ export class AbstractApi {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
-                [CLIENT_ID_HEADER]: clientId
-            }
+                [CLIENT_ID_HEADER]: clientId,
+            },
         });
         this.logger = new Logger({ prefix: logPrefix });
     }

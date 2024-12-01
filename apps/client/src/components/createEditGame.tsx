@@ -1,5 +1,7 @@
-import { CreateGameParams, GameDto, GameRoles, UserDto } from '@biketag/models';
 import React from 'react';
+
+import { CreateGameParams, GameDto, GameRoles, UserDto } from '@biketag/models';
+
 import { ApiManager } from '../api';
 import { UserBeingAdded } from '../models/user';
 import UserSelection from './userSelection';
@@ -28,7 +30,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
             isNewGame,
             canSaveGame: !isNewGame,
             loadingUsers: true,
-            selectedUsers: []
+            selectedUsers: [],
         };
     }
 
@@ -40,8 +42,8 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
                 .filter((user) => user.role !== undefined)
                 .map((user) => ({
                     userId: user.user.id,
-                    role: user.role!
-                }))
+                    role: user.role!,
+                })),
         };
 
         const callback = (game: GameDto) => {
@@ -64,7 +66,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
             const player = game?.players.find((playerGame) => playerGame.user.id === user.id);
             return {
                 user,
-                role: player?.role
+                role: player?.role,
             };
         });
     }
@@ -74,7 +76,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         console.log('got (filtered) users:', users);
         const selectedUsers = this.getSelectedUsersForGame({ game: this.props.game, users });
         this.setState({
-            selectedUsers
+            selectedUsers,
         });
     }
 
@@ -82,7 +84,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         const canCreateGame = event.target.value !== '';
         this.setState({
             canSaveGame: canCreateGame,
-            gameName: event.target.value
+            gameName: event.target.value,
         });
     }
 
@@ -91,7 +93,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         const selectedUsers = this.state.selectedUsers;
         selectedUsers[index] = { user, role };
         this.setState({
-            selectedUsers
+            selectedUsers,
         });
     }
 

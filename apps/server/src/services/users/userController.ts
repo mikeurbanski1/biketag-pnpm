@@ -1,7 +1,9 @@
 import { Body, Controller, Get, Path, Post, Res, Route, SuccessResponse, TsoaResponse } from 'tsoa';
-import { Logger } from '@biketag/utils';
-import { UserService } from './userService';
+
 import { CreateUserParams, UserDto } from '@biketag/models';
+import { Logger } from '@biketag/utils';
+
+import { UserService } from './userService';
 
 const logger = new Logger({ prefix: '[UserController]' });
 

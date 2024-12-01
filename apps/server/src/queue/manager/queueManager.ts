@@ -1,8 +1,10 @@
 import { Job, Queue } from 'bullmq';
-import IORedis from 'ioredis';
-import { PENDING_TAG_JOB_NAME, PENDING_TAG_QUEUE_NAME } from '../consts';
 import dayjs, { Dayjs } from 'dayjs';
+import IORedis from 'ioredis';
+
 import { Logger } from '@biketag/utils';
+
+import { PENDING_TAG_JOB_NAME, PENDING_TAG_QUEUE_NAME } from '../consts';
 import { PendingTagJobData } from '../models';
 
 export class QueueManager {

@@ -1,5 +1,6 @@
-import { GameRoles } from '@biketag/models';
 import React, { useState } from 'react';
+
+import { GameRoles } from '@biketag/models';
 
 interface UserDto {
     id: string;

@@ -1,5 +1,7 @@
 import axios, { AxiosError } from 'axios';
+
 import { CreateGameParams, GameDto, PlayerGame } from '@biketag/models';
+
 import { AbstractApi } from './abstractApi';
 
 export class GameNotFoundError extends Error {}
@@ -14,7 +16,7 @@ export class GameApi extends AbstractApi {
         try {
             const resp = await this.axiosInstance.request<GameDto>({
                 method: 'get',
-                url: `/games/${id}`
+                url: `/games/${id}`,
             });
             if (resp.status !== 200) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
@@ -36,7 +38,7 @@ export class GameApi extends AbstractApi {
         try {
             const resp = await this.axiosInstance.request<GameDto[]>({
                 method: 'get',
-                url: `/games`
+                url: `/games`,
             });
             if (resp.status !== 200) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
@@ -54,7 +56,7 @@ export class GameApi extends AbstractApi {
             const resp = await this.axiosInstance.request<GameDto>({
                 method: 'post',
                 url: '/games',
-                data: { name, creatorId, players }
+                data: { name, creatorId, players },
             });
             if (resp.status !== 201) {
                 throw new CreateGameFailedError(`Unexpected response: ${resp.status} - ${resp.statusText}`);
@@ -74,7 +76,7 @@ export class GameApi extends AbstractApi {
         try {
             const resp = await this.axiosInstance.request<GameDto[]>({
                 method: 'get',
-                url: `/games/player/${userId}`
+                url: `/games/player/${userId}`,
             });
             if (resp.status !== 200) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
@@ -93,7 +95,7 @@ export class GameApi extends AbstractApi {
             const resp = await this.axiosInstance.request<GameDto>({
                 method: 'patch',
                 url: `/games/${id}`,
-                data: { name, creatorId, players }
+                data: { name, creatorId, players },
             });
             if (resp.status !== 200) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
@@ -114,7 +116,7 @@ export class GameApi extends AbstractApi {
         try {
             const resp = await this.axiosInstance.request({
                 method: 'delete',
-                url: `/games/${gameId}`
+                url: `/games/${gameId}`,
             });
             if (resp.status !== 204) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
@@ -130,7 +132,7 @@ export class GameApi extends AbstractApi {
         try {
             const resp = await this.axiosInstance.request<boolean>({
                 method: 'get',
-                url: `/games/${gameId}/user/${userId}/can-add-tag`
+                url: `/games/${gameId}/user/${userId}/can-add-tag`,
             });
             if (resp.status !== 200) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);

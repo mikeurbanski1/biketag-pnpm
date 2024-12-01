@@ -1,10 +1,12 @@
+import dayjs, { Dayjs } from 'dayjs';
 import React from 'react';
+
 import { CreateTagDto, GameDto, MinimalTag as MinimalTagType, TagDto, UserDto } from '@biketag/models';
-import { MinimalTag, TagDetails } from './tagDetails';
+import { isEarlierDate, isSameDate, Logger } from '@biketag/utils';
+
 import { ApiManager } from '../../api';
 import { AddTag } from './addTag';
-import dayjs, { Dayjs } from 'dayjs';
-import { isEarlierDate, isSameDate, Logger } from '@biketag/utils';
+import { MinimalTag, TagDetails } from './tagDetails';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const logger = new Logger({ prefix: '[TagView]' });
@@ -58,7 +60,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
             loadingTag: props.isSubtag,
             currentTag,
             userCanAddTag,
-            addingTag: false
+            addingTag: false,
         };
     }
 
@@ -138,7 +140,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
                 isRoot: false,
                 rootTagId: this.props.subtagRootTag!.id,
                 contents,
-                postedDate: this.props.dateOverride.toISOString()
+                postedDate: this.props.dateOverride.toISOString(),
             };
         } else {
             tag = {
@@ -146,7 +148,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
                 gameId: this.props.game.id,
                 isRoot: true,
                 contents,
-                postedDate: this.props.dateOverride.toISOString()
+                postedDate: this.props.dateOverride.toISOString(),
             };
         }
         ApiManager.tagApi.createTag(tag).then((newTag) => {

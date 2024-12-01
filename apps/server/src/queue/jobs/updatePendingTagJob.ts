@@ -1,7 +1,9 @@
 import { Job } from 'bullmq';
-import { PENDING_TAG_QUEUE_NAME } from '../consts';
+
 import { Logger } from '@biketag/utils';
+
 import { GameService } from '../../services/games/gamesService';
+import { PENDING_TAG_QUEUE_NAME } from '../consts';
 import { PendingTagJobData } from '../models';
 import { startWorker } from './workerGenerator';
 

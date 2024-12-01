@@ -1,6 +1,8 @@
-import { Logger } from '@biketag/utils';
-import IORedis from 'ioredis';
 import { Processor, Queue, Worker } from 'bullmq';
+import IORedis from 'ioredis';
+
+import { Logger } from '@biketag/utils';
+
 import { MongoDbProvider } from '../../dal/providers/mongoProvider';
 
 export const startWorker = async <T>({ queueName, fn }: { queueName: string; fn: Processor<T, any, string> }) => {
