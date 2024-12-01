@@ -1,7 +1,7 @@
 export const config = {
     protocol: 'http',
     host: 'localhost',
-    port: 3001
+    port: 3001,
 };
 
 export const getUrl = () => {

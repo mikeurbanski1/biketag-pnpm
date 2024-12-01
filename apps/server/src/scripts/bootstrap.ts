@@ -1,11 +1,13 @@
+import dayjs, { Dayjs } from 'dayjs';
+
+import { CreateTagParams, GameRoles, TagDto } from '@biketag/models';
 import { Logger } from '@biketag/utils';
-import { GameRoles, TagDto, CreateTagParams } from '@biketag/models';
+
 import { MongoDbProvider } from '../dal/providers/mongoProvider';
+import { QueueManager } from '../queue/manager';
 import { GameService } from '../services/games/gamesService';
 import { TagService } from '../services/tags/tagService';
 import { UserService } from '../services/users/userService';
-import dayjs, { Dayjs } from 'dayjs';
-import { QueueManager } from '../queue/manager';
 
 const logger = new Logger({ prefix: '[Bootstrap]' });
 
@@ -86,8 +88,8 @@ const bootstrapData = async () => {
                 { userId: users[2].id, role: GameRoles.ADMIN },
                 { userId: users[3].id, role: GameRoles.PLAYER },
                 { userId: users[4].id, role: GameRoles.PLAYER },
-                { userId: users[5].id, role: GameRoles.PLAYER }
-            ]
+                { userId: users[5].id, role: GameRoles.PLAYER },
+            ],
         }),
         await gameService.create({
             name: "Mike's bike tag!",
@@ -97,8 +99,8 @@ const bootstrapData = async () => {
                 { userId: users[2].id, role: GameRoles.ADMIN },
                 { userId: users[3].id, role: GameRoles.PLAYER },
                 { userId: users[4].id, role: GameRoles.PLAYER },
-                { userId: users[5].id, role: GameRoles.PLAYER }
-            ]
+                { userId: users[5].id, role: GameRoles.PLAYER },
+            ],
         }),
         await gameService.create({
             name: "Katie's bike tag!",
@@ -106,9 +108,9 @@ const bootstrapData = async () => {
             players: [
                 { userId: users[0].id, role: GameRoles.ADMIN },
                 { userId: users[1].id, role: GameRoles.ADMIN },
-                { userId: users[3].id, role: GameRoles.PLAYER }
-            ]
-        })
+                { userId: users[3].id, role: GameRoles.PLAYER },
+            ],
+        }),
     ];
 
     logger.info(`[bootstrapData] created games`, { games });
@@ -178,7 +180,7 @@ const bootstrapData = async () => {
         isRoot: false,
         postedDate: newChainDate(),
 
-        rootTagId: tag4a.id
+        rootTagId: tag4a.id,
     };
     let tag4d = await tagService.create(obj);
 
@@ -196,7 +198,7 @@ const bootstrapData = async () => {
         isRoot: false,
         postedDate: newChainDate(),
 
-        rootTagId: tag5a.id
+        rootTagId: tag5a.id,
     };
     let tag5b = await tagService.create(obj);
 
@@ -208,7 +210,7 @@ const bootstrapData = async () => {
         isRoot: false,
         postedDate: newChainDate(),
 
-        rootTagId: tag5a.id
+        rootTagId: tag5a.id,
     };
     let tag5c = await tagService.create(obj);
 
@@ -220,7 +222,7 @@ const bootstrapData = async () => {
         isRoot: false,
         postedDate: newChainDate(),
 
-        rootTagId: tag5a.id
+        rootTagId: tag5a.id,
     };
     let tag5d = await tagService.create(obj);
 
@@ -232,7 +234,7 @@ const bootstrapData = async () => {
         isRoot: false,
         postedDate: newChainDate(),
 
-        rootTagId: tag5a.id
+        rootTagId: tag5a.id,
     };
     let tag5e = await tagService.create(obj);
 
@@ -247,7 +249,7 @@ const bootstrapData = async () => {
         isRoot: false,
         postedDate: newChainDate(),
 
-        rootTagId: tag6a.id
+        rootTagId: tag6a.id,
     };
     let tag6b = await tagService.create(obj);
 
@@ -259,7 +261,7 @@ const bootstrapData = async () => {
         isRoot: false,
         postedDate: newChainDate(),
 
-        rootTagId: tag6a.id
+        rootTagId: tag6a.id,
     };
     let tag6c = await tagService.create(obj);
 
@@ -271,7 +273,7 @@ const bootstrapData = async () => {
         isRoot: false,
         postedDate: newChainDate(),
 
-        rootTagId: tag6a.id
+        rootTagId: tag6a.id,
     };
     let tag6d = await tagService.create(obj);
 

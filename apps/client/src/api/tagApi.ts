@@ -1,7 +1,9 @@
-import { CreateTagDto, TagDto } from '@biketag/models';
-import { AbstractApi } from './abstractApi';
 import { AxiosError } from 'axios';
 import { Dayjs } from 'dayjs';
+
+import { CreateTagDto, TagDto } from '@biketag/models';
+
+import { AbstractApi } from './abstractApi';
 
 export class TagNotFoundError extends Error {}
 
@@ -14,7 +16,7 @@ export class TagApi extends AbstractApi {
         try {
             const resp = await this.axiosInstance.request<TagDto>({
                 method: 'get',
-                url: `/tags/${id}`
+                url: `/tags/${id}`,
             });
             if (resp.status !== 200) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
@@ -36,7 +38,7 @@ export class TagApi extends AbstractApi {
         try {
             const resp = await this.axiosInstance.request<Record<string, TagDto>>({
                 method: 'get',
-                url: `/tags/${id}`
+                url: `/tags/${id}`,
             });
             if (resp.status !== 200) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
@@ -59,7 +61,7 @@ export class TagApi extends AbstractApi {
             const resp = await this.axiosInstance.request<{ result: boolean }>({
                 method: 'get',
                 url: `/tags/user/${userId}/game/${gameId}/can-post-new-tag`,
-                params: dateOverride ? { dateOverride: dateOverride.toISOString() } : {}
+                params: dateOverride ? { dateOverride: dateOverride.toISOString() } : {},
             });
             if (resp.status !== 200) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
@@ -77,7 +79,7 @@ export class TagApi extends AbstractApi {
         try {
             const resp = await this.axiosInstance.request<boolean>({
                 method: 'get',
-                url: `/tags/user/${userId}/in-chain/${tagId}`
+                url: `/tags/user/${userId}/in-chain/${tagId}`,
             });
             if (resp.status !== 200) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
@@ -95,7 +97,7 @@ export class TagApi extends AbstractApi {
             const resp = await this.axiosInstance.request<TagDto>({
                 method: 'post',
                 url: '/tags',
-                data: params
+                data: params,
             });
             if (resp.status !== 201) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);

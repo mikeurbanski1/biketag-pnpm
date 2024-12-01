@@ -2,7 +2,7 @@ import { UserDto } from '../api';
 
 export enum GameRoles {
     ADMIN = 'ADMIN',
-    PLAYER = 'PLAYER'
+    PLAYER = 'PLAYER',
 }
 
 export interface PlayerGame {

@@ -1,5 +1,7 @@
 import { AxiosError } from 'axios';
+
 import { CreateUserParams, UserDto } from '@biketag/models';
+
 import { AbstractApi } from './abstractApi';
 
 export class LoginFailedError extends Error {}
@@ -16,8 +18,8 @@ export class UserApi extends AbstractApi {
                 method: 'post',
                 url: '/users/login',
                 data: {
-                    name
-                }
+                    name,
+                },
             });
             if (resp.status !== 200) {
                 throw new LoginFailedError(`Unexpected response: ${resp.status} - ${resp.statusText}`);
@@ -45,8 +47,8 @@ export class UserApi extends AbstractApi {
                 method: 'post',
                 url: '/users',
                 data: {
-                    name
-                }
+                    name,
+                },
             });
             if (resp.status !== 201) {
                 throw new SignupFailedError(`Unexpected response: ${resp.status} - ${resp.statusText}`);
@@ -66,7 +68,7 @@ export class UserApi extends AbstractApi {
         try {
             const resp = await this.axiosInstance.request<UserDto[]>({
                 method: 'get',
-                url: '/users'
+                url: '/users',
             });
             if (resp.status !== 200) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);

@@ -26,7 +26,7 @@ export class GameDalService extends BaseDalService<GameEntity> {
     public async getGamesForPlayer({ userId }: { userId: string }): Promise<GameEntity[]> {
         this.logger.info('[getGamesForPlayer]', { userId });
         const result = await this.findAll({
-            filter: { $or: [{ 'players.userId': userId }, { creatorId: userId }] }
+            filter: { $or: [{ 'players.userId': userId }, { creatorId: userId }] },
         });
         this.logger.info(`[getGamesForPlayer] result`, { result });
         return result;

@@ -1,8 +1,10 @@
-import { Collection, Filter, UUID, OptionalUnlessRequiredId, WithId } from 'mongodb';
-import { Logger } from '@biketag/utils';
-import { CollectionName, MongoDbProvider } from '../providers/mongoProvider';
+import { Collection, Filter, OptionalUnlessRequiredId, UUID, WithId } from 'mongodb';
 import { ServiceErrors } from 'src/common/errors';
+
+import { Logger } from '@biketag/utils';
+
 import { BaseEntity, BaseEntityWithoutId } from '../models';
+import { CollectionName, MongoDbProvider } from '../providers/mongoProvider';
 
 export abstract class BaseDalService<E extends BaseEntity> {
     protected readonly logger: Logger;

@@ -1,12 +1,13 @@
-import { GameDalService } from '../../dal/services/gameDalService';
-import { UserService } from '../users/userService';
-import { CannotRemovePlayerError, gameServiceErrors, UserNotFoundError } from '../../common/errors';
 import { CreateGameParams, GameDto, GameRoles, PlayerGame } from '@biketag/models';
-import { BaseEntityWithoutId, GameEntity } from '../../dal/models';
-import { BaseService } from '../../common/baseService';
 import { copyDefinedProperties } from '@biketag/utils';
-import { TagService } from '../tags/tagService';
+
+import { BaseService } from '../../common/baseService';
 import { validateExists } from '../../common/entityValidators';
+import { CannotRemovePlayerError, gameServiceErrors, UserNotFoundError } from '../../common/errors';
+import { BaseEntityWithoutId, GameEntity } from '../../dal/models';
+import { GameDalService } from '../../dal/services/gameDalService';
+import { TagService } from '../tags/tagService';
+import { UserService } from '../users/userService';
 
 export class GameService extends BaseService<GameDto, CreateGameParams, GameEntity, GameDalService> {
     private readonly usersService: UserService;
@@ -43,7 +44,7 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
             firstRootTag: entity.firstRootTagId ? await this.tagsService.getRequired({ id: entity.firstRootTagId }) : undefined,
             latestRootTag: entity.latestRootTagId ? await this.tagsService.getRequired({ id: entity.latestRootTagId }) : undefined,
             pendingRootTag: entity.pendingRootTagId ? await this.tagsService.getPendingTag({ id: entity.pendingRootTagId }) : undefined,
-            gameScore: { playerScores }
+            gameScore: { playerScores },
         };
     }
 
@@ -51,7 +52,7 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
         return Promise.resolve({
             name: dto.name,
             creatorId: dto.creatorId,
-            players: dto.players
+            players: dto.players,
         });
     }
 
@@ -60,7 +61,7 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
             name: dto.name,
             creatorId: dto.creatorId,
             players: dto.players,
-            gameScore: { playerScores: {} }
+            gameScore: { playerScores: {} },
         });
     }
 

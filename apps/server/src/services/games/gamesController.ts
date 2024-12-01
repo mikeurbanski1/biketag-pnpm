@@ -1,9 +1,11 @@
 // src/users/usersController.ts
 import { Body, Controller, Delete, Get, Header, Patch, Path, Post, Put, Res, Route, SuccessResponse, TsoaResponse } from 'tsoa';
+
+import { AddPlayerInGameParams, CreateGameDto, CreateGameParams, GameDto } from '@biketag/models';
 import { Logger, USER_ID_HEADER } from '@biketag/utils';
-import { GameService } from './gamesService';
-import { CreateGameParams, GameDto, AddPlayerInGameParams, CreateGameDto } from '@biketag/models';
+
 import { GameNotFoundError, UserNotFoundError } from '../../common/errors';
+import { GameService } from './gamesService';
 
 const logger = new Logger({ prefix: '[GameController]' });
 

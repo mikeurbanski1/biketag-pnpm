@@ -1,5 +1,6 @@
-import { Collection, Db, Document, MongoClient } from 'mongodb';
 import * as dotenv from 'dotenv';
+import { Collection, Db, Document, MongoClient } from 'mongodb';
+
 import { Logger } from '@biketag/utils';
 
 const logger = new Logger({ prefix: '[MongoDbProvider]' });

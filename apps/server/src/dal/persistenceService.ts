@@ -8,4 +8,5 @@ export const initializePersistence = async () => {
 
     provider.getCollection('users');
     provider.getCollection('games');
+    provider.getCollection('tags');
 };

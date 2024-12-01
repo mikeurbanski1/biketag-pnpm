@@ -1,12 +1,13 @@
-import { ReactNode } from 'react';
+import dayjs, { Dayjs } from 'dayjs';
+import React, { ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+
+import { UserDto } from '@biketag/models';
 import { Logger } from '@biketag/utils';
-import React from 'react';
-import { Login } from './components/login';
+
 import { ApiManager } from './api';
 import { Landing } from './components/landing';
-import { UserDto } from '@biketag/models';
-import dayjs, { Dayjs } from 'dayjs';
+import { Login } from './components/login';
 
 const logger = new Logger({});
 
@@ -16,7 +17,7 @@ interface AppProps {}
 enum AppState {
     HOME,
     LOGGED_IN,
-    POLL_RESULTS
+    POLL_RESULTS,
 }
 
 interface AppComponentState {
@@ -43,7 +44,7 @@ export default class App extends React.Component<AppProps, AppComponentState> {
             name,
             clientId: clientId || uuidv4(),
             loggedIn: false,
-            dateOverride: dayjs()
+            dateOverride: dayjs(),
         };
 
         ApiManager.initialize({ clientId: this.state.clientId });
@@ -58,7 +59,7 @@ export default class App extends React.Component<AppProps, AppComponentState> {
         this.setState({
             user: { name, id },
             userId: id,
-            state: AppState.LOGGED_IN
+            state: AppState.LOGGED_IN,
         });
         ApiManager.setUser({ userId: id });
     }
@@ -73,7 +74,7 @@ export default class App extends React.Component<AppProps, AppComponentState> {
             state: AppState.HOME,
             userId: undefined,
             loggedIn: false,
-            user: undefined
+            user: undefined,
         });
         ApiManager.setUser({ userId: null });
     }

@@ -1,16 +1,18 @@
-import { CreateTagParams, TagDto, MinimalTag, tagFields, PendingTag } from '@biketag/models';
+import dayjs, { Dayjs } from 'dayjs';
+import { UUID } from 'mongodb';
+
+import { CreateTagParams, MinimalTag, PendingTag, TagDto, tagFields } from '@biketag/models';
+import { getDateOnly, isEarlierDate, isSameDate } from '@biketag/utils';
+
 import { BaseService } from '../../common/baseService';
-import { TagEntity } from '../../dal/models/tag';
-import { TagDalService } from '../../dal/services/tagDalService';
-import { BaseEntityWithoutId } from '../../dal/models';
-import { GameService } from '../games/gamesService';
-import { UserService } from '../users/userService';
 import { validateExists } from '../../common/entityValidators';
 import { CannotPostTagError, tagServiceErrors } from '../../common/errors';
-import { UUID } from 'mongodb';
-import dayjs, { Dayjs } from 'dayjs';
-import { getDateOnly, isEarlierDate, isSameDate } from '@biketag/utils';
+import { BaseEntityWithoutId } from '../../dal/models';
+import { TagEntity } from '../../dal/models/tag';
+import { TagDalService } from '../../dal/services/tagDalService';
 import { QueueManager } from '../../queue/manager';
+import { GameService } from '../games/gamesService';
+import { UserService } from '../users/userService';
 
 export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, TagDalService> {
     private readonly usersService: UserService;
@@ -34,7 +36,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             return {
                 id: tag.id,
                 creator: await this.usersService.getRequired({ id: tag.creatorId }),
-                isPendingTagView: true
+                isPendingTagView: true,
             };
         }
         return await this.convertToDto(tag);
@@ -45,7 +47,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         return {
             id: tag.id,
             creator: await this.usersService.getRequired({ id: tag.creatorId }),
-            isPendingTagView: true
+            isPendingTagView: true,
         };
     }
 
@@ -59,7 +61,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         return {
             ...dto,
             postedDate,
-            points: await this.calculateNewTagPoints(dto)
+            points: await this.calculateNewTagPoints(dto),
         };
     }
 
@@ -94,7 +96,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             nextRootTag: entity.nextRootTagId ? await this.getMinimalTag({ id: entity.nextRootTagId }) : undefined,
             postedDate: entity.postedDate,
             contents: entity.contents,
-            points: entity.points
+            points: entity.points,
         };
     }
 
@@ -107,7 +109,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             name: tag.name,
             postedDate: tag.postedDate,
             creator: await this.usersService.getRequired({ id: tag.creatorId }),
-            contents: tag.contents
+            contents: tag.contents,
         };
     }
 
@@ -215,27 +217,27 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         const filter = {
             $and: [
                 {
-                    gameId: tag.gameId
+                    gameId: tag.gameId,
                 },
                 {
                     $or: [
                         {
-                            rootTagId
+                            rootTagId,
                         },
                         {
                             $and: [
                                 {
                                     ...this.dalService.getIdFilter(rootTagId),
-                                    isRoot: true
-                                }
-                            ]
-                        }
-                    ]
+                                    isRoot: true,
+                                },
+                            ],
+                        },
+                    ],
                 },
                 {
-                    nextTagId: { $exists: false }
-                }
-            ]
+                    nextTagId: { $exists: false },
+                },
+            ],
         };
         const parentTag = (await this.dalService.findOne({ filter }))!;
         await this.updateTagLinks({ tagIdToUpdate: parentTag.id, tagIdToSet: tagId, fields: ['nextTagId'] });

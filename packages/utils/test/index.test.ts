@@ -1,4 +1,5 @@
-import { expect, describe, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import { mapToRecord } from '../src';
 
 describe('utils tests', () => {
@@ -7,7 +8,7 @@ describe('utils tests', () => {
             mapToRecord(
                 new Map([
                     ['a', 1],
-                    ['b', 2]
+                    ['b', 2],
                 ])
             )
         ).toEqual({ a: 1, b: 2 });

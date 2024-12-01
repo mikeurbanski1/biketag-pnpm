@@ -1,7 +1,9 @@
+import dayjs from 'dayjs';
+import React from 'react';
+
 import { MinimalTag as MinimalTagType, TagDto } from '@biketag/models';
 import { Logger } from '@biketag/utils';
-import React from 'react';
-import dayjs from 'dayjs';
+
 import { DATE_FORMAT } from '../../utils/consts';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

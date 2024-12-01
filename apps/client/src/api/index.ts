@@ -1,7 +1,7 @@
-import { UserApi } from './userApi';
-import { GameApi } from './gameApi';
 import { AbstractApi } from './abstractApi';
+import { GameApi } from './gameApi';
 import { TagApi } from './tagApi';
+import { UserApi } from './userApi';
 
 export * from './userApi';
 

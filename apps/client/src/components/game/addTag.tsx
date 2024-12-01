@@ -1,6 +1,7 @@
-import { isEarlierDate, Logger } from '@biketag/utils';
 import { Dayjs } from 'dayjs';
 import React, { useState } from 'react';
+
+import { isEarlierDate, Logger } from '@biketag/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const logger = new Logger({ prefix: '[AddTag]' });
@@ -35,7 +36,7 @@ export const AddTag: React.FC<AddTagProps> = ({ saveTag, cancelAddTag, isRootTag
                   Location name:{' '}
               </label>,
               <input key="name-input" type="text" name="name" onChange={(event) => setName(event.target.value)} value={name}></input>,
-              <br key="br"></br>
+              <br key="br"></br>,
           ]
         : undefined;
 

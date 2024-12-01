@@ -1,9 +1,11 @@
-import { GameDto, GameRoles, TagDto, UserDto } from '@biketag/models';
+import { Dayjs } from 'dayjs';
 import React from 'react';
+
+import { GameDto, GameRoles, TagDto, UserDto } from '@biketag/models';
 import { Logger } from '@biketag/utils';
+
 import { ApiManager } from '../../api';
 import { TagView } from './tagView';
-import { Dayjs } from 'dayjs';
 
 const logger = new Logger({ prefix: '[ViewGame]' });
 
@@ -31,7 +33,7 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
         this.state = {
             isCreator: this.props.game.creator.id === this.props.user.id,
             playerDetailsTable: this.getPlayerDetailsTable(),
-            currentRootTag: this.props.game.latestRootTag
+            currentRootTag: this.props.game.latestRootTag,
         };
     }
 
