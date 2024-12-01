@@ -8,6 +8,11 @@ export interface MinimalTag extends BaseDto {
     postedDate: string;
 }
 
+export interface PendingTag extends BaseDto {
+    creator: Pick<UserDto, 'id' | 'name'>;
+    isPendingTagView: true;
+}
+
 export interface TagDto extends BaseDto {
     name: string;
     creator: UserDto;

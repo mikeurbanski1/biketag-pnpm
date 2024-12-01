@@ -1,4 +1,4 @@
-import { BaseDto, TagDto } from '.';
+import { BaseDto, PendingTag, TagDto } from '.';
 import { GameRoles, PlayerGame, PlayerGameDto } from '../common/game';
 import { UserDto } from './user';
 
@@ -9,6 +9,7 @@ export interface GameDto extends BaseDto {
     players: PlayerGameDto[];
     firstRootTag?: TagDto;
     latestRootTag?: TagDto;
+    pendingRootTag?: PendingTag;
     gameScore: GameScoreDto;
 }
 

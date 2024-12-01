@@ -7,6 +7,7 @@ export interface GameEntity extends BaseEntity {
     players: PlayerGame[];
     firstRootTagId?: string;
     latestRootTagId?: string;
+    pendingRootTagId?: string;
     gameScore: GameScore;
 }
 

@@ -65,6 +65,10 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
         });
     }
 
+    // refreshGame(): void {
+    //     this.refreshScores();
+    // }
+
     render() {
         const { game } = this.props;
 
@@ -76,6 +80,9 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                     <h1>{game.name}</h1>
                 </div>
                 <div>Created by: {game.creator.name}</div>
+                <div>
+                    <input type="button" value="Refresh game" onClick={() => this.refreshScores()}></input>
+                </div>
                 <div>
                     <h2>Players</h2>
                 </div>

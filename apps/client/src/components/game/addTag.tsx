@@ -1,4 +1,4 @@
-import { isSameDate, Logger } from '@biketag/utils';
+import { isEarlierDate, Logger } from '@biketag/utils';
 import { Dayjs } from 'dayjs';
 import React, { useState } from 'react';
 
@@ -25,7 +25,7 @@ export const AddTag: React.FC<AddTagProps> = ({ saveTag, cancelAddTag, isRootTag
     //     setDate(event.target.value);
     // };
 
-    const canPostOnDate = !previousRootTagDate || !isSameDate(dateOverride, previousRootTagDate);
+    const canPostOnDate = !previousRootTagDate || !isEarlierDate(dateOverride, previousRootTagDate);
 
     const canSave = contents.length > 0 && canPostOnDate && (!isRootTag || name.length > 0);
 
