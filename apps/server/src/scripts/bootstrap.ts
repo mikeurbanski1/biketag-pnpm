@@ -5,8 +5,12 @@ import { GameService } from '../services/games/gamesService';
 import { TagService } from '../services/tags/tagService';
 import { UserService } from '../services/users/userService';
 import dayjs, { Dayjs } from 'dayjs';
+import { QueueManager } from '../queue/manager';
 
 const logger = new Logger({ prefix: '[Bootstrap]' });
+
+let provider: MongoDbProvider;
+let queueManager: QueueManager;
 
 let rootCounter = 0;
 let chainCounter = 0;
@@ -39,7 +43,8 @@ const newChainDate = () => {
 };
 
 const bootstrapData = async () => {
-    const provider = await MongoDbProvider.getInstance();
+    provider = await MongoDbProvider.getInstance();
+    queueManager = QueueManager.getInstance();
 
     let usersCollection = provider.getCollection('users');
     logger.info(`[bootstrapData] dropping users collection: ${await usersCollection.drop()}`);
@@ -309,12 +314,25 @@ const bootstrapData = async () => {
         tag7a
     );
 
-    // logger.info(`[bootstrapData] created tags`, { tags });
+    tags.filter((tag) => tag.isRoot).forEach((tag) => {
+        logger.info(`[bootstrapData] root tag local creation time`, { tagName: tag.name, postedDate: dayjs(tag.postedDate).format('YYYY/MM/DD') });
+    });
 
-    await provider.close();
-    logger.info('[bootstrapData] closed connection');
+    // logger.info(`[bootstrapData] created tags`, { tags });
 };
 
-bootstrapData().then(() => {
-    logger.info('Finished bootstrapping new data');
-});
+bootstrapData()
+    .then(() => {
+        logger.info('Finished bootstrapping new data');
+    })
+    .catch((err) => {
+        logger.error('Error bootstrapping data', { err });
+    })
+    .finally(() => {
+        if (provider) {
+            provider.close().then(() => logger.info('closed connection'));
+        }
+        if (queueManager) {
+            queueManager.close().then(() => logger.info('closed queue'));
+        }
+    });

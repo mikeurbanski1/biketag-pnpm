@@ -4,11 +4,12 @@
     "description": "",
     "scripts": {
         "build": "mkdir -p build && tsoa routes && tsc",
-        "dev": "concurrently \"nodemon\" \"nodemon -x tsoa routes\"",
+        "dev": "concurrently \"nodemon\" \"nodemon -x tsoa routes\" \"pnpm run /^start-worker:.*/\"",
         "test": "vitest test/**/*.test.ts",
         "start": "ts-node src/server.ts",
         "bootstrap": "ts-node src/scripts/bootstrap.ts",
-        "update-pending-tag": "ts-node src/scripts/updatePendingTag.ts"
+        "update-pending-tag": "ts-node src/scripts/updatePendingTag.ts",
+        "start-worker:update-pending-tag": "ts-node src/queue/jobs/updatePendingTagJob.ts"
     },
     "keywords": [],
     "author": "",
@@ -18,10 +19,12 @@
         "@biketag/utils": "workspace:*",
         "@tsoa/runtime": "^6.5.1",
         "@types/cors": "^2.8.17",
+        "bullmq": "^5.30.1",
         "cors": "^2.8.5",
         "dotenv": "^16.4.5",
         "express": "^4.21.1",
         "express-serve-static-core": "^0.1.1",
+        "ioredis": "^5.4.1",
         "joi": "^17.13.3",
         "mongodb": "^6.10.0",
         "tsoa": "^6.5.1",
