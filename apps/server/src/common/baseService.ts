@@ -1,10 +1,11 @@
 import { Filter, UUID } from 'mongodb';
-import { ServiceErrors } from 'src/common/errors';
-import { BaseEntity, BaseEntityWithoutId } from 'src/dal/models';
-import { BaseDalService } from 'src/dal/services/baseDalService';
 
 import { BaseDto } from '@biketag/models';
 import { Logger } from '@biketag/utils';
+
+import { ServiceErrors } from '../common/errors';
+import { BaseEntity, BaseEntityWithoutId } from '../dal/models';
+import { BaseDalService } from '../dal/services/baseDalService';
 
 export abstract class BaseService<ResponseDto extends BaseDto, UpsertDTO, E extends BaseEntity, D extends BaseDalService<E>> {
     protected readonly logger: Logger;
