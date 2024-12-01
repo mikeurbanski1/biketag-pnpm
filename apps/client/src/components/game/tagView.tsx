@@ -1,5 +1,5 @@
 import React from 'react';
-import { CreateTagDto, GameDto, MinimalTag as MinimalTagType, TagDto, UserDto } from '@biketag/models';
+import { CreateTagDto, GameDto, MinimalTag as MinimalTagType, PendingTag, TagDto, UserDto } from '@biketag/models';
 import { MinimalTag, TagDetails } from './tagDetails';
 import { ApiManager } from '../../api';
 import { AddTag } from './addTag';
@@ -12,6 +12,7 @@ const logger = new Logger({ prefix: '[TagView]' });
 interface TagViewState {
     loadingTag: boolean;
     currentTag?: TagDto;
+    pendingTagPreview?: TagDto | PendingTag;
     userCanAddTag: boolean;
     addingTag: boolean;
 }
@@ -54,11 +55,14 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         const currentTag = props.isSubtag ? undefined : this.props.game.latestRootTag;
         logger.info(`[constructor]`, { currentTag: currentTag ?? 'undefined' });
 
+        const pendingTagPreview = !props.isSubtag && props.game.pendingRootTag?.creator.id === props.user.id ? props.game.pendingRootTag : undefined;
+
         this.state = {
             loadingTag: props.isSubtag,
             currentTag,
             userCanAddTag,
-            addingTag: false
+            addingTag: false,
+            pendingTagPreview
         };
     }
 
@@ -167,39 +171,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
 
         // handle re-rendering when changing the date override - only applies to new root tags
         const userCanAddTagWithDateOverride = this.props.isSubtag || !this.props.game.latestRootTag ? true : !isEarlierDate(this.props.dateOverride, this.props.game.latestRootTag.postedDate);
-        logger.info(`[render] userCanAddTagWithDateOverride ${userCanAddTagWithDateOverride}`);
-
-        if (this.state.addingTag) {
-            addTagSection = (
-                <AddTag
-                    isRootTag={!this.props.isSubtag}
-                    saveTag={({ name, contents }) => {
-                        this.saveNewTag({ name, contents });
-                    }}
-                    cancelAddTag={() => this.setAddingTag(false)}
-                    previousRootTagDate={previousRootTagDate}
-                    dateOverride={this.props.dateOverride}
-                />
-            );
-        } else if (!this.state.addingTag && this.state.userCanAddTag && userCanAddTagWithDateOverride) {
-            let text;
-            if (this.props.isSubtag) {
-                text = 'Tag this spot!';
-            } else {
-                if (!this.props.game.latestRootTag) {
-                    text = 'Add the first tag!';
-                } else if (isSameDate(this.props.dateOverride, this.props.game.latestRootTag!.postedDate)) {
-                    text = 'Add your new tag for tomorrow';
-                } else {
-                    text = 'Add the next new tag!';
-                }
-            }
-            addTagSection = <input type="button" name="add-tag" value={text} onClick={() => this.setAddingTag()}></input>;
-        } else {
-            addTagSection = undefined;
-        }
-
-        addTagSection = <div>{addTagSection}</div>;
+        const actualCanAddTag = !this.state.addingTag && this.state.userCanAddTag && userCanAddTagWithDateOverride;
 
         if (!this.state.currentTag) {
             return (
@@ -213,6 +185,45 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
             );
         }
 
+        // this could be the next root tag, or the add tag button, or the add tag form, or the preview of a pending tag as the poster, or the preview as someone else
+        let nextTagPanel;
+
+        if (this.state.addingTag) {
+            nextTagPanel = (
+                <AddTag
+                    isRootTag={!this.props.isSubtag}
+                    saveTag={({ name, contents }) => {
+                        this.saveNewTag({ name, contents });
+                    }}
+                    cancelAddTag={() => this.setAddingTag(false)}
+                    previousRootTagDate={previousRootTagDate}
+                    dateOverride={this.props.dateOverride}
+                />
+            );
+        } else if (actualCanAddTag) {
+            let text;
+            if (this.props.isSubtag) {
+                text = 'Tag this spot!';
+            } else {
+                if (!this.props.game.latestRootTag) {
+                    text = 'Add the first tag!';
+                } else if (isSameDate(this.props.dateOverride, this.props.game.latestRootTag!.postedDate)) {
+                    text = 'Add your new tag for tomorrow';
+                } else {
+                    text = 'Add the next new tag!';
+                }
+            }
+            nextTagPanel = <input type="button" name="add-tag" value={text} onClick={() => this.setAddingTag()}></input>;
+        } else if (this.state.pendingTagPreview) {
+            // if we are viewing a root tag, and there
+            nextTagPanel = `The next tag posted by ${this.state.pendingTagPreview.creator.name} will go live at midnight!`;
+        } else {
+            const nextTag = this.props.isSubtag ? this.state.currentTag.nextTag : this.state.currentTag.nextRootTag;
+            nextTagPanel = this.getMinimalTag(nextTag);
+        }
+
+        addTagSection = <div>{nextTagPanel}</div>;
+
         // we will not show the add tag for a new root tag unless viewing the most recent root
         if (!this.props.isSubtag && this.state.currentTag.id !== this.props.game.latestRootTag?.id) {
             addTagSection = undefined;
@@ -225,8 +236,6 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         } else {
             previousTag = this.state.currentTag.previousRootTag;
         }
-
-        const nextTag = this.props.isSubtag ? this.state.currentTag.nextTag : this.state.currentTag.nextRootTag;
 
         const innerDiv = this.props.isSubtag ? (
             <TagDetails tag={this.state.currentTag} isSubtag={this.props.isSubtag} />
@@ -251,7 +260,6 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
             <div className={className}>
                 {this.getMinimalTag(previousTag)}
                 {innerDiv}
-                {this.getMinimalTag(nextTag)}
                 {addTagSection}
             </div>
         );

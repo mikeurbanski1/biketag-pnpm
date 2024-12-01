@@ -21,12 +21,39 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         this.gamesService = gamesService ?? new GameService({ tagsService: this });
     }
 
+    /**
+     * Gets the tag by ID, but returns a pending tag if the tag state is pending and the requesting user is not the creator (i.e., others cannot see it before it goes live)
+     */
+    public async getWithPendingCheck({ tagId, userId }: { tagId: string; userId: string }): Promise<TagDto | PendingTag | null> {
+        const tag = await this.dalService.getById({ id: tagId });
+        if (!tag) {
+            return null;
+        }
+        if (tag.creatorId !== userId && (await this.gamesService.getRequiredAsEntity({ id: tag.gameId })).pendingRootTagId === tagId) {
+            return {
+                id: tag.id,
+                creator: await this.usersService.getRequired({ id: tag.creatorId }),
+                isPendingTagView: true
+            };
+        }
+        return await this.convertToDto(tag);
+    }
+
+    public async getPendingTag({ id }: { id: string }): Promise<PendingTag> {
+        const tag = await this.dalService.getByIdRequired({ id });
+        return {
+            id: tag.id,
+            creator: await this.usersService.getRequired({ id: tag.creatorId }),
+            isPendingTagView: true
+        };
+    }
+
     protected async convertToUpsertEntity(dto: CreateTagParams): Promise<BaseEntityWithoutId<TagEntity>> {
         return await this.convertToNewEntity(dto);
     }
 
     protected async convertToNewEntity(dto: CreateTagParams): Promise<BaseEntityWithoutId<TagEntity>> {
-        const postedDate = dto.postedDate ?? new Date().toISOString();
+        const postedDate = dto.postedDate ?? dayjs().toISOString();
         this.logger.info(`[convertToEntity]`, { dto });
         return {
             ...dto,
@@ -83,14 +110,6 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         };
     }
 
-    public async getPendingTag({ id }: { id: string }): Promise<PendingTag> {
-        const tag = await this.dalService.getByIdRequired({ id });
-        return {
-            id: tag.id,
-            creator: await this.usersService.getRequired({ id: tag.creatorId })
-        };
-    }
-
     private async updateTagLinks({ tagIdToUpdate, tagIdToSet, fields }: { tagIdToUpdate: string; tagIdToSet: string; fields: (typeof tagFields)[number][] }): Promise<TagEntity> {
         this.logger.info('[updateTagLink]', { tagIdToUpdate, tagIdToSet, fields });
         const updateFields = fields.reduce((params, field) => {
@@ -103,9 +122,13 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
     public override async create(params: CreateTagParams): Promise<TagDto> {
         this.logger.info(`[create]`, { params });
         const { isRoot, gameId } = params;
+        const game = await this.gamesService.getRequiredAsEntity({ id: gameId });
         let isPending = false;
         if (isRoot) {
-            isPending = await this.checkForPendingTag({ params, gameId, dateOverride: params.postedDate ? dayjs(params.postedDate) : undefined });
+            isPending = await this.checkIfTagShouldBePending({ params, gameId, dateOverride: params.postedDate ? dayjs(params.postedDate) : undefined });
+            if (isPending && game.pendingRootTagId) {
+                throw new CannotPostTagError('There is already a pending tag for this game');
+            }
             const { result, reason } = await this.canPostNewTag({ userId: params.creatorId, gameId, dateOverride: params.postedDate ? dayjs(params.postedDate) : undefined });
             if (!result) {
                 throw new CannotPostTagError(reason);
@@ -126,7 +149,6 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         if (isRoot) {
             // before we update the game, get the current latest root tag, and point it to this as the next root
             // then point this back to it
-            const game = await this.gamesService.getRequiredAsEntity({ id: gameId });
             const { latestRootTagId } = game;
             if (latestRootTagId) {
                 // if this is a pending tag, we will update the tag links once it goes live
@@ -147,7 +169,10 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         const tag = await this.dalService.create(createParams);
 
         await this.gamesService.setTagInGame({ gameId, tagId: tagUUID, root: isRoot, isPending });
-        await this.gamesService.addScoreForPlayer({ gameId, playerId: tag.creatorId, score: tag.points });
+
+        if (!isPending) {
+            await this.gamesService.addScoreForPlayer({ gameId, playerId: tag.creatorId, score: tag.points });
+        }
 
         return await this.convertToDto(tag);
     }
@@ -156,7 +181,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
      * Checks if the given tag should be a pending tag, which means it was posted the same day as the latest root tag in the game.
      * If so, then set the posted date to be the next day, and return true. Else, return false.
      */
-    private async checkForPendingTag({ params, gameId, dateOverride = dayjs() }: { params: CreateTagParams; gameId: string; dateOverride?: Dayjs }): Promise<boolean> {
+    private async checkIfTagShouldBePending({ params, gameId, dateOverride = dayjs() }: { params: CreateTagParams; gameId: string; dateOverride?: Dayjs }): Promise<boolean> {
         const game = await this.gamesService.getRequiredAsEntity({ id: gameId });
         if (game.latestRootTagId) {
             const latestGameTag = await this.dalService.getByIdRequired({ id: game.latestRootTagId });
@@ -235,6 +260,9 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         const game = await this.gamesService.getRequiredAsEntity({ id: gameId });
         if (!game.latestRootTagId) {
             return { result: true };
+        }
+        if (game.pendingRootTagId) {
+            return { result: false, reason: 'There is already a pending tag for this game' };
         }
         const latestRootTag = await this.getRequired({ id: game.latestRootTagId });
         const tagWinner = latestRootTag.nextTag?.creator.id;
