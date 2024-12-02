@@ -21,6 +21,7 @@ interface ViewGameProps {
     user: UserDto;
     game: GameDto;
     updateGame: (updateParams: Partial<GameDto>) => void;
+    setGame: (game: GameDto) => void;
     doneViewingGame: () => void;
     editGame: () => void;
     deleteGame: () => void;
@@ -62,8 +63,9 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
 
     refreshScores(): void {
         ApiManager.gameApi.getGame({ id: this.props.game.id }).then((game) => {
-            this.props.updateGame(game);
-            this.setState({ playerDetailsTable: this.getPlayerDetailsTable(game) });
+            logger.info(`[refreshScores] got game`, { game });
+            this.props.setGame(game);
+            this.setState({ playerDetailsTable: this.getPlayerDetailsTable(game), currentRootTag: game.latestRootTag });
         });
     }
 
@@ -111,6 +113,7 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                     </table>
                 </div>
                 <TagView
+                    key={`rootTagView-${game.latestRootTag?.id}`}
                     isSubtag={false}
                     game={game}
                     user={this.props.user}

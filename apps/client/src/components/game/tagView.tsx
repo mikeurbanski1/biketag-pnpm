@@ -8,7 +8,6 @@ import { ApiManager } from '../../api';
 import { AddTag } from './addTag';
 import { MinimalTag, TagDetails } from './tagDetails';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const logger = new Logger({ prefix: '[TagView]' });
 
 interface TagViewState {
@@ -162,7 +161,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         const classType = this.props.isSubtag ? 'subtag' : 'root-tag';
         const className = `${classType}-scroller`;
 
-        logger.info(`[render]`, { state: this.state });
+        logger.info(`[render]`, { isSubtag: this.props.isSubtag, state: this.state, props: this.props });
 
         if (this.state.loadingTag) {
             return <div className={className}>Loading...</div>;
