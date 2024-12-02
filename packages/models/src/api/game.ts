@@ -1,5 +1,6 @@
 import { BaseDto, PendingTag, TagDto } from '.';
 import { GameRoles, PlayerGame, PlayerGameDto } from '../common/game';
+import { GameScore } from './score';
 import { UserDto } from './user';
 
 export interface GameDto extends BaseDto {
@@ -10,11 +11,7 @@ export interface GameDto extends BaseDto {
     firstRootTag?: TagDto;
     latestRootTag?: TagDto;
     pendingRootTag?: PendingTag;
-    gameScore: GameScoreDto;
-}
-
-export interface GameScoreDto {
-    playerScores: Record<string, number>;
+    gameScore: GameScore;
 }
 
 export interface CreateGameDto {

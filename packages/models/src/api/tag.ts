@@ -1,4 +1,5 @@
 import { BaseDto } from '.';
+import { TagStats } from './score';
 import { UserDto } from './user';
 
 export interface MinimalTag extends BaseDto {
@@ -26,7 +27,7 @@ export interface TagDto extends BaseDto {
     nextRootTag?: MinimalTag;
     postedDate: string;
     contents: string;
-    points: number;
+    stats: TagStats;
 }
 
 export interface CreateTagDto {

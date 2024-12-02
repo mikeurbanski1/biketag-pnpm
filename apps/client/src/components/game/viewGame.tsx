@@ -2,6 +2,7 @@ import { Dayjs } from 'dayjs';
 import React from 'react';
 
 import { GameDto, GameRoles, TagDto, UserDto } from '@biketag/models';
+import { PlayerScores } from '@biketag/models/src/api/score';
 import { Logger } from '@biketag/utils';
 
 import { ApiManager } from '../../api';
@@ -11,9 +12,16 @@ const logger = new Logger({ prefix: '[ViewGame]' });
 
 type PlayerTableRole = GameRoles | 'OWNER';
 
+type PlayerDetailsTableRow = {
+    id: string;
+    name: string;
+    role: PlayerTableRole;
+    scores: PlayerScores;
+};
+
 interface ViewGameState {
     isCreator: boolean;
-    playerDetailsTable: { id: string; name: string; role: PlayerTableRole; score: number }[];
+    playerDetailsTable: PlayerDetailsTableRow[];
     currentRootTag?: TagDto;
 }
 
@@ -49,14 +57,14 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
         this.setState({ currentRootTag: tag });
     }
 
-    getPlayerDetailsTable(game?: GameDto): { id: string; name: string; role: PlayerTableRole; score: number }[] {
+    getPlayerDetailsTable(game?: GameDto): PlayerDetailsTableRow[] {
         if (!game) {
             game = this.props.game;
         }
         logger.info(`[getPlayerDetailsTable]`, { game });
-        return [{ id: game.creator.id, name: game.creator.name, role: 'OWNER' as PlayerTableRole, score: game.gameScore.playerScores[game.creator.id] ?? 0 }].concat(
+        return [{ id: game.creator.id, name: game.creator.name, role: 'OWNER' as PlayerTableRole, scores: game.gameScore.playerScores[game.creator.id] }].concat(
             game.players.map((player) => {
-                return { id: player.user.id, name: player.user.name, role: player.role, score: game.gameScore.playerScores[player.user.id] ?? 0 };
+                return { id: player.user.id, name: player.user.name, role: player.role, scores: game.gameScore.playerScores[player.user.id] };
             })
         );
     }
@@ -76,7 +84,7 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
     render() {
         const { game } = this.props;
 
-        const sortedPlayerDetails = this.state.playerDetailsTable.sort((a, b) => b.score - a.score);
+        const sortedPlayerDetails = this.state.playerDetailsTable.sort((a, b) => b.scores.points - a.scores.points);
 
         return (
             <div className="game-view">
@@ -95,8 +103,10 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th>Role</th>
-                                <th>Score</th>
+                                <th>Total points</th>
+                                <th>Tags won</th>
+                                <th>New tags posted</th>
+                                <th>Tags posted on time</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -104,8 +114,10 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                                 return (
                                     <tr key={player.id}>
                                         <td>{player.name}</td>
-                                        <td>{player.role}</td>
-                                        <td>{player.score}</td>
+                                        <td>{player.scores.points}</td>
+                                        <td>{player.scores.tagsWon}</td>
+                                        <td>{player.scores.newTagsPosted}</td>
+                                        <td>{player.scores.tagsPostedOnTime}</td>
                                     </tr>
                                 );
                             })}

@@ -225,6 +225,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
             nextTagPanel = `The next tag posted by ${this.props.game.pendingRootTag.creator.name} will go live at midnight!`;
         } else {
             const nextTag = this.props.isSubtag ? this.state.currentTag.nextTag : this.state.currentTag.nextRootTag;
+            logger.info(`[render] nextTag`, { nextTag });
             nextTagPanel = this.getMinimalTag(nextTag);
         }
 
@@ -233,10 +234,14 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         let previousTag: MinimalTagType | undefined;
         if (this.props.isSubtag) {
             // if the previous tag of the subtag is the root tag, then we do not want to show it
+            logger.info(`[render] this.state.currentTag.parentTag?.id ${this.state.currentTag.parentTag?.id}`);
+            logger.info(`[render] this.props.subtagRootTag!.id ${this.props.subtagRootTag!.id}`);
             previousTag = this.state.currentTag.parentTag?.id !== this.props.subtagRootTag!.id ? this.state.currentTag.parentTag : undefined;
         } else {
             previousTag = this.state.currentTag.previousRootTag;
         }
+
+        logger.info(`[render] previous tag`, { previousTag });
 
         const innerDiv = this.props.isSubtag ? (
             <TagDetails tag={this.state.currentTag} isSubtag={this.props.isSubtag} />

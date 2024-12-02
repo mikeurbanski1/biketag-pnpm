@@ -1,3 +1,5 @@
+import { TagStats } from '@biketag/models/src/api/score';
+
 import { gameServiceErrors } from '../../common/errors';
 import { GameEntity } from '../models';
 import { BaseDalService } from './baseDalService';
@@ -32,12 +34,28 @@ export class GameDalService extends BaseDalService<GameEntity> {
         return result;
     }
 
-    public async addScoreForPlayer({ gameId, playerId, score }: { gameId: string; playerId: string; score: number }): Promise<void> {
-        this.logger.info(`[addScoreForPlayer]`, { gameId, playerId, score });
+    public async addScoreForPlayer({ gameId, playerId, stats }: { gameId: string; playerId: string; stats: TagStats }): Promise<void> {
+        this.logger.info(`[addScoreForPlayer]`, { gameId, playerId, stats });
 
         const collection = await this.getCollection();
 
-        await collection.updateOne(this.getIdFilter(gameId), { $inc: { [`gameScore.playerScores.${playerId}`]: score } });
+        const playerScoreAttr = `gameScore.playerScores.${playerId}`;
+
+        const update = {
+            $inc: { [`${playerScoreAttr}.points`]: stats.points },
+        };
+
+        if (stats.newTag) {
+            update.$inc[`${playerScoreAttr}.newTagsPosted`] = 1;
+        }
+        if (stats.postedOnTime) {
+            update.$inc[`${playerScoreAttr}.tagsPostedOnTime`] = 1;
+        }
+        if (stats.wonTag) {
+            update.$inc[`${playerScoreAttr}.tagsWon`] = 1;
+        }
+
+        await collection.updateOne(this.getIdFilter(gameId), update);
     }
 
     // public setPlayerInGame({ gameId, userId, role }: { gameId: string; userId: string; role: GameRoles }): PlayerGameEntity {

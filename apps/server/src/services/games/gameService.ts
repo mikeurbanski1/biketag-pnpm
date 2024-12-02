@@ -1,4 +1,5 @@
 import { CreateGameParams, GameDto, GameRoles, PlayerGame } from '@biketag/models';
+import { PlayerScores, TagStats } from '@biketag/models/src/api/score';
 import { copyDefinedProperties } from '@biketag/utils';
 
 import { BaseService } from '../../common/baseService';
@@ -28,11 +29,11 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
         const { gameScore, players } = entity;
 
         const playerScores = players.reduce(
-            (scores, player) => {
-                scores[player.userId] = gameScore.playerScores[player.userId] ?? 0;
-                return scores;
+            (stats, player) => {
+                stats[player.userId] = gameScore.playerScores[player.userId] ?? { points: 0, newTagsPosted: 0, tagsPostedOnTime: 0, tagsWon: 0 };
+                return stats;
             },
-            {} as Record<string, number>
+            {} as Record<string, PlayerScores>
         );
         playerScores[entity.creatorId] = gameScore.playerScores[entity.creatorId] ?? 0;
 
@@ -113,7 +114,7 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
         // link the latest root tag to the pending one.
         await this.tagsService.updateTagLinks({ tagIdToUpdate: latestRootTag.id, tagIdToSet: pendingTag.id, fields: ['nextRootTagId'] });
 
-        await this.addScoreForPlayer({ gameId, playerId: pendingTag.creator.id, score: pendingTag.points });
+        await this.addScoreForPlayer({ gameId, playerId: pendingTag.creator.id, stats: pendingTag.stats });
         const newGame = await this.dalService.update({ id: gameId, updateParams: { latestRootTagId: game.pendingRootTagId, pendingRootTagId: undefined } });
 
         return await this.convertToDto(newGame);
@@ -143,8 +144,8 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
         }
     }
 
-    public async addScoreForPlayer({ gameId, playerId, score }: { gameId: string; playerId: string; score: number }): Promise<GameDto> {
-        await this.dalService.addScoreForPlayer({ gameId, playerId, score });
+    public async addScoreForPlayer({ gameId, playerId, stats }: { gameId: string; playerId: string; stats: TagStats }): Promise<GameDto> {
+        await this.dalService.addScoreForPlayer({ gameId, playerId, stats });
         return await this.getRequired({ id: gameId });
     }
 

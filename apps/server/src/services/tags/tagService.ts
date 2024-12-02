@@ -75,7 +75,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             return null;
         }
         const { parentTagId, nextTagId, rootTagId, previousRootTagId, nextRootTagId, lastTagInChainId } = entity;
-        const parentTag = nextTagId ? await this.getMinimalTag({ id: nextTagId }) : undefined;
+        const parentTag = parentTagId ? await this.getMinimalTag({ id: parentTagId }) : undefined;
         const nextTag = nextTagId ? await this.getMinimalTag({ id: nextTagId }) : undefined;
         const rootTag = rootTagId ? (rootTagId === parentTagId ? parentTag : await this.getMinimalTag({ id: rootTagId })) : undefined;
         const previousRootTag = previousRootTagId ? await this.getMinimalTag({ id: previousRootTagId }) : undefined;
@@ -95,7 +95,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             nextRootTag,
             postedDate: entity.postedDate,
             contents: entity.contents,
-            points: entity.points,
+            stats: entity.stats,
         };
     }
 
@@ -151,9 +151,9 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             rootTag = await this.dalService.getByIdRequired({ id: params.rootTagId! });
         }
 
-        const points = this.scoreService.calculateScoreForTag({ tag: params, rootTag: isRoot ? undefined : rootTag, game });
+        const stats = this.scoreService.calculateStatsForTag({ tag: params, rootTag: isRoot ? undefined : rootTag, game });
 
-        const createParams: TagEntity = { ...params, id: tagUuid, lastTagInChainId: tagUuid, postedDate: params.postedDate, points };
+        const createParams: TagEntity = { ...params, id: tagUuid, postedDate: params.postedDate, stats };
 
         if (isRoot) {
             // before we update the game, get the current latest root tag, and point it to this as the next root
@@ -177,7 +177,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         await this.gamesService.setTagInGame({ gameId, tagId: tagUuid, root: isRoot, isPending });
 
         if (!isPending) {
-            await this.gamesService.addScoreForPlayer({ gameId, playerId: tag.creatorId, score: tag.points });
+            await this.gamesService.addScoreForPlayer({ gameId, playerId: tag.creatorId, stats: tag.stats });
         } else {
             await QueueManager.getInstance().addPendingTagJob({ jobParams: { gameId }, triggerTime: getDateOnly(createParams.postedDate) });
         }
