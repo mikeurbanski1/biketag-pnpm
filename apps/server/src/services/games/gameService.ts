@@ -1,4 +1,5 @@
 import { CreateGameParams, GameDto, GameRoles, PlayerGame } from '@biketag/models';
+import { PlayerScores, TagStats } from '@biketag/models/src/api/score';
 import { copyDefinedProperties } from '@biketag/utils';
 
 import { BaseService } from '../../common/baseService';
@@ -25,16 +26,16 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
         if (!entity) {
             return null;
         }
-        const { gameScore, players } = entity;
+        // const { gameScore, players } = entity;
 
-        const playerScores = players.reduce(
-            (scores, player) => {
-                scores[player.userId] = gameScore.playerScores[player.userId] ?? 0;
-                return scores;
-            },
-            {} as Record<string, number>
-        );
-        playerScores[entity.creatorId] = gameScore.playerScores[entity.creatorId] ?? 0;
+        // const playerScores = players.reduce(
+        //     (stats, player) => {
+        //         stats[player.userId] = gameScore.playerScores[player.userId];
+        //         return stats;
+        //     },
+        //     {} as Record<string, PlayerScores>
+        // );
+        // playerScores[entity.creatorId] = gameScore.playerScores[entity.creatorId] ?? 0;
 
         return {
             id: entity.id,
@@ -44,7 +45,7 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
             firstRootTag: entity.firstRootTagId ? await this.tagsService.getRequired({ id: entity.firstRootTagId }) : undefined,
             latestRootTag: entity.latestRootTagId ? await this.tagsService.getRequired({ id: entity.latestRootTagId }) : undefined,
             pendingRootTag: entity.pendingRootTagId ? await this.tagsService.getPendingTag({ id: entity.pendingRootTagId }) : undefined,
-            gameScore: { playerScores },
+            gameScore: entity.gameScore,
         };
     }
 
@@ -74,7 +75,17 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
 
         GameService.sortPlayersByAdmins(players);
 
-        const game = await this.dalService.create({ ...params, gameScore: { playerScores: {} } });
+        const playerScores = players.reduce(
+            (scores, player) => {
+                scores[player.userId] = { points: 0, totalTagsPosted: 0, newTagsPosted: 0, tagsPostedOnTime: 0, tagsWon: 0 };
+                return scores;
+            },
+            {} as Record<string, PlayerScores>
+        );
+
+        playerScores[creator] = { points: 0, totalTagsPosted: 0, newTagsPosted: 0, tagsPostedOnTime: 0, tagsWon: 0 };
+
+        const game = await this.dalService.create({ ...params, gameScore: { playerScores } });
         return await this.convertToDto(game);
     }
 
@@ -113,7 +124,7 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
         // link the latest root tag to the pending one.
         await this.tagsService.updateTagLinks({ tagIdToUpdate: latestRootTag.id, tagIdToSet: pendingTag.id, fields: ['nextRootTagId'] });
 
-        await this.addScoreForPlayer({ gameId, playerId: pendingTag.creator.id, score: pendingTag.points });
+        await this.addScoreForPlayer({ gameId, playerId: pendingTag.creator.id, stats: pendingTag.stats });
         const newGame = await this.dalService.update({ id: gameId, updateParams: { latestRootTagId: game.pendingRootTagId, pendingRootTagId: undefined } });
 
         return await this.convertToDto(newGame);
@@ -143,8 +154,8 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
         }
     }
 
-    public async addScoreForPlayer({ gameId, playerId, score }: { gameId: string; playerId: string; score: number }): Promise<GameDto> {
-        await this.dalService.addScoreForPlayer({ gameId, playerId, score });
+    public async addScoreForPlayer({ gameId, playerId, stats }: { gameId: string; playerId: string; stats: TagStats }): Promise<GameDto> {
+        await this.dalService.addScoreForPlayer({ gameId, playerId, stats });
         return await this.getRequired({ id: gameId });
     }
 

@@ -1,4 +1,5 @@
 import { BaseDto } from '.';
+import { TagStats } from './score';
 import { UserDto } from './user';
 
 export interface MinimalTag extends BaseDto {
@@ -20,12 +21,13 @@ export interface TagDto extends BaseDto {
     parentTag?: MinimalTag;
     nextTag?: MinimalTag;
     rootTag?: MinimalTag;
+    lastTagInChain?: MinimalTag; // only on root tag and only if there is a child
     isRoot: boolean;
     previousRootTag?: MinimalTag;
     nextRootTag?: MinimalTag;
     postedDate: string;
     contents: string;
-    points: number;
+    stats: TagStats;
 }
 
 export interface CreateTagDto {
@@ -41,4 +43,4 @@ export interface CreateTagParams extends CreateTagDto {
     creatorId: string;
 }
 
-export const tagFields = ['parentTagId', 'nextTagId', 'rootTagId', 'previousRootTagId', 'nextRootTagId'] as const;
+export const tagFields = ['parentTagId', 'nextTagId', 'rootTagId', 'previousRootTagId', 'nextRootTagId', 'lastTagInChainId'] as const;

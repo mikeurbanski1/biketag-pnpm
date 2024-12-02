@@ -11,17 +11,20 @@ import { BaseEntityWithoutId } from '../../dal/models';
 import { TagEntity } from '../../dal/models/tag';
 import { TagDalService } from '../../dal/services/tagDalService';
 import { QueueManager } from '../../queue/manager';
-import { GameService } from '../games/gamesService';
+import { GameService } from '../games/gameService';
+import { ScoreService } from '../scores/scoreService';
 import { UserService } from '../users/userService';
 
 export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, TagDalService> {
     private readonly usersService: UserService;
     private readonly gamesService: GameService;
+    private readonly scoreService: ScoreService;
 
     constructor({ usersService, gamesService }: { usersService?: UserService; gamesService?: GameService } = {}) {
         super({ prefix: 'TagService', dalService: new TagDalService(), serviceErrors: tagServiceErrors });
         this.usersService = usersService ?? new UserService();
         this.gamesService = gamesService ?? new GameService({ tagsService: this });
+        this.scoreService = new ScoreService();
     }
 
     /**
@@ -58,23 +61,11 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
     protected async convertToNewEntity(dto: CreateTagParams): Promise<BaseEntityWithoutId<TagEntity>> {
         const postedDate = dto.postedDate ?? dayjs().toISOString();
         this.logger.info(`[convertToEntity]`, { dto });
+        // @ts-ignore this method will not be used because we have our own create method - TODO fix this
         return {
             ...dto,
             postedDate,
-            points: await this.calculateNewTagPoints(dto),
         };
-    }
-
-    private async calculateNewTagPoints(dto: CreateTagParams): Promise<number> {
-        if (dto.isRoot) {
-            return 5;
-        }
-        this.logger.info(`[calculateNewTagPoints] for non-root tag`, { postedDate: dto.postedDate ?? 'undefined' });
-        const postedDate = dayjs(dto.postedDate);
-        const rootTag = await this.dalService.getByIdRequired({ id: dto.rootTagId! });
-        const sameDate = isSameDate(postedDate, rootTag.postedDate);
-        this.logger.info(`[calculateNewTagPoints] is same date: ${sameDate}`);
-        return sameDate ? 5 : 1;
     }
 
     protected async convertToDto(entity: TagEntity): Promise<TagDto>;
@@ -83,20 +74,28 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         if (!entity) {
             return null;
         }
+        const { parentTagId, nextTagId, rootTagId, previousRootTagId, nextRootTagId, lastTagInChainId } = entity;
+        const parentTag = parentTagId ? await this.getMinimalTag({ id: parentTagId }) : undefined;
+        const nextTag = nextTagId ? await this.getMinimalTag({ id: nextTagId }) : undefined;
+        const rootTag = rootTagId ? (rootTagId === parentTagId ? parentTag : await this.getMinimalTag({ id: rootTagId })) : undefined;
+        const previousRootTag = previousRootTagId ? await this.getMinimalTag({ id: previousRootTagId }) : undefined;
+        const nextRootTag = nextRootTagId ? await this.getMinimalTag({ id: nextRootTagId }) : undefined;
+        const lastTagInChain = lastTagInChainId ? (lastTagInChainId === nextTagId ? nextTag : await this.getMinimalTag({ id: lastTagInChainId })) : undefined;
         return {
             id: entity.id,
             name: entity.name,
             creator: await this.usersService.getRequired({ id: entity.creatorId }),
             gameId: entity.gameId,
-            parentTag: entity.parentTagId ? await this.getMinimalTag({ id: entity.parentTagId }) : undefined,
-            nextTag: entity.nextTagId ? await this.getMinimalTag({ id: entity.nextTagId }) : undefined,
-            rootTag: entity.rootTagId ? await this.getMinimalTag({ id: entity.rootTagId }) : undefined,
+            parentTag,
+            nextTag,
+            rootTag,
+            lastTagInChain,
             isRoot: entity.isRoot,
-            previousRootTag: entity.previousRootTagId ? await this.getMinimalTag({ id: entity.previousRootTagId }) : undefined,
-            nextRootTag: entity.nextRootTagId ? await this.getMinimalTag({ id: entity.nextRootTagId }) : undefined,
+            previousRootTag,
+            nextRootTag,
             postedDate: entity.postedDate,
             contents: entity.contents,
-            points: entity.points,
+            stats: entity.stats,
         };
     }
 
@@ -129,7 +128,12 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         if (!params.postedDate) {
             params.postedDate = dayjs().toISOString();
         }
+
+        // create a new tag object id now so we can update references with fewer calls / cleaner flow
+        const tagUuid = new UUID().toString();
+
         let isPending = false;
+        let rootTag: TagEntity | undefined;
         if (isRoot) {
             isPending = await this.checkIfTagShouldBePending({ params, gameId, dateOverride: dayjs(params.postedDate) });
             if (isPending && game.pendingRootTagId) {
@@ -144,13 +148,12 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             if (await this.userInTagChain({ userId: params.creatorId, tagId: params.rootTagId! })) {
                 throw new CannotPostTagError(`User ${params.creatorId} has already posted a tag for ${params.rootTagId}`);
             }
+            rootTag = await this.dalService.getByIdRequired({ id: params.rootTagId! });
         }
 
-        // create a new tag object id now so we can update references with fewer calls / cleaner flow
-        const tagUUID = new UUID().toString();
-        const points = await this.calculateNewTagPoints(params);
+        const stats = this.scoreService.calculateStatsForTag({ tag: params, rootTag: isRoot ? undefined : rootTag, game });
 
-        const createParams: TagEntity = { ...params, id: tagUUID, postedDate: params.postedDate, points };
+        const createParams: TagEntity = { ...params, id: tagUuid, postedDate: params.postedDate, stats };
 
         if (isRoot) {
             // before we update the game, get the current latest root tag, and point it to this as the next root
@@ -159,25 +162,22 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             if (latestRootTagId) {
                 // if this is a pending tag, we will update the tag links once it goes live
                 if (!isPending) {
-                    await this.updateTagLinks({ tagIdToUpdate: latestRootTagId, tagIdToSet: tagUUID, fields: ['nextRootTagId'] });
+                    await this.updateTagLinks({ tagIdToUpdate: latestRootTagId, tagIdToSet: tagUuid, fields: ['nextRootTagId'] });
                     // await this.dalService.updateMany({ filter: { gameId, rootTagId: latestRootTagId }, updateParams: { nextRootTagId: tagUUID } });
                 }
                 createParams.previousRootTagId = latestRootTagId;
             }
         } else {
-            const parentTag = await this.setLastTagInChain({ tag: createParams, tagId: tagUUID });
-
-            createParams.nextRootTagId = parentTag.nextRootTagId;
-            createParams.previousRootTagId = parentTag.previousRootTagId;
+            const parentTag = await this.setLastTagInChain({ tagId: tagUuid, rootTag: rootTag! }); // definitely defined above
             createParams.parentTagId = parentTag.id;
         }
 
         const tag = await this.dalService.create(createParams);
 
-        await this.gamesService.setTagInGame({ gameId, tagId: tagUUID, root: isRoot, isPending });
+        await this.gamesService.setTagInGame({ gameId, tagId: tagUuid, root: isRoot, isPending });
 
         if (!isPending) {
-            await this.gamesService.addScoreForPlayer({ gameId, playerId: tag.creatorId, score: tag.points });
+            await this.gamesService.addScoreForPlayer({ gameId, playerId: tag.creatorId, stats: tag.stats });
         } else {
             await QueueManager.getInstance().addPendingTagJob({ jobParams: { gameId }, triggerTime: getDateOnly(createParams.postedDate) });
         }
@@ -203,46 +203,64 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         return false;
     }
 
+    private async setLastTagInChain({ tagId, rootTag }: { tagId: string; rootTag: TagEntity }): Promise<TagEntity> {
+        // this.logger.info(`[setLastTagInChain]`, { tag });
+
+        if (rootTag.lastTagInChainId) {
+            const lastTagInChain = await this.dalService.getByIdRequired({ id: rootTag.lastTagInChainId });
+            await this.updateTagLinks({ tagIdToUpdate: lastTagInChain.id, tagIdToSet: tagId, fields: ['nextTagId'] });
+            await this.updateTagLinks({ tagIdToUpdate: rootTag.id, tagIdToSet: tagId, fields: ['lastTagInChainId'] });
+            return lastTagInChain;
+        } else {
+            // also means it has no next tag ID; we could've checked for either
+            await this.updateTagLinks({ tagIdToUpdate: rootTag.id, tagIdToSet: tagId, fields: ['nextTagId', 'lastTagInChainId'] });
+            return rootTag;
+        }
+    }
+
     /**
      * Sets the tag ID to be the next tag of the current last tag in the chain. Returns that tag.
+     *
+     * OLD VERSION before adding lastTagInChain link
      */
-    private async setLastTagInChain({ tag, tagId }: { tag: CreateTagParams; tagId: string }): Promise<TagEntity> {
-        this.logger.info(`[setLastTagInChain]`, { tag });
-        const rootTagId = tag.rootTagId!;
-        // find the tag that is in this game,
-        // and, either:
-        // - has the same root tag as the tag we are adding, or
-        // - is the rootTag of this chain (meaning we are adding the first subtag)
-        // and has no next tag (is the last in the chain)
-        const filter = {
-            $and: [
-                {
-                    gameId: tag.gameId,
-                },
-                {
-                    $or: [
-                        {
-                            rootTagId,
-                        },
-                        {
-                            $and: [
-                                {
-                                    ...this.dalService.getIdFilter(rootTagId),
-                                    isRoot: true,
-                                },
-                            ],
-                        },
-                    ],
-                },
-                {
-                    nextTagId: { $exists: false },
-                },
-            ],
-        };
-        const parentTag = (await this.dalService.findOne({ filter }))!;
-        await this.updateTagLinks({ tagIdToUpdate: parentTag.id, tagIdToSet: tagId, fields: ['nextTagId'] });
-        return parentTag;
-    }
+    // private async setLastTagInChain({ tag, tagId, rootTag }: { tag: CreateTagParams; tagId: string; rootTag: TagEntity }): Promise<TagEntity> {
+    //     this.logger.info(`[setLastTagInChain]`, { tag });
+    //     const rootTagId = tag.rootTagId!;
+    //     // find the tag that is in this game,
+    //     // and, either:
+    //     // - has the same root tag as the tag we are adding, or
+    //     // - is the rootTag of this chain (meaning we are adding the first subtag)
+    //     // and has no next tag (is the last in the chain)
+    //     const filter = {
+    //         $and: [
+    //             {
+    //                 gameId: tag.gameId,
+    //             },
+    //             {
+    //                 $or: [
+    //                     {
+    //                         rootTagId,
+    //                     },
+    //                     {
+    //                         $and: [
+    //                             {
+    //                                 ...this.dalService.getIdFilter(rootTagId),
+    //                                 isRoot: true,
+    //                             },
+    //                         ],
+    //                     },
+    //                 ],
+    //             },
+    //             {
+    //                 nextTagId: { $exists: false },
+    //             },
+    //         ],
+    //     };
+    //     const parentTag = (await this.dalService.findOne({ filter }))!;
+    //     await this.updateTagLinks({ tagIdToUpdate: parentTag.id, tagIdToSet: tagId, fields: ['nextTagId'] });
+    //     await this.updateTagLinks({ tagIdToUpdate: parentTag.id, tagIdToSet: tagId, fields: ['nextTagId'] });
+    //     return parentTag;
+    // }
 
     /**
      * Returns whether the given user is the creator of this tag or any tag in the chain below this one (should generally be called with the root tag)

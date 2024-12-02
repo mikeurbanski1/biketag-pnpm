@@ -1,4 +1,5 @@
 import { PlayerGame } from '@biketag/models';
+import { GameScore } from '@biketag/models/src/api/score';
 
 import { BaseEntity } from '.';
 
@@ -10,8 +11,4 @@ export interface GameEntity extends BaseEntity {
     latestRootTagId?: string;
     pendingRootTagId?: string;
     gameScore: GameScore;
-}
-
-export interface GameScore {
-    playerScores: Record<string, number>;
 }

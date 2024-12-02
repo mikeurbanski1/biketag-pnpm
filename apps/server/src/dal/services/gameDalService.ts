@@ -1,3 +1,5 @@
+import { PlayerScores, TagStats } from '@biketag/models/src/api/score';
+
 import { gameServiceErrors } from '../../common/errors';
 import { GameEntity } from '../models';
 import { BaseDalService } from './baseDalService';
@@ -32,12 +34,29 @@ export class GameDalService extends BaseDalService<GameEntity> {
         return result;
     }
 
-    public async addScoreForPlayer({ gameId, playerId, score }: { gameId: string; playerId: string; score: number }): Promise<void> {
-        this.logger.info(`[addScoreForPlayer]`, { gameId, playerId, score });
+    public async addScoreForPlayer({ gameId, playerId, stats }: { gameId: string; playerId: string; stats: TagStats }): Promise<void> {
+        this.logger.info(`[addScoreForPlayer]`, { gameId, playerId, stats });
 
         const collection = await this.getCollection();
 
-        await collection.updateOne(this.getIdFilter(gameId), { $inc: { [`gameScore.playerScores.${playerId}`]: score } });
+        // it is much faster to get and update the whole object than to update the nested values
+        const playerScoreAttr = `gameScore.playerScores.${playerId}`;
+        const game = await this.getByIdRequired({ id: gameId });
+
+        const currentStats = game.gameScore.playerScores[playerId];
+        const newStats: PlayerScores = {
+            totalTagsPosted: currentStats.totalTagsPosted + 1,
+            points: currentStats.points + stats.points,
+            newTagsPosted: currentStats.newTagsPosted + (stats.newTag ? 1 : 0),
+            tagsPostedOnTime: currentStats.tagsPostedOnTime + (stats.postedOnTime ? 1 : 0),
+            tagsWon: currentStats.tagsWon + (stats.wonTag ? 1 : 0),
+        };
+
+        const update = {
+            $set: { [playerScoreAttr]: newStats },
+        };
+
+        await collection.updateOne(this.getIdFilter(gameId), update);
     }
 
     // public setPlayerInGame({ gameId, userId, role }: { gameId: string; userId: string; role: GameRoles }): PlayerGameEntity {

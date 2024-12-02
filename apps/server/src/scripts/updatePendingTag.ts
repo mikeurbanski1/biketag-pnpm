@@ -3,7 +3,7 @@ import { parseArgs } from 'node:util';
 import { Logger } from '@biketag/utils';
 
 import { MongoDbProvider } from '../dal/providers/mongoProvider';
-import { GameService } from '../services/games/gamesService';
+import { GameService } from '../services/games/gameService';
 
 const logger = new Logger({ prefix: '[UpdatePendingGame]' });
 

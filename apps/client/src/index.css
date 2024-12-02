@@ -83,6 +83,11 @@ input[type="button"] {
     text-align: center;
 }
 
+.clickable-text:hover {
+    cursor: pointer;
+    color: #000266
+}
+
 .root-scroller-button {
     display: inline-block
 }
