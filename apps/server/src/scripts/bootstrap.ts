@@ -19,7 +19,7 @@ let chainCounter = 0;
 
 // let now = dayjs();
 
-let startDate: Dayjs = dayjs(`${dayjs().format('YYYY-MM-DD')} 06:44`).subtract(7, 'days');
+let startDate: Dayjs = dayjs(`${dayjs().format('YYYY-MM-DD')} 06:44`).subtract(6, 'days');
 const newRootDate = () => {
     logger.info(`[newRootDate] rootCounter: ${rootCounter}`);
     rootCounter++;

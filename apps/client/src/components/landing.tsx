@@ -63,6 +63,13 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         });
     }
 
+    setGame(game: GameDto): void {
+        this.setState({
+            game,
+            games: this.state.games.map((g) => (g.id === game.id ? game : g)),
+        });
+    }
+
     updateGame(updateParams: Partial<GameDto>): void {
         const game = this.state.game!;
         this.setState({
@@ -125,6 +132,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
                 <ViewGame
                     game={this.state.game}
                     updateGame={(updateParams: Partial<GameDto>) => this.updateGame(updateParams)}
+                    setGame={(game: GameDto) => this.setGame(game)}
                     user={this.props.user}
                     deleteGame={() => this.deleteGame()}
                     editGame={() => this.editGame()}
