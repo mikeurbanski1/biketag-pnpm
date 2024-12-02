@@ -328,7 +328,7 @@ bootstrapData()
         logger.info('Finished bootstrapping new data');
     })
     .catch((err) => {
-        logger.error('Error bootstrapping data', { err });
+        logger.error(`Error bootstrapping data ${err}`, { err });
     })
     .finally(() => {
         if (provider) {

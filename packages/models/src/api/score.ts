@@ -1,5 +1,6 @@
 export interface PlayerScores {
     points: number;
+    totalTagsPosted: number;
     newTagsPosted: number;
     tagsWon: number;
     tagsPostedOnTime: number;

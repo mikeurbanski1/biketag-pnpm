@@ -1,4 +1,4 @@
-import { TagStats } from '@biketag/models/src/api/score';
+import { PlayerScores, TagStats } from '@biketag/models/src/api/score';
 
 import { gameServiceErrors } from '../../common/errors';
 import { GameEntity } from '../models';
@@ -44,7 +44,8 @@ export class GameDalService extends BaseDalService<GameEntity> {
         const game = await this.getByIdRequired({ id: gameId });
 
         const currentStats = game.gameScore.playerScores[playerId];
-        const newStats = {
+        const newStats: PlayerScores = {
+            totalTagsPosted: currentStats.totalTagsPosted + 1,
             points: currentStats.points + stats.points,
             newTagsPosted: currentStats.newTagsPosted + (stats.newTag ? 1 : 0),
             tagsPostedOnTime: currentStats.tagsPostedOnTime + (stats.postedOnTime ? 1 : 0),
@@ -52,7 +53,7 @@ export class GameDalService extends BaseDalService<GameEntity> {
         };
 
         const update = {
-            [playerScoreAttr]: newStats,
+            $set: { [playerScoreAttr]: newStats },
         };
 
         await collection.updateOne(this.getIdFilter(gameId), update);

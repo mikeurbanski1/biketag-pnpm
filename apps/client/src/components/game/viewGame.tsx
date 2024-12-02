@@ -73,9 +73,12 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                 field = 'points';
                 break;
             case 2:
-                field = 'tagsWon';
+                field = 'totalTagsPosted';
                 break;
             case 3:
+                field = 'tagsWon';
+                break;
+            case 4:
                 field = 'newTagsPosted';
                 break;
             default:
@@ -146,7 +149,7 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
     render() {
         const { game } = this.props;
 
-        const headers = ['Name', 'Total points', 'Tags won', 'New tags posted', 'Tags posted on time'];
+        const headers = ['Name', 'Total points', 'Total tags posted', 'Tags won', 'New tags posted', 'Tags posted on time'];
         const tableHeaders = headers.map((header, index) => {
             return (
                 <th key={index} className="clickable-text" onClick={() => this.sortPlayerDetailsTable({ column: index, setState: true })}>
@@ -179,6 +182,7 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                                     <tr key={player.id}>
                                         <td>{player.name}</td>
                                         <td>{player.scores.points}</td>
+                                        <td>{player.scores.totalTagsPosted}</td>
                                         <td>{player.scores.tagsWon}</td>
                                         <td>{player.scores.newTagsPosted}</td>
                                         <td>{player.scores.tagsPostedOnTime}</td>

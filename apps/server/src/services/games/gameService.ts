@@ -26,16 +26,16 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
         if (!entity) {
             return null;
         }
-        const { gameScore, players } = entity;
+        // const { gameScore, players } = entity;
 
-        const playerScores = players.reduce(
-            (stats, player) => {
-                stats[player.userId] = gameScore.playerScores[player.userId] ?? { points: 0, newTagsPosted: 0, tagsPostedOnTime: 0, tagsWon: 0 };
-                return stats;
-            },
-            {} as Record<string, PlayerScores>
-        );
-        playerScores[entity.creatorId] = gameScore.playerScores[entity.creatorId] ?? 0;
+        // const playerScores = players.reduce(
+        //     (stats, player) => {
+        //         stats[player.userId] = gameScore.playerScores[player.userId];
+        //         return stats;
+        //     },
+        //     {} as Record<string, PlayerScores>
+        // );
+        // playerScores[entity.creatorId] = gameScore.playerScores[entity.creatorId] ?? 0;
 
         return {
             id: entity.id,
@@ -45,7 +45,7 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
             firstRootTag: entity.firstRootTagId ? await this.tagsService.getRequired({ id: entity.firstRootTagId }) : undefined,
             latestRootTag: entity.latestRootTagId ? await this.tagsService.getRequired({ id: entity.latestRootTagId }) : undefined,
             pendingRootTag: entity.pendingRootTagId ? await this.tagsService.getPendingTag({ id: entity.pendingRootTagId }) : undefined,
-            gameScore: { playerScores },
+            gameScore: entity.gameScore,
         };
     }
 
@@ -75,7 +75,17 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
 
         GameService.sortPlayersByAdmins(players);
 
-        const game = await this.dalService.create({ ...params, gameScore: { playerScores: {} } });
+        const playerScores = players.reduce(
+            (scores, player) => {
+                scores[player.userId] = { points: 0, totalTagsPosted: 0, newTagsPosted: 0, tagsPostedOnTime: 0, tagsWon: 0 };
+                return scores;
+            },
+            {} as Record<string, PlayerScores>
+        );
+
+        playerScores[creator] = { points: 0, totalTagsPosted: 0, newTagsPosted: 0, tagsPostedOnTime: 0, tagsWon: 0 };
+
+        const game = await this.dalService.create({ ...params, gameScore: { playerScores } });
         return await this.convertToDto(game);
     }
 
