@@ -6,17 +6,18 @@ import { PlayerScores } from '@biketag/models/src/api/score';
 import { Logger } from '@biketag/utils';
 
 import { ApiManager } from '../../api';
+import { Table } from '../common/table';
 import { TagView } from './tagView';
 
 const logger = new Logger({ prefix: '[ViewGame]' });
 
 type PlayerTableRole = GameRoles | 'OWNER';
 
-type PlayerDetailsTableRow = {
+type PlayerDetailsTableRow = PlayerScores & {
     id: string;
     name: string;
-    role: PlayerTableRole;
-    scores: PlayerScores;
+    role: string;
+    [key: string]: string | number;
 };
 
 interface ViewGameState {
@@ -92,8 +93,8 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
         logger.info(`[sortPlayerDetailsTable] sortAscending`, { sortAscending });
         const valToSort = playerDetailsTable ?? this.state.playerDetailsTable;
         const sortedPlayerDetails = [...valToSort].sort((a, b) => {
-            const aVal = field === 'name' ? a.name : a.scores[field];
-            const bVal = field === 'name' ? b.name : b.scores[field];
+            const aVal = field === 'name' ? a.name : a[field];
+            const bVal = field === 'name' ? b.name : b[field];
 
             logger.info(`[sortPlayerDetailsTable] comparing`, { aVal, bVal });
 
@@ -129,9 +130,9 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
             game = this.props.game;
         }
         logger.info(`[getPlayerDetailsTable]`, { game });
-        return [{ id: game.creator.id, name: game.creator.name, role: 'OWNER' as PlayerTableRole, scores: game.gameScore.playerScores[game.creator.id] }].concat(
+        return [{ id: game.creator.id, name: game.creator.name, role: 'OWNER' as PlayerTableRole, ...game.gameScore.playerScores[game.creator.id] }].concat(
             game.players.map((player) => {
-                return { id: player.user.id, name: player.user.name, role: player.role, scores: game.gameScore.playerScores[player.user.id] };
+                return { id: player.user.id, name: player.user.name, role: player.role, ...game.gameScore.playerScores[player.user.id] };
             })
         );
     }
@@ -149,15 +150,15 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
     render() {
         const { game } = this.props;
 
-        const headers = ['Name', 'Total points', 'Total tags posted', 'Tags won', 'New tags posted', 'Tags posted on time'];
-        const tableHeaders = headers.map((header, index) => {
-            return (
-                <th key={index} className="clickable-text" onClick={() => this.sortPlayerDetailsTable({ column: index, setState: true })}>
-                    {header}
-                    {this.state.sortColumn === index ? (this.state.sortedAscending ? '▲' : '▼') : ''}
-                </th>
-            );
-        });
+        // const headers = ['Name', 'Total points', 'Total tags posted', 'Tags won', 'New tags posted', 'Tags posted on time'];
+        // const tableHeaders = headers.map((header, index) => {
+        //     return (
+        //         <th key={index} className="clickable-text" onClick={() => this.sortPlayerDetailsTable({ column: index, setState: true })}>
+        //             {header}
+        //             {this.state.sortColumn === index ? (this.state.sortedAscending ? '▲' : '▼') : ''}
+        //         </th>
+        //     );
+        // });
 
         return (
             <div className="game-view">
@@ -172,25 +173,19 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                     <h2>Players</h2>
                 </div>
                 <div>
-                    <table className="players-table">
-                        <thead>
-                            <tr>{tableHeaders}</tr>
-                        </thead>
-                        <tbody>
-                            {this.state.playerDetailsTable.map((player) => {
-                                return (
-                                    <tr key={player.id}>
-                                        <td>{player.name}</td>
-                                        <td>{player.scores.points}</td>
-                                        <td>{player.scores.totalTagsPosted}</td>
-                                        <td>{player.scores.tagsWon}</td>
-                                        <td>{player.scores.newTagsPosted}</td>
-                                        <td>{player.scores.tagsPostedOnTime}</td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                    <Table<PlayerDetailsTableRow>
+                        data={this.state.playerDetailsTable}
+                        columnMapping={[
+                            { attribute: 'name', header: 'Name' },
+                            { attribute: 'points', header: 'Total points', defaultDescending: true },
+                            { attribute: 'totalTagsPosted', header: 'Total tags posted', defaultDescending: true },
+                            { attribute: 'tagsWon', header: 'Tags won', defaultDescending: true },
+                            { attribute: 'newTagsPosted', header: 'New tags posted', defaultDescending: true },
+                            { attribute: 'tagsPostedOnTime', header: 'Tags posted on time', defaultDescending: true },
+                        ]}
+                        initialSort={{ column: 'points', ascending: false }}
+                        tableClassName="player-details-table"
+                    />
                 </div>
                 <TagView
                     key={`rootTagView-${game.latestRootTag?.id}`}
