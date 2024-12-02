@@ -39,21 +39,21 @@ export class GameDalService extends BaseDalService<GameEntity> {
 
         const collection = await this.getCollection();
 
+        // it is much faster to get and update the whole object than to update the nested values
         const playerScoreAttr = `gameScore.playerScores.${playerId}`;
+        const game = await this.getByIdRequired({ id: gameId });
 
-        const update = {
-            $inc: { [`${playerScoreAttr}.points`]: stats.points },
+        const currentStats = game.gameScore.playerScores[playerId];
+        const newStats = {
+            points: currentStats.points + stats.points,
+            newTagsPosted: currentStats.newTagsPosted + (stats.newTag ? 1 : 0),
+            tagsPostedOnTime: currentStats.tagsPostedOnTime + (stats.postedOnTime ? 1 : 0),
+            tagsWon: currentStats.tagsWon + (stats.wonTag ? 1 : 0),
         };
 
-        if (stats.newTag) {
-            update.$inc[`${playerScoreAttr}.newTagsPosted`] = 1;
-        }
-        if (stats.postedOnTime) {
-            update.$inc[`${playerScoreAttr}.tagsPostedOnTime`] = 1;
-        }
-        if (stats.wonTag) {
-            update.$inc[`${playerScoreAttr}.tagsWon`] = 1;
-        }
+        const update = {
+            [playerScoreAttr]: newStats,
+        };
 
         await collection.updateOne(this.getIdFilter(gameId), update);
     }
