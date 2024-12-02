@@ -7,6 +7,7 @@ export interface TagEntity extends BaseEntity {
     parentTagId?: string;
     nextTagId?: string;
     rootTagId?: string;
+    lastTagInChainId?: string;
     isRoot: boolean;
     previousRootTagId?: string;
     nextRootTagId?: string;
