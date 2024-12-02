@@ -5,7 +5,7 @@ import { AddPlayerInGameParams, CreateGameDto, CreateGameParams, GameDto } from 
 import { Logger, USER_ID_HEADER } from '@biketag/utils';
 
 import { GameNotFoundError, UserNotFoundError } from '../../common/errors';
-import { GameService } from './gamesService';
+import { GameService } from './gameService';
 
 const logger = new Logger({ prefix: '[GameController]' });
 

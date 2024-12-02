@@ -11,17 +11,20 @@ import { BaseEntityWithoutId } from '../../dal/models';
 import { TagEntity } from '../../dal/models/tag';
 import { TagDalService } from '../../dal/services/tagDalService';
 import { QueueManager } from '../../queue/manager';
-import { GameService } from '../games/gamesService';
+import { GameService } from '../games/gameService';
+import { ScoreService } from '../scores/scoreService';
 import { UserService } from '../users/userService';
 
 export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, TagDalService> {
     private readonly usersService: UserService;
     private readonly gamesService: GameService;
+    private readonly scoreService: ScoreService;
 
     constructor({ usersService, gamesService }: { usersService?: UserService; gamesService?: GameService } = {}) {
         super({ prefix: 'TagService', dalService: new TagDalService(), serviceErrors: tagServiceErrors });
         this.usersService = usersService ?? new UserService();
         this.gamesService = gamesService ?? new GameService({ tagsService: this });
+        this.scoreService = new ScoreService();
     }
 
     /**
@@ -58,23 +61,11 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
     protected async convertToNewEntity(dto: CreateTagParams): Promise<BaseEntityWithoutId<TagEntity>> {
         const postedDate = dto.postedDate ?? dayjs().toISOString();
         this.logger.info(`[convertToEntity]`, { dto });
+        // @ts-ignore this method will not be used because we have our own create method - TODO fix this
         return {
             ...dto,
             postedDate,
-            points: await this.calculateNewTagPoints(dto),
         };
-    }
-
-    private async calculateNewTagPoints(dto: CreateTagParams): Promise<number> {
-        if (dto.isRoot) {
-            return 5;
-        }
-        this.logger.info(`[calculateNewTagPoints] for non-root tag`, { postedDate: dto.postedDate ?? 'undefined' });
-        const postedDate = dayjs(dto.postedDate);
-        const rootTag = await this.dalService.getByIdRequired({ id: dto.rootTagId! });
-        const sameDate = isSameDate(postedDate, rootTag.postedDate);
-        this.logger.info(`[calculateNewTagPoints] is same date: ${sameDate}`);
-        return sameDate ? 5 : 1;
     }
 
     protected async convertToDto(entity: TagEntity): Promise<TagDto>;
@@ -130,6 +121,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             params.postedDate = dayjs().toISOString();
         }
         let isPending = false;
+        let rootTag: TagEntity | undefined;
         if (isRoot) {
             isPending = await this.checkIfTagShouldBePending({ params, gameId, dateOverride: dayjs(params.postedDate) });
             if (isPending && game.pendingRootTagId) {
@@ -144,11 +136,12 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             if (await this.userInTagChain({ userId: params.creatorId, tagId: params.rootTagId! })) {
                 throw new CannotPostTagError(`User ${params.creatorId} has already posted a tag for ${params.rootTagId}`);
             }
+            rootTag = await this.dalService.getByIdRequired({ id: params.rootTagId! });
         }
 
         // create a new tag object id now so we can update references with fewer calls / cleaner flow
         const tagUUID = new UUID().toString();
-        const points = await this.calculateNewTagPoints(params);
+        const points = this.scoreService.calculateScoreForTag({ tag: params, rootTag: isRoot ? undefined : rootTag, game });
 
         const createParams: TagEntity = { ...params, id: tagUUID, postedDate: params.postedDate, points };
 
@@ -166,9 +159,6 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             }
         } else {
             const parentTag = await this.setLastTagInChain({ tag: createParams, tagId: tagUUID });
-
-            createParams.nextRootTagId = parentTag.nextRootTagId;
-            createParams.previousRootTagId = parentTag.previousRootTagId;
             createParams.parentTagId = parentTag.id;
         }
 

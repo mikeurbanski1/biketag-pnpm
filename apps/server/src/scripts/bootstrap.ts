@@ -5,7 +5,7 @@ import { Logger } from '@biketag/utils';
 
 import { MongoDbProvider } from '../dal/providers/mongoProvider';
 import { QueueManager } from '../queue/manager';
-import { GameService } from '../services/games/gamesService';
+import { GameService } from '../services/games/gameService';
 import { TagService } from '../services/tags/tagService';
 import { UserService } from '../services/users/userService';
 

@@ -1,9 +1,11 @@
 // @ts-ignore
-import { Mock, vitest, describe, it, beforeAll, beforeEach, afterAll, afterEach, expect, vi } from 'vitest';
-import { UserService } from '../../src/services/users/userService';
-import { GameService } from '../../src/services/games/gamesService';
-import { GameDalService } from '../../src/dal/services/gameDalService';
+import { afterEach, beforeEach, describe, expect, it, vitest } from 'vitest';
+
 import { GameRoles } from '@biketag/models';
+
+import { GameDalService } from '../../src/dal/services/gameDalService';
+import { GameService } from '../../src/services/games/gameService';
+import { UserService } from '../../src/services/users/userService';
 
 describe('GamesService tests', () => {
     describe('create tests', async () => {
@@ -27,7 +29,7 @@ describe('GamesService tests', () => {
                 creator: { id: '1', name: 'test' },
                 players: [{ userId: '2', role: GameRoles.ADMIN, user: { id: '2', name: 'test' } }],
                 firstRootTag: undefined,
-                latestRootTag: undefined
+                latestRootTag: undefined,
             });
         });
     });
