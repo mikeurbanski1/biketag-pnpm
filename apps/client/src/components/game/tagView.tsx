@@ -171,7 +171,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
 
         // handle re-rendering when changing the date override - only applies to new root tags
         const userCanAddTagWithDateOverride = this.props.isSubtag || !this.props.game.latestRootTag ? true : !isEarlierDate(this.props.dateOverride, this.props.game.latestRootTag.postedDate);
-        const actualCanAddTag = !this.state.addingTag && this.state.userCanAddTag && userCanAddTagWithDateOverride;
+        const canAddTagDateOverride = !this.state.addingTag && this.state.userCanAddTag && userCanAddTagWithDateOverride;
 
         // we have a bit of a circular mess here, so until we fix that (I love that I write "we"), we will generate some elements that may or may not be used
         let text;
@@ -186,7 +186,12 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
                 text = 'Add the next new tag!';
             }
         }
-        const addTagButton = <input type="button" name="add-tag" value={text} onClick={() => this.setAddingTag()}></input>;
+
+
+
+        const canAddTagInView = canAddTagDateOverride && (this.props.isSubtag || (!this.props.isSubtag && this.props.game.latestRootTag?.id === this.state.currentTag?.id));
+
+        const addTagButton = canAddTagInView ? <input type="button" name="add-tag" value={text} onClick={() => this.setAddingTag()}></input> : undefined;
         const addTagPanel = (
             <AddTag
                 isRootTag={!this.props.isSubtag}
@@ -199,15 +204,16 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
             />
         );
 
+        const addTagSection = this.state.addingTag ? addTagPanel : addTagButton;
+
         // start with the simple case of no tag to display
         if (!this.state.currentTag) {
-            const addTagSection = this.state.addingTag ? addTagPanel : addTagButton;
             return (
                 <div className={className}>
                     <div>
                         {this.props.isSubtag ? 'Nobody else has been here yet!' : 'Nobody has gone anywhere!'}
                         <br></br>
-                        {this.state.userCanAddTag && addTagSection}
+                        {addTagSection}
                     </div>
                 </div>
             );
@@ -216,10 +222,15 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         // this could be the next root tag, or the add tag button, or the add tag form, or the preview of a pending tag as the poster, or the preview as someone else
         let nextTagPanel;
 
+        // TODO need to fix this whole render flow, and maybe get rid of the combined view for both types of tags,
+        // as they are becoming more and more different
+
         if (this.state.addingTag) {
-            nextTagPanel = addTagPanel;
-        } else if (actualCanAddTag) {
-            nextTagPanel = addTagButton;
+            nextTagPanel = <div>{addTagPanel}</div>;
+        } else if (canAddTagInView && !this.props.isSubtag) {
+            // for non-subtags, we render this on the right in place of where the new tag would be
+            // but for subtags, we render this below the tag always (if we can post), so it does not constitute the whole panel
+            nextTagPanel = <div>{addTagButton}</div>;
         } else if (this.props.game.latestRootTag?.id === this.state.currentTag.id && this.props.game.pendingRootTag) {
             // if we are viewing a root tag, and there is a pending tag, show the preview
             nextTagPanel = `The next tag posted by ${this.props.game.pendingRootTag.creator.name} will go live at midnight!`;
@@ -228,8 +239,6 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
             logger.info(`[render] nextTag`, { nextTag });
             nextTagPanel = this.getMinimalTag(nextTag);
         }
-
-        const nextTagSection = <div>{nextTagPanel}</div>;
 
         let previousTag: MinimalTagType | undefined;
         if (this.props.isSubtag) {
@@ -240,8 +249,6 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         } else {
             previousTag = this.state.currentTag.previousRootTag;
         }
-
-        logger.info(`[render] previous tag`, { previousTag });
 
         const innerDiv = this.props.isSubtag ? (
             <TagDetails tag={this.state.currentTag} isSubtag={this.props.isSubtag} />
@@ -266,7 +273,8 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
             <div className={className}>
                 {this.getMinimalTag(previousTag)}
                 {innerDiv}
-                {nextTagSection}
+                {nextTagPanel}
+                {addTagSection}
             </div>
         );
     }

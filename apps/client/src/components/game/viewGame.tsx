@@ -26,6 +26,7 @@ interface ViewGameState {
     currentRootTag?: TagDto;
     sortColumn: number;
     sortedAscending: boolean;
+    scoresCollapsed: boolean;
 }
 
 interface ViewGameProps {
@@ -50,6 +51,7 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
             currentRootTag: this.props.game.latestRootTag,
             sortColumn: 1, // points column
             sortedAscending: false,
+            scoresCollapsed: true
         };
     }
 
@@ -170,9 +172,9 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                     <input type="button" value="Refresh game" onClick={() => this.refreshGame()}></input>
                 </div>
                 <div>
-                    <h2>Players</h2>
+                    <h2 className="clickable-text" onClick={() => this.setState({ scoresCollapsed: !this.state.scoresCollapsed })}>{this.state.scoresCollapsed ? '▶' : '▼'}Scoreboard</h2>
                 </div>
-                <div>
+                <div hidden={this.state.scoresCollapsed}>
                     <Table<PlayerDetailsTableRow>
                         data={this.state.playerDetailsTable}
                         columnMapping={[
