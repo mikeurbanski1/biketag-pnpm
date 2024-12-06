@@ -2,7 +2,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import React from 'react';
 
 import { CreateTagDto, GameDto, MinimalTag as MinimalTagType, TagDto, UserDto } from '@biketag/models';
-import { isEarlierDate, isSameDate, Logger } from '@biketag/utils';
+import { isEarlierDate, Logger } from '@biketag/utils';
 
 import { ApiManager } from '../../api';
 import { AddTag } from './addTag';
@@ -14,7 +14,6 @@ interface TagScrollerState {
     loadingTag: boolean;
     currentTag?: TagDto;
     userCanAddTag: boolean;
-    addingTag: boolean;
 }
 
 interface TagScrollerProps {
@@ -59,7 +58,6 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
             loadingTag: props.isSubtag,
             currentTag,
             userCanAddTag,
-            addingTag: false,
         };
     }
 
@@ -86,13 +84,9 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         }
     }
 
-    setAddingTag(addingTag = true): void {
-        this.setState({ addingTag });
-    }
-
     setTagById(id?: string): void {
         if (!id) {
-            this.setState({ currentTag: undefined, addingTag: false, loadingTag: false, userCanAddTag: true });
+            this.setState({ currentTag: undefined, loadingTag: false, userCanAddTag: true });
         } else if (id !== this.state.currentTag?.id) {
             // make sure we did not somehow view the same tag
             ApiManager.tagApi.getTag({ id }).then((tag) => {
@@ -101,20 +95,13 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         }
     }
 
-    // setTag(tag: TagDto): void {
-    //     this.setState({ currentTag: tag, addingTag: false, loadingTag: false, loadingCanAddTag: false, userCanAddTag: false });
-    //     if (!this.props.isSubtag) {
-    //         this.props.setCurrentRootTag!(tag);
-    //     }
-    // }
-
     setTag({ tag, userCanAddTagOverride }: { tag?: TagDto; userCanAddTagOverride?: boolean }): void {
         const userCanAddTagUpdate = userCanAddTagOverride !== undefined ? { userCanAddTag: userCanAddTagOverride } : ({} as TagScrollerState);
         // if (!this.props.isSubtag && tag && this.props.game.latestRootTag) {
         //     // reset the tag preview based on whether this is the latest tag
         //     if (tag.id === this.props.game.latestRootTag.id )
         // }
-        this.setState({ currentTag: tag, loadingTag: false, addingTag: false, ...userCanAddTagUpdate });
+        this.setState({ currentTag: tag, loadingTag: false, ...userCanAddTagUpdate });
         // if (!this.props.isSubtag && tag) {
         //     this.props.setCurrentRootTag!(tag);
         // }
@@ -172,50 +159,26 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         // dev mode code - handle re-rendering when changing the date override - only applies to new root tags
         const userCanAddTagWithDateOverride = this.props.isSubtag || !this.props.game.latestRootTag ? true : !isEarlierDate(this.props.dateOverride, this.props.game.latestRootTag.postedDate);
         // so we can actually add a tag only if the date override is true
-        const canAddTagDateOverride = !this.state.addingTag && this.state.userCanAddTag && userCanAddTagWithDateOverride;
+        const canAddTagDateOverride = this.state.userCanAddTag && userCanAddTagWithDateOverride;
 
-        // we have a bit of a circular mess here, so until we fix that (I love that I write "we"), we will generate some elements that may or may not be used
-        let buttonText;
-        if (this.props.isSubtag) {
-            buttonText = 'Tag this spot!';
-        } else {
-            if (!this.props.game.latestRootTag) {
-                buttonText = 'Add the first tag!';
-            } else if (isSameDate(this.props.dateOverride, this.props.game.latestRootTag!.postedDate)) {
-                buttonText = 'Add your new tag for tomorrow';
-            } else {
-                buttonText = 'Add the next new tag!';
-            }
-        }
-
-        // a subtag add tag button will always be rendered if we haven't already tagged it,
-        // but a root tag add tag button will only be rendered if we are viewing the latest tag and we can add a tag
-        // so we will create the button element, or make it undefined if we will not render it
-        let addTagButton: React.ReactNode = undefined;
-        if (canAddTagDateOverride && (this.props.isSubtag || (!this.props.isSubtag && this.props.game.latestRootTag?.id === this.state.currentTag?.id))) {
-            addTagButton = <input type="button" name="add-tag" value={buttonText} onClick={() => this.setAddingTag()}></input>;
-        }
-
-        const addTagPanel = (
-            <AddTag
-                isRootTag={!this.props.isSubtag}
-                saveTag={({ name, contents }) => {
-                    this.saveNewTag({ name, contents });
-                }}
-                cancelAddTag={() => this.setAddingTag(false)}
-                previousRootTagDate={previousRootTagDate}
-                dateOverride={this.props.dateOverride}
-            />
-        );
-
-        const addTagSection = this.state.addingTag ? addTagPanel : addTagButton;
+        const addTagPanel =
+            canAddTagDateOverride && (this.props.isSubtag || (!this.props.isSubtag && this.props.game.latestRootTag?.id === this.state.currentTag?.id)) ? (
+                <AddTag
+                    isSubtag={this.props.isSubtag}
+                    saveTag={({ name, contents }) => {
+                        this.saveNewTag({ name, contents });
+                    }}
+                    previousRootTagDate={previousRootTagDate}
+                    dateOverride={this.props.dateOverride}
+                />
+            ) : undefined;
 
         // start with the simple case of no tag to display
         if (!this.state.currentTag) {
             return (
                 <div className={className}>
                     <div>{this.props.isSubtag ? 'Nobody else has been here yet!' : 'Nobody has gone anywhere!'}</div>
-                    {addTagSection}
+                    {addTagPanel}
                 </div>
             );
         }
@@ -264,7 +227,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
                 {this.getMinimalTag(previousTag)}
                 {innerDiv}
                 {nextTagPanel}
-                {addTagSection}
+                {addTagPanel}
             </div>
         );
     }

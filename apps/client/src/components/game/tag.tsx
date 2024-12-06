@@ -13,6 +13,7 @@ interface TagProps {
     tag: TagDto;
     isSubtag: boolean;
 }
+
 interface MinimalTagProps {
     tag: MinimalTagType;
     isSubtag: boolean;
