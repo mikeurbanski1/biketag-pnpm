@@ -169,29 +169,33 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
 
         const previousRootTagDate = !this.props.isSubtag && this.props.game.latestRootTag?.postedDate ? dayjs(this.props.game.latestRootTag?.postedDate) : undefined;
 
-        // handle re-rendering when changing the date override - only applies to new root tags
+        // dev mode code - handle re-rendering when changing the date override - only applies to new root tags
         const userCanAddTagWithDateOverride = this.props.isSubtag || !this.props.game.latestRootTag ? true : !isEarlierDate(this.props.dateOverride, this.props.game.latestRootTag.postedDate);
+        // so we can actually add a tag only if the date override is true
         const canAddTagDateOverride = !this.state.addingTag && this.state.userCanAddTag && userCanAddTagWithDateOverride;
 
         // we have a bit of a circular mess here, so until we fix that (I love that I write "we"), we will generate some elements that may or may not be used
-        let text;
+        let buttonText;
         if (this.props.isSubtag) {
-            text = 'Tag this spot!';
+            buttonText = 'Tag this spot!';
         } else {
             if (!this.props.game.latestRootTag) {
-                text = 'Add the first tag!';
+                buttonText = 'Add the first tag!';
             } else if (isSameDate(this.props.dateOverride, this.props.game.latestRootTag!.postedDate)) {
-                text = 'Add your new tag for tomorrow';
+                buttonText = 'Add your new tag for tomorrow';
             } else {
-                text = 'Add the next new tag!';
+                buttonText = 'Add the next new tag!';
             }
         }
 
+        // a subtag add tag button will always be rendered if we haven't already tagged it,
+        // but a root tag add tag button will only be rendered if we are viewing the latest tag and we can add a tag
+        // so we will create the button element, or make it undefined if we will not render it
+        let addTagButton: React.ReactNode = undefined;
+        if (canAddTagDateOverride && (this.props.isSubtag || (!this.props.isSubtag && this.props.game.latestRootTag?.id === this.state.currentTag?.id))) {
+            addTagButton = <input type="button" name="add-tag" value={buttonText} onClick={() => this.setAddingTag()}></input>;
+        }
 
-
-        const canAddTagInView = canAddTagDateOverride && (this.props.isSubtag || (!this.props.isSubtag && this.props.game.latestRootTag?.id === this.state.currentTag?.id));
-
-        const addTagButton = canAddTagInView ? <input type="button" name="add-tag" value={text} onClick={() => this.setAddingTag()}></input> : undefined;
         const addTagPanel = (
             <AddTag
                 isRootTag={!this.props.isSubtag}
@@ -210,34 +214,25 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         if (!this.state.currentTag) {
             return (
                 <div className={className}>
-                    <div>
-                        {this.props.isSubtag ? 'Nobody else has been here yet!' : 'Nobody has gone anywhere!'}
-                        <br></br>
+                    <div className="">
+                        <span>{this.props.isSubtag ? 'Nobody else has been here yet!' : 'Nobody has gone anywhere!'}</span>
                         {addTagSection}
                     </div>
                 </div>
             );
         }
 
-        // this could be the next root tag, or the add tag button, or the add tag form, or the preview of a pending tag as the poster, or the preview as someone else
-        let nextTagPanel;
+        // this will be the next tag, or undefined if there is no next tag
+        // for a root tag, it means we will not render this and the button together (one will be undefined)
+        let nextTagPanel: React.ReactNode;
 
         // TODO need to fix this whole render flow, and maybe get rid of the combined view for both types of tags,
         // as they are becoming more and more different
 
-        if (this.state.addingTag) {
-            nextTagPanel = <div>{addTagPanel}</div>;
-        } else if (canAddTagInView && !this.props.isSubtag) {
-            // for non-subtags, we render this on the right in place of where the new tag would be
-            // but for subtags, we render this below the tag always (if we can post), so it does not constitute the whole panel
-            nextTagPanel = <div>{addTagButton}</div>;
-        } else if (this.props.game.latestRootTag?.id === this.state.currentTag.id && this.props.game.pendingRootTag) {
-            // if we are viewing a root tag, and there is a pending tag, show the preview
-            nextTagPanel = `The next tag posted by ${this.props.game.pendingRootTag.creator.name} will go live at midnight!`;
-        } else {
-            const nextTag = this.props.isSubtag ? this.state.currentTag.nextTag : this.state.currentTag.nextRootTag;
-            logger.info(`[render] nextTag`, { nextTag });
-            nextTagPanel = this.getMinimalTag(nextTag);
+        if (this.props.isSubtag && this.state.currentTag.nextTag) {
+            nextTagPanel = this.getMinimalTag(this.state.currentTag.nextTag);
+        } else if (!this.props.isSubtag && this.state.currentTag.nextRootTag) {
+            nextTagPanel = this.getMinimalTag(this.state.currentTag.nextRootTag);
         }
 
         let previousTag: MinimalTagType | undefined;
