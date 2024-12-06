@@ -224,10 +224,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
 
         // this will be the next tag, or undefined if there is no next tag
         // for a root tag, it means we will not render this and the button together (one will be undefined)
-        let nextTagPanel: React.ReactNode;
-
-        // TODO need to fix this whole render flow, and maybe get rid of the combined view for both types of tags,
-        // as they are becoming more and more different
+        let nextTagPanel: React.ReactNode = undefined;
 
         if (this.props.isSubtag && this.state.currentTag.nextTag) {
             nextTagPanel = this.getMinimalTag(this.state.currentTag.nextTag);
