@@ -3,9 +3,9 @@ import { TagStats } from './score';
 import { UserDto } from './user';
 
 export interface MinimalTag extends BaseDto {
-    name: string;
+    // name: string;
     creator: Pick<UserDto, 'id' | 'name'>;
-    contents: string;
+    imageUrl: string;
     postedDate: string;
 }
 
@@ -15,7 +15,7 @@ export interface PendingTag extends BaseDto {
 }
 
 export interface TagDto extends BaseDto {
-    name: string;
+    // name: string;
     creator: UserDto;
     gameId: string;
     parentTag?: MinimalTag;
@@ -26,16 +26,16 @@ export interface TagDto extends BaseDto {
     previousRootTag?: MinimalTag;
     nextRootTag?: MinimalTag;
     postedDate: string;
-    contents: string;
+    imageUrl: string;
     stats: TagStats;
 }
 
 export interface CreateTagDto {
-    name: string;
+    // name: string;
     gameId: string;
     rootTagId?: string;
     isRoot: boolean;
-    contents: string;
+    imageUrl: string;
     postedDate?: string; // used for bootstrapping
 }
 

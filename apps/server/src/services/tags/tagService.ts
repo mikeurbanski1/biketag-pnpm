@@ -83,7 +83,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         const lastTagInChain = lastTagInChainId ? (lastTagInChainId === nextTagId ? nextTag : await this.getMinimalTag({ id: lastTagInChainId })) : undefined;
         return {
             id: entity.id,
-            name: entity.name,
+            // name: entity.name,
             creator: await this.usersService.getRequired({ id: entity.creatorId }),
             gameId: entity.gameId,
             parentTag,
@@ -94,7 +94,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             previousRootTag,
             nextRootTag,
             postedDate: entity.postedDate,
-            contents: entity.contents,
+            imageUrl: entity.imageUrl,
             stats: entity.stats,
         };
     }
@@ -105,10 +105,10 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         const tag = await this.dalService.getByIdRequired({ id });
         return {
             id: tag.id,
-            name: tag.name,
+            // name: tag.name,
             postedDate: tag.postedDate,
             creator: await this.usersService.getRequired({ id: tag.creatorId }),
-            contents: tag.contents,
+            imageUrl: tag.imageUrl,
         };
     }
 

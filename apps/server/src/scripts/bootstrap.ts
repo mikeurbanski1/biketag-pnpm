@@ -44,6 +44,8 @@ const newChainDate = () => {
         .toISOString();
 };
 
+const imageUrls = [];
+
 const bootstrapData = async () => {
     provider = await MongoDbProvider.getInstance();
     queueManager = QueueManager.getInstance();
