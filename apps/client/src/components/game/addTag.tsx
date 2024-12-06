@@ -7,7 +7,7 @@ import { isEarlierDate, Logger } from '@biketag/utils';
 const logger = new Logger({ prefix: '[AddTag]' });
 
 interface AddTagProps {
-    saveTag: ({ name, contents }: { name: string; contents: string }) => void;
+    saveTag: ({ imageUrl }: { imageUrl: string }) => void;
     isSubtag: boolean;
     // will be provided for a new root tag (if there is a previous root tag)
     // hacky workaround to allow testing of creating tags at different times
@@ -16,8 +16,7 @@ interface AddTagProps {
 }
 
 export const AddTag: React.FC<AddTagProps> = ({ saveTag, isSubtag, previousRootTagDate, dateOverride }) => {
-    const [name, setName] = useState('');
-    const [contents, setContents] = useState('');
+    const [imageUrl, setImageUrl] = useState('');
     // const [date, setDate] = useState(dayjs().format('YYYY-MM-DDTHH:mm'));
 
     // const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,23 +26,17 @@ export const AddTag: React.FC<AddTagProps> = ({ saveTag, isSubtag, previousRootT
 
     const canPostOnDate = !previousRootTagDate || !isEarlierDate(dateOverride, previousRootTagDate);
 
-    const canSave = contents.length > 0 && canPostOnDate && (isSubtag || name.length > 0);
+    const canSave = imageUrl.length > 0 && canPostOnDate;
 
     const className = isSubtag ? 'subtag' : 'main-tag';
-    const nameElement = isSubtag ? undefined : (
-        <div>
-            <input key="name-input" placeholder="Where are you?" className="tag-title tag-input" type="text" name="name" onChange={(event) => setName(event.target.value)} value={name}></input>
-        </div>
-    );
 
     return (
         <div className={className}>
-            {!isSubtag && nameElement}
             <div>
-                <input type="text" placeholder="Add your tag" className="tag-contents tag-input" name="contents" onChange={(event) => setContents(event.target.value)} value={contents}></input>
+                <input type="text" placeholder="Image URL" className="tag-input" name="contents" onChange={(event) => setImageUrl(event.target.value)} value={imageUrl}></input>
             </div>
             <div>
-                <input type="button" name="save-tag" value="Save" disabled={!canSave} onClick={() => saveTag({ name, contents })}></input>
+                <input type="button" name="save-tag" value="Save" disabled={!canSave} onClick={() => saveTag({ imageUrl })}></input>
             </div>
         </div>
     );

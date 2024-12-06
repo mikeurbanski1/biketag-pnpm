@@ -135,6 +135,19 @@ input[type="button"] {
     background-color: #ececec;
     box-shadow: 15px 15px 5px rgb(143, 143, 143);
     gap: 0.25em;
+    max-width: 25%;
+}
+
+.main-tag img {
+    max-width: 100%;
+}
+
+.subtag img {
+    max-width: 100%;
+}
+
+.minimal-tag img {
+    max-width: 100%;
 }
 
 .subtag {
@@ -146,6 +159,7 @@ input[type="button"] {
     font-size: 1em;
     background-color: #ececec;
     box-shadow: 15px 15px 5px rgb(143, 143, 143);
+    max-width: 25%;
 }
 
 .tag-title {
@@ -169,6 +183,7 @@ input[type="button"] {
     background-color: #bcbcbc;
     cursor: pointer;
     box-shadow: 15px 15px 5px rgb(143, 143, 143);
+    max-width: 25%;
 }
 
 .minimal-tag:hover {
@@ -206,6 +221,8 @@ input[type="button"] {
     color: #515151;
     text-align: center;
     border-width: 0;
+    font-size: 1em;
+    font-style: italic;
 }
 
 .location-input {

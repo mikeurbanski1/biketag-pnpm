@@ -116,24 +116,22 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         this.fetchAndSetCanUserAddTag();
     }
 
-    saveNewTag({ name, contents }: { name?: string; contents: string }): void {
-        logger.info(`[saveNewTag]`, { name, contents, dateOverride: this.props.dateOverride });
+    saveNewTag({ imageUrl }: { imageUrl: string }): void {
+        logger.info(`[saveNewTag]`, { imageUrl, dateOverride: this.props.dateOverride });
         let tag: CreateTagDto;
         if (this.props.isSubtag) {
             tag = {
-                name: this.props.subtagRootTag!.name,
                 gameId: this.props.game.id,
                 isRoot: false,
                 rootTagId: this.props.subtagRootTag!.id,
-                contents,
+                imageUrl,
                 postedDate: this.props.dateOverride.toISOString(),
             };
         } else {
             tag = {
-                name: name!,
                 gameId: this.props.game.id,
                 isRoot: true,
-                contents,
+                imageUrl,
                 postedDate: this.props.dateOverride.toISOString(),
             };
         }
@@ -165,8 +163,8 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
             canAddTagDateOverride && (this.props.isSubtag || (!this.props.isSubtag && this.props.game.latestRootTag?.id === this.state.currentTag?.id)) ? (
                 <AddTag
                     isSubtag={this.props.isSubtag}
-                    saveTag={({ name, contents }) => {
-                        this.saveNewTag({ name, contents });
+                    saveTag={({ imageUrl }) => {
+                        this.saveNewTag({ imageUrl });
                     }}
                     previousRootTagDate={previousRootTagDate}
                     dateOverride={this.props.dateOverride}
