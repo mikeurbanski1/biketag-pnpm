@@ -6,18 +6,18 @@ import { isEarlierDate, isSameDate, Logger } from '@biketag/utils';
 
 import { ApiManager } from '../../api';
 import { AddTag } from './addTag';
-import { MinimalTag, TagDetails } from './tagDetails';
+import { MinimalTag, Tag } from './tag';
 
-const logger = new Logger({ prefix: '[TagView]' });
+const logger = new Logger({ prefix: '[TagScroller]' });
 
-interface TagViewState {
+interface TagScrollerState {
     loadingTag: boolean;
     currentTag?: TagDto;
     userCanAddTag: boolean;
     addingTag: boolean;
 }
 
-interface TagViewProps {
+interface TagScrollerProps {
     game: GameDto;
     user: UserDto;
     subtagRootTag?: TagDto;
@@ -29,8 +29,8 @@ interface TagViewProps {
     dateOverride: Dayjs;
 }
 
-export class TagView extends React.Component<TagViewProps, TagViewState> {
-    constructor(props: TagViewProps) {
+export class TagScroller extends React.Component<TagScrollerProps, TagScrollerState> {
+    constructor(props: TagScrollerProps) {
         super(props);
         logger.info(`[constructor]`, { props });
 
@@ -109,7 +109,7 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
     // }
 
     setTag({ tag, userCanAddTagOverride }: { tag?: TagDto; userCanAddTagOverride?: boolean }): void {
-        const userCanAddTagUpdate = userCanAddTagOverride !== undefined ? { userCanAddTag: userCanAddTagOverride } : ({} as TagViewState);
+        const userCanAddTagUpdate = userCanAddTagOverride !== undefined ? { userCanAddTag: userCanAddTagOverride } : ({} as TagScrollerState);
         // if (!this.props.isSubtag && tag && this.props.game.latestRootTag) {
         //     // reset the tag preview based on whether this is the latest tag
         //     if (tag.id === this.props.game.latestRootTag.id )
@@ -214,10 +214,8 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         if (!this.state.currentTag) {
             return (
                 <div className={className}>
-                    <div className="">
-                        <span>{this.props.isSubtag ? 'Nobody else has been here yet!' : 'Nobody has gone anywhere!'}</span>
-                        {addTagSection}
-                    </div>
+                    <div>{this.props.isSubtag ? 'Nobody else has been here yet!' : 'Nobody has gone anywhere!'}</div>
+                    {addTagSection}
                 </div>
             );
         }
@@ -243,12 +241,12 @@ export class TagView extends React.Component<TagViewProps, TagViewState> {
         }
 
         const innerDiv = this.props.isSubtag ? (
-            <TagDetails tag={this.state.currentTag} isSubtag={this.props.isSubtag} />
+            <Tag tag={this.state.currentTag} isSubtag={this.props.isSubtag} />
         ) : (
             <div>
-                <TagDetails tag={this.state.currentTag} isSubtag={this.props.isSubtag} />
-                <div>Other tags:</div>
-                <TagView
+                <Tag tag={this.state.currentTag} isSubtag={this.props.isSubtag} />
+                <div>{this.state.currentTag.nextTag ? 'Other tags:' : ' '}</div>
+                <TagScroller
                     key={`subtag-${this.state.currentTag.id}`}
                     isSubtag={true}
                     game={this.props.game}

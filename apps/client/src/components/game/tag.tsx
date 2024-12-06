@@ -19,7 +19,7 @@ interface MinimalTagProps {
     selectTag: () => void;
 }
 
-export const TagDetails: React.FC<TagProps> = ({ tag, isSubtag }) => {
+export const Tag: React.FC<TagProps> = ({ tag, isSubtag }) => {
     const className = isSubtag ? 'subtag' : 'main-tag';
     const tagWinner = isSubtag || !tag.nextTag ? undefined : <span>Winner: {tag.nextTag.creator.name}</span>;
     return (

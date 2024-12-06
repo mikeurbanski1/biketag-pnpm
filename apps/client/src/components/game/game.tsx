@@ -7,7 +7,7 @@ import { Logger } from '@biketag/utils';
 
 import { ApiManager } from '../../api';
 import { Table } from '../common/table';
-import { TagView } from './tagView';
+import { TagScroller } from './tagScoller';
 
 const logger = new Logger({ prefix: '[ViewGame]' });
 
@@ -40,7 +40,7 @@ interface ViewGameProps {
     dateOverride: Dayjs;
 }
 
-export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
+export class Game extends React.Component<ViewGameProps, ViewGameState> {
     constructor(props: ViewGameProps) {
         super(props);
         let playerDetailsTable = this.getPlayerDetailsTable();
@@ -51,7 +51,7 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
             currentRootTag: this.props.game.latestRootTag,
             sortColumn: 1, // points column
             sortedAscending: false,
-            scoresCollapsed: true
+            scoresCollapsed: true,
         };
     }
 
@@ -172,7 +172,9 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                     <input type="button" value="Refresh game" onClick={() => this.refreshGame()}></input>
                 </div>
                 <div>
-                    <h2 className="clickable-text" onClick={() => this.setState({ scoresCollapsed: !this.state.scoresCollapsed })}>{this.state.scoresCollapsed ? '▶' : '▼'}Scoreboard</h2>
+                    <h2 className="clickable-text" onClick={() => this.setState({ scoresCollapsed: !this.state.scoresCollapsed })}>
+                        {this.state.scoresCollapsed ? '▶' : '▼'}Scoreboard
+                    </h2>
                 </div>
                 <div hidden={this.state.scoresCollapsed}>
                     <Table<PlayerDetailsTableRow>
@@ -189,7 +191,7 @@ export class ViewGame extends React.Component<ViewGameProps, ViewGameState> {
                         tableClassName="player-details-table"
                     />
                 </div>
-                <TagView
+                <TagScroller
                     key={`rootTagView-${game.latestRootTag?.id}`}
                     isSubtag={false}
                     game={game}
