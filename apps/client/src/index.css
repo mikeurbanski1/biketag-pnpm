@@ -118,19 +118,25 @@ input[type="button"] {
 }
 
 .main-tag {
+    border-radius: 20px;
+    padding: 1em;
     display: flex;
     flex-direction: column;
     align-items: center;
     font-size: 1.2em;
     background-color: #ececec;
+    box-shadow: 15px 15px 5px rgb(143, 143, 143);
 }
 
 .subtag {
+    border-radius: 20px;
+    padding: 1em;
     display: flex;
     flex-direction: column;
     align-items: center;
     font-size: 1em;
     background-color: #ececec;
+    box-shadow: 15px 15px 5px rgb(143, 143, 143);
 }
 
 .tag-title {
@@ -148,11 +154,14 @@ input[type="button"] {
 }
 
 .minimal-tag {
+    border-radius: 20px;
+    padding: 1em;
     display: flex;
     flex-direction: column;
     align-items: center;
     background-color: #bcbcbc;
     cursor: pointer;
+    box-shadow: 15px 15px 5px rgb(143, 143, 143);
 }
 
 .minimal-tag:hover {

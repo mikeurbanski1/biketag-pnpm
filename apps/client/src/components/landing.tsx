@@ -5,7 +5,7 @@ import { GameDto, UserDto } from '@biketag/models';
 
 import { ApiManager } from '../api';
 import { CreateEditGame } from './createEditGame';
-import { ViewGame } from './game/viewGame';
+import { Game } from './game/game';
 
 interface LandingState {
     loadingGames: boolean;
@@ -129,7 +129,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
 
         if (!this.state.creatingGame && this.state.game) {
             return (
-                <ViewGame
+                <Game
                     game={this.state.game}
                     updateGame={(updateParams: Partial<GameDto>) => this.updateGame(updateParams)}
                     setGame={(game: GameDto) => this.setGame(game)}
