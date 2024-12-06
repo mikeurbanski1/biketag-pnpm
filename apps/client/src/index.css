@@ -117,6 +117,14 @@ input[type="button"] {
     align-items: top;
 }
 
+.subtag-scroller {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    justify-content: space-between;
+    align-items: top;
+}
+
 .main-tag {
     border-radius: 20px;
     padding: 1em;
@@ -126,6 +134,7 @@ input[type="button"] {
     font-size: 1.2em;
     background-color: #ececec;
     box-shadow: 15px 15px 5px rgb(143, 143, 143);
+    gap: 0.25em;
 }
 
 .subtag {
@@ -142,13 +151,11 @@ input[type="button"] {
 .tag-title {
     font-size: 1.5em;
     font-weight: 500;
-    margin-bottom: 0.5em;
 }
 
 .tag-contents {
     font-size: 1.2em;
     font-weight: 400;
-    margin-bottom: 0.5em;
     font-style: italic;
     color: #0058fb;
 }
@@ -192,4 +199,19 @@ input[type="button"] {
 .tag-points {
     color: #fb0000;
     font-size: 1.1em;
+}
+
+.tag-input {
+    border-radius: 10px;
+    color: #515151;
+    text-align: center;
+    border-width: 0;
+}
+
+.location-input {
+    font-size: 1.5em;
+}
+
+.contents-input {
+    font-size: 1.2em;
 }
