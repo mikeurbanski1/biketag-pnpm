@@ -32,7 +32,7 @@ export const AddTag: React.FC<AddTagProps> = ({ saveTag, isSubtag, previousRootT
     const className = isSubtag ? 'subtag' : 'main-tag';
     const nameElement = isSubtag ? undefined : (
         <div>
-            <input key="name-input" placeholder="Where are you?" className="location-input tag-input" type="text" name="name" onChange={(event) => setName(event.target.value)} value={name}></input>
+            <input key="name-input" placeholder="Where are you?" className="tag-title tag-input" type="text" name="name" onChange={(event) => setName(event.target.value)} value={name}></input>
         </div>
     );
 
@@ -40,7 +40,7 @@ export const AddTag: React.FC<AddTagProps> = ({ saveTag, isSubtag, previousRootT
         <div className={className}>
             {!isSubtag && nameElement}
             <div>
-                <input type="text" placeholder="Add your tag" className="contents-input tag-input" name="contents" onChange={(event) => setContents(event.target.value)} value={contents}></input>
+                <input type="text" placeholder="Add your tag" className="tag-contents tag-input" name="contents" onChange={(event) => setContents(event.target.value)} value={contents}></input>
             </div>
             <div>
                 <input type="button" name="save-tag" value="Save" disabled={!canSave} onClick={() => saveTag({ name, contents })}></input>
