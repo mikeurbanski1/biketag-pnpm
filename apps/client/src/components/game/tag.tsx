@@ -44,7 +44,7 @@ export const Tag: React.FC<TagProps> = ({ tag, isSubtag }) => {
 
 export const MinimalTag: React.FC<MinimalTagProps> = ({ tag, selectTag, isSubtag }) => {
     return (
-        <div className={`minimal-tag flex-spread ${isSubtag ? 'subtag' : ''}`} onClick={selectTag}>
+        <div className={`minimal-tag flex-spread ${isSubtag ? 'subtag' : 'root-tag'}`} onClick={selectTag}>
             <img className="tag-image" src={tag.imageUrl}></img>
             <span>
                 by <span className="tag-creator">{tag.creator.name}</span>
