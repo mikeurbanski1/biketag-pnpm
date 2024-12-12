@@ -29,7 +29,7 @@ export const Tag: React.FC<TagProps> = ({ tag, isSubtag }) => {
     const tagWinner = isSubtag || !tag.nextTag ? undefined : <span>Winner: {tag.nextTag.creator.name}</span>;
     return (
         <div className={className}>
-            <img src={tag.imageUrl}></img>
+            <img className="tag-image" src={tag.imageUrl}></img>
             <span>
                 by <span className={`tag-creator`}>{tag.creator.name}</span>
             </span>
@@ -45,7 +45,7 @@ export const Tag: React.FC<TagProps> = ({ tag, isSubtag }) => {
 export const MinimalTag: React.FC<MinimalTagProps> = ({ tag, selectTag, isSubtag }) => {
     return (
         <div className={`minimal-tag flex-spread ${isSubtag ? 'subtag' : ''}`} onClick={selectTag}>
-            <img src={tag.imageUrl}></img>
+            <img className="tag-image" src={tag.imageUrl}></img>
             <span>
                 by <span className="tag-creator">{tag.creator.name}</span>
             </span>

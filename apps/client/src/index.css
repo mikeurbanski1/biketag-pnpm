@@ -163,16 +163,28 @@ input[type="button"] {
     width: 33%
 } */
 
-.main-tag img {
-    max-width: 100%;
+/* .main-tag img {
+    width: 100%;
+    object-fit: cover;
+    overflow: hidden;
 }
 
 .subtag img {
-    max-width: 100%;
+    width: 100%;
+    object-fit: cover;
+    overflow: hidden;
 }
 
 .minimal-tag img {
-    max-width: 100%;
+    width: 100%;
+    object-fit: cover;
+    overflow: hidden;
+} */
+
+.tag-image {
+    width: 100%;
+    object-fit: cover;
+    overflow: hidden;
 }
 
 .subtag {
