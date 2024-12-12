@@ -107,6 +107,18 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         // }
     }
 
+    getAddTag({ previousRootTagDate }: { previousRootTagDate: Dayjs }): React.ReactNode {
+        return (
+            <AddTag
+                isSubtag={this.props.isSubtag}
+                saveTag={({ imageUrl }) => {
+                    this.saveNewTag({ imageUrl });
+                }}
+                previousRootTagDate={previousRootTagDate}
+                dateOverride={this.props.dateOverride}
+            />
+        );
+    }
     getMinimalTag(tag?: PendingTagType): React.ReactNode;
     getMinimalTag(tag?: MinimalTagType): React.ReactNode;
     getMinimalTag(tag?: MinimalTagType | PendingTagType): React.ReactNode {
@@ -166,6 +178,8 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         const userCanAddTagWithDateOverride = this.props.isSubtag || !this.props.game.latestRootTag ? true : !isEarlierDate(this.props.dateOverride, this.props.game.latestRootTag.postedDate);
         // so we can actually add a tag only if the date override is true
         const canAddTagDateOverride = this.state.userCanAddTag && userCanAddTagWithDateOverride;
+
+        // const canAddTag = canAddTagDateOverride && (this.props.isSubtag || (!this.props.isSubtag && this.props.game.latestRootTag?.id === this.state.currentTag?.id));
 
         const addTagPanel =
             canAddTagDateOverride && (this.props.isSubtag || (!this.props.isSubtag && this.props.game.latestRootTag?.id === this.state.currentTag?.id)) ? (

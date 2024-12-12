@@ -148,7 +148,7 @@ input[type="button"] {
 }
 
 .root-tag-scroller>div:nth-of-type(odd) {
-    width: 60%;
+    width: 80%;
     overflow: hidden;
 }
 
