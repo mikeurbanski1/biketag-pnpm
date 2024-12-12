@@ -130,6 +130,11 @@ input[type="button"] {
     box-sizing: border-box;
 }
 
+.root-tag-scroller>div {
+    flex: 1 1 0;
+    max-width: 33%;
+}
+
 .subtag-scroller {
     display: flex;
     flex-direction: column;
@@ -153,10 +158,10 @@ input[type="button"] {
     box-sizing: border-box;
 }
 
-.main-tag.add-tag {
+/* .main-tag.add-tag {
     border: 1px solid #00ff00;
     width: 33%
-}
+} */
 
 .main-tag img {
     max-width: 100%;
@@ -179,7 +184,6 @@ input[type="button"] {
     font-size: 1em;
     background-color: #ececec;
     box-shadow: 15px 15px 5px rgb(143, 143, 143);
-    max-width: 100%;
     border: 1px solid #ff8000;
     box-sizing: border-box;
 }
@@ -205,24 +209,8 @@ input[type="button"] {
     background-color: #bcbcbc;
     cursor: pointer;
     box-shadow: 15px 15px 5px rgb(143, 143, 143);
-    width: 33%;
     border: 1px solid #ff00b7;
     box-sizing: border-box;
-}
-
-.minimal-tag.subtag {
-    width: 100%;
-    border: 1px solid #000e54;
-}
-
-.minimal-tag.add-tag {
-    background-color: #bcbcbc;
-    cursor: pointer;
-}
-
-.minimal-tag.add-tag:hover {
-    background-color: #bcbcbc;
-    cursor: auto;
 }
 
 .minimal-tag:hover {
