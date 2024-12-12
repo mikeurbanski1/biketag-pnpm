@@ -15,7 +15,7 @@ interface AddTagProps {
     dateOverride: Dayjs;
 }
 
-export const AddTag: React.FC<AddTagProps> = ({ saveTag, isSubtag, previousRootTagDate, dateOverride }) => {
+export const AddTag: React.FC<AddTagProps> = ({ saveTag, previousRootTagDate, dateOverride }) => {
     const [imageUrl, setImageUrl] = useState('');
     // const [date, setDate] = useState(dayjs().format('YYYY-MM-DDTHH:mm'));
 
@@ -28,10 +28,10 @@ export const AddTag: React.FC<AddTagProps> = ({ saveTag, isSubtag, previousRootT
 
     const canSave = imageUrl.length > 0 && canPostOnDate;
 
-    const className = isSubtag ? 'subtag' : 'main-tag';
+    // const className = isSubtag ? 'subtag' : 'main-tag';
 
     return (
-        <div className={className}>
+        <div className={`minimal-tag add-tag`}>
             <div>
                 <input type="text" placeholder="Image URL" className="tag-input" name="contents" onChange={(event) => setImageUrl(event.target.value)} value={imageUrl}></input>
             </div>

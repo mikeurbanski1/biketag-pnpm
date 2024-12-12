@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import React from 'react';
 
-import { MinimalTag as MinimalTagType, TagDto } from '@biketag/models';
+import { MinimalTag as MinimalTagType, PendingTag as PendingTagType, TagDto } from '@biketag/models';
 import { Logger } from '@biketag/utils';
 
 import { DATE_FORMAT } from '../../utils/consts';
@@ -18,6 +18,10 @@ interface MinimalTagProps {
     tag: MinimalTagType;
     isSubtag: boolean;
     selectTag: () => void;
+}
+
+interface PendingTagProps {
+    tag: PendingTagType;
 }
 
 export const Tag: React.FC<TagProps> = ({ tag, isSubtag }) => {
@@ -38,14 +42,22 @@ export const Tag: React.FC<TagProps> = ({ tag, isSubtag }) => {
     );
 };
 
-export const MinimalTag: React.FC<MinimalTagProps> = ({ tag, selectTag }) => {
+export const MinimalTag: React.FC<MinimalTagProps> = ({ tag, selectTag, isSubtag }) => {
     return (
-        <div className="minimal-tag flex-spread" onClick={selectTag}>
+        <div className={`minimal-tag flex-spread ${isSubtag ? 'subtag' : ''}`} onClick={selectTag}>
             <img src={tag.imageUrl}></img>
             <span>
                 by <span className="tag-creator">{tag.creator.name}</span>
             </span>
             <span>{dayjs(tag.postedDate).format(DATE_FORMAT)}</span>
+        </div>
+    );
+};
+
+export const PendingTag: React.FC<PendingTagProps> = ({ tag }) => {
+    return (
+        <div className="minimal-tag flex-spread">
+            The next tag posted by <span className="tag-creator">{tag.creator.name}</span> will go live at midnight!
         </div>
     );
 };

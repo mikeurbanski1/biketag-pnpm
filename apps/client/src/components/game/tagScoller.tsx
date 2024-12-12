@@ -1,12 +1,12 @@
 import dayjs, { Dayjs } from 'dayjs';
 import React from 'react';
 
-import { CreateTagDto, GameDto, MinimalTag as MinimalTagType, TagDto, UserDto } from '@biketag/models';
+import { CreateTagDto, GameDto, MinimalTag as MinimalTagType, PendingTag as PendingTagType, TagDto, UserDto } from '@biketag/models';
 import { isEarlierDate, Logger } from '@biketag/utils';
 
 import { ApiManager } from '../../api';
 import { AddTag } from './addTag';
-import { MinimalTag, Tag } from './tag';
+import { MinimalTag, PendingTag, Tag } from './tag';
 
 const logger = new Logger({ prefix: '[TagScroller]' });
 
@@ -107,8 +107,16 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         // }
     }
 
-    getMinimalTag(tag?: MinimalTagType): React.ReactNode {
-        return tag ? <MinimalTag tag={tag} isSubtag={this.props.isSubtag} selectTag={() => this.setTagById(tag.id)} /> : undefined;
+    getMinimalTag(tag?: PendingTagType): React.ReactNode;
+    getMinimalTag(tag?: MinimalTagType): React.ReactNode;
+    getMinimalTag(tag?: MinimalTagType | PendingTagType): React.ReactNode {
+        if (!tag) {
+            return undefined;
+        } else if ('isPendingTagView' in tag) {
+            return <PendingTag tag={tag} />;
+        } else {
+            return <MinimalTag tag={tag} isSubtag={this.props.isSubtag} selectTag={() => this.setTagById(tag.id)} />;
+        }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -187,6 +195,8 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
 
         if (this.props.isSubtag && this.state.currentTag.nextTag) {
             nextTagPanel = this.getMinimalTag(this.state.currentTag.nextTag);
+        } else if (!this.props.isSubtag && this.props.game.pendingRootTag) {
+            nextTagPanel = this.getMinimalTag(this.props.game.pendingRootTag);
         } else if (!this.props.isSubtag && this.state.currentTag.nextRootTag) {
             nextTagPanel = this.getMinimalTag(this.state.currentTag.nextRootTag);
         }
@@ -204,9 +214,9 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         const innerDiv = this.props.isSubtag ? (
             <Tag tag={this.state.currentTag} isSubtag={this.props.isSubtag} />
         ) : (
-            <div>
+            <div className="latest-tag-column">
                 <Tag tag={this.state.currentTag} isSubtag={this.props.isSubtag} />
-                <div>{this.state.currentTag.nextTag ? 'Other tags:' : ' '}</div>
+                <div style={{ border: '1px solid #00ffee' }}>{this.state.currentTag.nextTag ? 'Other tags:' : ' '}</div>
                 <TagScroller
                     key={`subtag-${this.state.currentTag.id}`}
                     isSubtag={true}
