@@ -13,9 +13,11 @@ interface AddTagProps {
     // hacky workaround to allow testing of creating tags at different times
     previousRootTagDate?: Dayjs;
     dateOverride: Dayjs;
+    setAddTagAsActive: () => void;
+    isActive: boolean;
 }
 
-export const AddTag: React.FC<AddTagProps> = ({ saveTag, previousRootTagDate, dateOverride }) => {
+export const AddTag: React.FC<AddTagProps> = ({ saveTag, previousRootTagDate, dateOverride, isSubtag, setAddTagAsActive, isActive }) => {
     const [imageUrl, setImageUrl] = useState('');
     // const [date, setDate] = useState(dayjs().format('YYYY-MM-DDTHH:mm'));
 
@@ -28,10 +30,10 @@ export const AddTag: React.FC<AddTagProps> = ({ saveTag, previousRootTagDate, da
 
     const canSave = imageUrl.length > 0 && canPostOnDate;
 
-    // const className = isSubtag ? 'subtag' : 'main-tag';
+    const className = isSubtag ? 'subtag' : 'main-tag';
 
     return (
-        <div className={`minimal-tag add-tag`}>
+        <div className={`${isActive ? className : 'minimal-tag'} add-tag`} onClick={setAddTagAsActive}>
             <div>
                 <input type="text" placeholder="Image URL" className="tag-input" name="contents" onChange={(event) => setImageUrl(event.target.value)} value={imageUrl}></input>
             </div>
