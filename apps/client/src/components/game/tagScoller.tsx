@@ -111,7 +111,8 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
     getMinimalTag(tag?: MinimalTagType): React.ReactNode;
     getMinimalTag(tag?: MinimalTagType | PendingTagType): React.ReactNode {
         if (!tag) {
-            return undefined;
+            // empty div just to fill space
+            return <div></div>;
         } else if ('isPendingTagView' in tag) {
             return <PendingTag tag={tag} />;
         } else {
