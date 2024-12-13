@@ -59,7 +59,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
             loadingTag: props.isSubtag,
             currentTag,
             userCanAddTag,
-            fakeTagIsActive: false,
+            fakeTagIsActive: props.game.latestRootTag === undefined,
         };
     }
 
@@ -184,6 +184,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
                     dateOverride={this.props.dateOverride}
                     setAddTagAsActive={() => this.setAddTagAsActive()}
                     isActive={this.state.fakeTagIsActive}
+                    isFirstTag={(this.props.isSubtag ? this.props.subtagRootTag!.nextTag : this.props.game.latestRootTag) === undefined}
                 />
             ) : undefined;
         logger.info(`[render]`, { addTagPanel: addTagPanel ? 'true' : 'false' });

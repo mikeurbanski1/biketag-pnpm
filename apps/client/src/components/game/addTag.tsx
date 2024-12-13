@@ -15,9 +15,10 @@ interface AddTagProps {
     dateOverride: Dayjs;
     setAddTagAsActive: () => void;
     isActive: boolean;
+    isFirstTag: boolean;
 }
 
-export const AddTag: React.FC<AddTagProps> = ({ saveTag, previousRootTagDate, dateOverride, isSubtag, setAddTagAsActive, isActive }) => {
+export const AddTag: React.FC<AddTagProps> = ({ saveTag, previousRootTagDate, dateOverride, isSubtag, setAddTagAsActive, isActive, isFirstTag }) => {
     const [imageUrl, setImageUrl] = useState('');
     // const [date, setDate] = useState(dayjs().format('YYYY-MM-DDTHH:mm'));
 
@@ -32,8 +33,20 @@ export const AddTag: React.FC<AddTagProps> = ({ saveTag, previousRootTagDate, da
 
     const className = isSubtag ? 'subtag' : 'main-tag';
 
+    let text: string;
+    if (isSubtag && isFirstTag) {
+        text = 'Be the first to find this spot!';
+    } else if (!isSubtag && isFirstTag) {
+        text = 'Nobody has been anywhere yet. Get it started!';
+    } else if (isSubtag) {
+        text = 'Tag this spot!';
+    } else {
+        text = 'Tag the next spot!';
+    }
+
     return (
         <div className={`${isActive ? className : 'minimal-tag'} add-tag`} onClick={setAddTagAsActive}>
+            {text}
             <div>
                 <input type="text" placeholder="Image URL" className="tag-input" name="contents" onChange={(event) => setImageUrl(event.target.value)} value={imageUrl}></input>
             </div>
