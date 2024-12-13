@@ -1,5 +1,5 @@
 #root {
-    max-width: 75%;
+    max-width: 50%;
     margin: 0 auto;
     padding: 2rem;
     text-align: center;
@@ -118,6 +118,7 @@ input[type="button"] {
     justify-content: space-between;
     /* align-items: top; */
     border: 1px solid #00ff00;
+    border-radius: 20px;
     background-color: white;
     box-sizing: border-box;
 }
@@ -136,28 +137,30 @@ input[type="button"] {
     width: 100%;
     grid-template-columns: 10% 10% 60% 10% 10%;
     border: 1px solid #ff0000;
-    /* overflow: auto; */
+    /* overflow: scroll; */
     position: relative;
 }
 
 .root-tag-scroller>div {
     grid-row: 1;
+    grid-column-end: span 3;
+    height: 100%
 }
 
 /* .root-tag-scroller>div:nth-child(odd) {} */
 
 .root-tag-scroller>div:nth-child(1) {
-    grid-column: 1 / 4;
+    grid-column-start: 1;
     z-index: 0;
 }
 
 .root-tag-scroller>div:nth-child(2) {
-    grid-column: 2 / 5;
+    grid-column-start: 2;
     z-index: 1;
 }
 
 .root-tag-scroller>div:nth-child(3) {
-    grid-column: 3 / 6;
+    grid-column-start: 3;
     z-index: 0;
 }
 
@@ -209,6 +212,7 @@ input[type="button"] {
 
 .tag-image {
     width: 100%;
+    height: 100%;
     object-fit: cover;
     overflow: hidden;
 }
