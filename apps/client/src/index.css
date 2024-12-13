@@ -118,7 +118,7 @@ input[type="button"] {
     justify-content: space-between;
     /* align-items: top; */
     border: 1px solid #00ff00;
-    /* width: 34%; */
+    background-color: white;
     box-sizing: border-box;
 }
 
@@ -134,7 +134,7 @@ input[type="button"] {
 .root-tag-scroller {
     display: grid;
     width: 100%;
-    grid-template-columns: 1fr 1fr 6fr 1fr;
+    grid-template-columns: 10% 10% 60% 10% 10%;
     border: 1px solid #ff0000;
     /* overflow: auto; */
     position: relative;
@@ -142,25 +142,23 @@ input[type="button"] {
 
 .root-tag-scroller>div {
     grid-row: 1;
-    /* grid-column-end: span 2; */
-    /* width: 80%; */
 }
 
 /* .root-tag-scroller>div:nth-child(odd) {} */
 
 .root-tag-scroller>div:nth-child(1) {
-    grid-column: 1 / span 2;
-    z-index: 5;
+    grid-column: 1 / 4;
+    z-index: 0;
 }
 
 .root-tag-scroller>div:nth-child(2) {
-    grid-column: 2 / span 2;
-    z-index: 4;
+    grid-column: 2 / 5;
+    z-index: 1;
 }
 
 .root-tag-scroller>div:nth-child(3) {
-    grid-column: 3 / span 2;
-    z-index: 3;
+    grid-column: 3 / 6;
+    z-index: 0;
 }
 
 .subtag-scroller {
