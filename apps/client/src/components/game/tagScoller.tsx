@@ -14,7 +14,7 @@ interface TagScrollerState {
     loadingTag: boolean;
     currentTag?: TagDto;
     userCanAddTag: boolean;
-    addTagIsActive: boolean;
+    fakeTagIsActive: boolean;
 }
 
 interface TagScrollerProps {
@@ -59,7 +59,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
             loadingTag: props.isSubtag,
             currentTag,
             userCanAddTag,
-            addTagIsActive: false,
+            fakeTagIsActive: false,
         };
     }
 
@@ -94,16 +94,16 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
                 this.setTag({ tag });
             });
         } else {
-            this.setState({ addTagIsActive: false });
+            this.setState({ fakeTagIsActive: false });
         }
     }
 
     setTag({ tag, userCanAddTagOverride }: { tag?: TagDto; userCanAddTagOverride?: boolean }): void {
         if (tag && tag.id === this.state.currentTag?.id) {
-            this.setState({ addTagIsActive: false });
+            this.setState({ fakeTagIsActive: false });
         } else {
             const userCanAddTagUpdate = userCanAddTagOverride !== undefined ? { userCanAddTag: userCanAddTagOverride } : ({} as TagScrollerState);
-            this.setState({ currentTag: tag, loadingTag: false, ...userCanAddTagUpdate, addTagIsActive: false });
+            this.setState({ currentTag: tag, loadingTag: false, ...userCanAddTagUpdate, fakeTagIsActive: false });
         }
     }
 
@@ -113,7 +113,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         if (!tag) {
             return undefined;
         } else if ('isPendingTagView' in tag) {
-            return <PendingTag tag={tag} />;
+            return <PendingTag tag={tag} selectTag={() => this.setState({ fakeTagIsActive: true })} />;
         } else {
             return <MinimalTag tag={tag} isSubtag={this.props.isSubtag} selectTag={() => this.setTagById(tag.id)} />;
         }
@@ -151,7 +151,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
     }
 
     setAddTagAsActive(): void {
-        this.setState({ addTagIsActive: true });
+        this.setState({ fakeTagIsActive: true });
     }
 
     render() {
@@ -183,7 +183,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
                     previousRootTagDate={previousRootTagDate}
                     dateOverride={this.props.dateOverride}
                     setAddTagAsActive={() => this.setAddTagAsActive()}
-                    isActive={this.state.addTagIsActive}
+                    isActive={this.state.fakeTagIsActive}
                 />
             ) : undefined;
         logger.info(`[render]`, { addTagPanel: addTagPanel ? 'true' : 'false' });
@@ -202,7 +202,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         // for a root tag, it means we will not render this and the button together (one will be undefined)
         let nextTagPanel: React.ReactNode = undefined;
 
-        if (!this.state.addTagIsActive) {
+        if (!this.state.fakeTagIsActive) {
             if (this.props.isSubtag && this.state.currentTag.nextTag) {
                 nextTagPanel = this.getMinimalTag(this.state.currentTag.nextTag);
             } else if (!this.props.isSubtag && this.props.game.pendingRootTag) {
@@ -218,7 +218,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
             logger.info(`[render] this.state.currentTag.parentTag?.id ${this.state.currentTag.parentTag?.id}`);
             logger.info(`[render] this.props.subtagRootTag!.id ${this.props.subtagRootTag!.id}`);
             previousTag = this.state.currentTag.parentTag?.id !== this.props.subtagRootTag!.id ? this.state.currentTag.parentTag : undefined;
-        } else if (!this.state.addTagIsActive) {
+        } else if (!this.state.fakeTagIsActive) {
             previousTag = this.state.currentTag.previousRootTag;
         } else {
             previousTag = this.state.currentTag;
@@ -227,7 +227,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         let innerDiv: React.ReactNode;
         if (this.props.isSubtag) {
             innerDiv = <Tag tag={this.state.currentTag} isSubtag={this.props.isSubtag} />;
-        } else if (!this.state.addTagIsActive) {
+        } else if (!this.state.fakeTagIsActive) {
             innerDiv = (
                 <div className="latest-tag-column">
                     <Tag tag={this.state.currentTag} isSubtag={this.props.isSubtag} />
@@ -244,8 +244,10 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
                     />
                 </div>
             );
-        } else {
+        } else if (addTagPanel) {
             innerDiv = addTagPanel;
+        } else if (this.state.fakeTagIsActive) {
+            innerDiv = <PendingTag isActive={true} tag={this.props.game.pendingRootTag!} />;
         }
 
         return (

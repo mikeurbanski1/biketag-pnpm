@@ -22,6 +22,8 @@ interface MinimalTagProps {
 
 interface PendingTagProps {
     tag: PendingTagType;
+    isActive?: boolean;
+    selectTag?: () => void;
 }
 
 export const Tag: React.FC<TagProps> = ({ tag, isSubtag }) => {
@@ -54,9 +56,10 @@ export const MinimalTag: React.FC<MinimalTagProps> = ({ tag, selectTag, isSubtag
     );
 };
 
-export const PendingTag: React.FC<PendingTagProps> = ({ tag }) => {
+export const PendingTag: React.FC<PendingTagProps> = ({ tag, selectTag, isActive }) => {
+    const className = isActive ? 'main-tag' : 'minimal-tag flex-spread root-tag';
     return (
-        <div className="minimal-tag flex-spread">
+        <div className={className} onClick={selectTag}>
             The next tag posted by <span className="tag-creator">{tag.creator.name}</span> will go live at midnight!
         </div>
     );
