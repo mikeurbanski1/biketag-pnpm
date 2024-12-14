@@ -90,7 +90,7 @@ export default class App extends React.Component<AppProps, AppComponentState> {
         if (this.state.state === AppState.HOME) {
             inner = <Login key="login" setUser={({ name, id }: { name: string; id: string }) => this.setUser({ name, id })}></Login>;
         } else if (this.state.state === AppState.LOGGED_IN) {
-            inner = [<br key="br1"></br>, <Landing key="landing" user={this.state.user!} dateOverride={this.state.dateOverride}></Landing>, <br key="br2"></br>];
+            inner = <Landing key="landing" user={this.state.user!} dateOverride={this.state.dateOverride}></Landing>;
         }
 
         const loggedIn = this.state.user ? (

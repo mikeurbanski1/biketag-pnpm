@@ -255,7 +255,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
             <div className={className}>
                 <div>{this.getMinimalTag(previousTag)}</div>
                 {innerDiv}
-                <div>
+                <div id="1234">
                     {nextTagPanel}
                     {innerDiv !== addTagPanel && addTagPanel}
                 </div>

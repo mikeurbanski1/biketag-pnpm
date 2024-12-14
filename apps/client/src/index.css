@@ -68,6 +68,23 @@
     gap: 5%;
 }
 
+
+.game-admin-button {
+    width: 10%
+}
+
+.game-admin-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1em;
+    border: 1px solid green;
+    width: 100%
+}
+
+.game-admin-buttons[hidden] {
+    display: none;
+}
+
 a {
     font-weight: 500;
     color: #646cff;
@@ -165,6 +182,12 @@ input[type="button"] {
     display: flex;
     flex-direction: column;
     align-items: center;
+    border: 1px solid purple;
+}
+
+.game-title {
+    font-weight: bold;
+    color: #8500e4
 }
 
 .latest-tag-column {
@@ -195,6 +218,7 @@ input[type="button"] {
     border: 1px solid #ff0000;
     /* overflow: scroll; */
     position: relative;
+    height: 100%
 }
 
 .root-tag-scroller>div {
