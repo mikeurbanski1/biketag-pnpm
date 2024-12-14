@@ -28,6 +28,8 @@ interface ViewGameState {
     sortedAscending: boolean;
     scoresCollapsed: boolean;
     showingGameAdminButtons: boolean;
+    userCanAddRootTag: boolean;
+    userCanAddSubtag: boolean;
 }
 
 interface ViewGameProps {
@@ -46,6 +48,7 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
         super(props);
         let playerDetailsTable = this.getPlayerDetailsTable();
         playerDetailsTable = this.sortPlayerDetailsTable({ column: 1, sortAscendingOverride: false, playerDetailsTable });
+        const { latestRootTag } = this.props.game;
         this.state = {
             isCreator: this.props.game.creator.id === this.props.user.id,
             playerDetailsTable: playerDetailsTable,
@@ -54,7 +57,22 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
             sortedAscending: false,
             scoresCollapsed: true,
             showingGameAdminButtons: false,
+            // these are the two conditions we for sure know are true
+            userCanAddRootTag: latestRootTag === undefined,
+            // a root tag exists, and there is no next tag, and we did not post it
+            userCanAddSubtag: latestRootTag ? !latestRootTag.nextTag && latestRootTag.creator.id !== this.props.user.id : false,
         };
+    }
+
+    componentDidMount(): void {
+        this.setUserCanAddRootTag();
+    }
+
+    setUserCanAddRootTag(): void {
+        ApiManager.tagApi.canUserAddTag({ userId: this.props.user.id, gameId: this.props.game.id, dateOverride: this.props.dateOverride }).then((userCanAddRootTag) => {
+            logger.info(`[createNewSubtag] userCanAddRootTag result`, { userCanAddRootTag });
+            this.setState({ userCanAddRootTag });
+        });
     }
 
     sortPlayerDetailsTable({
@@ -126,6 +144,16 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
         const latestRootTag = tag;
         const updateParams = { latestRootTag };
         this.props.updateGame(updateParams);
+        this.setState({ userCanAddRootTag: false });
+        this.setCurrentRootTag(tag);
+    }
+
+    createNewSubtag(): void {
+        this.setState({ userCanAddSubtag: false });
+        this.setUserCanAddRootTag();
+    }
+
+    setCurrentRootTag(tag: TagDto): void {
         this.setState({ currentRootTag: tag });
     }
 
@@ -153,16 +181,6 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
 
     render() {
         const { game } = this.props;
-
-        // const headers = ['Name', 'Total points', 'Total tags posted', 'Tags won', 'New tags posted', 'Tags posted on time'];
-        // const tableHeaders = headers.map((header, index) => {
-        //     return (
-        //         <th key={index} className="clickable-text" onClick={() => this.sortPlayerDetailsTable({ column: index, setState: true })}>
-        //             {header}
-        //             {this.state.sortColumn === index ? (this.state.sortedAscending ? '▲' : '▼') : ''}
-        //         </th>
-        //     );
-        // });
 
         const isCreator = game.creator.id === this.props.user.id;
 
@@ -214,16 +232,20 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
                     createNewTag={(tag: TagDto) => this.createNewRootTag(tag)}
                     refreshScores={() => this.refreshGame()}
                     dateOverride={this.props.dateOverride}
-                    // setCurrentRootTag={(tag: TagDto) => this.setCurrentRootTag(tag)}
+                    userCanAddTag={this.state.userCanAddRootTag}
+                    setCurrentRootTag={(tag: TagDto) => this.setCurrentRootTag(tag)}
                 />
                 {/* {this.state.currentRootTag && (
-                    <TagView
-                        key={this.state.currentRootTag.id}
+                    <TagScroller
+                        key={`subtag-${game.latestRootTag?.id}`}
                         isSubtag={true}
-                        game={game}
+                        game={this.props.game}
                         user={this.props.user}
                         subtagRootTag={this.state.currentRootTag}
-                        refreshScores={() => this.refreshScores()}
+                        refreshScores={() => this.refreshGame()}
+                        createNewTag={() => this.createNewSubtag()}
+                        dateOverride={this.props.dateOverride}
+                        userCanAddTag={this.state.userCanAddSubtag}
                     />
                 )} */}
             </div>

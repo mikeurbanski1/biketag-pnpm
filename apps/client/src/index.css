@@ -1,12 +1,8 @@
 #root {
-    max-width: 100%;
+    width: 100%;
     height: 100vh;
     overflow: scroll;
-    margin: 0 auto;
-    text-align: center;
-    /* display: flex;
-    flex-direction: column;
-    justify-content: center; */
+    margin: 0;
 }
 
 :root {
@@ -27,6 +23,8 @@
 .flex-column {
     display: flex;
     flex-direction: column;
+    border: 1px solid blue;
+    align-items: center;
 }
 
 .moderate-gap {
@@ -36,6 +34,18 @@
 .App {
     /* width: 100%; */
     border: 1px solid black;
+    display: grid;
+    height: 100%;
+    grid-template-rows: 8% 1fr;
+}
+
+.header {
+    grid-row: 1;
+    text-align: center;
+}
+
+.main {
+    grid-row: 2;
 }
 
 .login-text {
@@ -66,6 +76,7 @@
     display: flex;
     justify-content: center;
     gap: 5%;
+    width: 100%
 }
 
 
@@ -99,8 +110,6 @@ body {
     margin: 0;
     display: flex;
     place-items: center;
-    min-width: 320px;
-    min-height: 100vh;
 }
 
 h1 {
@@ -183,6 +192,8 @@ input[type="button"] {
     flex-direction: column;
     align-items: center;
     border: 1px solid purple;
+    height: 100%;
+    overflow: hidden;
 }
 
 .game-title {
@@ -218,13 +229,11 @@ input[type="button"] {
     border: 1px solid #ff0000;
     /* overflow: scroll; */
     position: relative;
-    height: 100%
 }
 
 .root-tag-scroller>div {
     grid-row: 1;
     grid-column-end: span 3;
-    height: 100%
 }
 
 /* .root-tag-scroller>div:nth-child(odd) {} */
@@ -262,7 +271,8 @@ input[type="button"] {
     border: 1px solid #ff0000;
     box-sizing: border-box;
     overflow: hidden;
-    height: 50%
+    height: 100%;
+    background-color: #e8e8e8;
 }
 
 .main-tag {
@@ -280,34 +290,10 @@ input[type="button"] {
     box-sizing: border-box;
 }
 
-/* .main-tag.add-tag {
-    border: 1px solid #00ff00;
-    width: 33%
-} */
-
-/* .main-tag img {
-    width: 100%;
-    object-fit: cover;
-    overflow: hidden;
-}
-
-.subtag img {
-    width: 100%;
-    object-fit: cover;
-    overflow: hidden;
-}
-
-.minimal-tag img {
-    width: 100%;
-    object-fit: cover;
-    overflow: hidden;
-} */
-
 .tag-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    overflow: hidden;
 }
 
 .subtag {

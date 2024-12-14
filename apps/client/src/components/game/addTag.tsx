@@ -31,8 +31,6 @@ export const AddTag: React.FC<AddTagProps> = ({ saveTag, previousRootTagDate, da
 
     const canSave = imageUrl.length > 0 && canPostOnDate;
 
-    const className = isSubtag ? 'subtag' : 'main-tag';
-
     let text: string;
     if (isSubtag && isFirstTag) {
         text = 'Be the first to find this spot!';
@@ -45,7 +43,7 @@ export const AddTag: React.FC<AddTagProps> = ({ saveTag, previousRootTagDate, da
     }
 
     return (
-        <div className={`${isActive ? className : 'minimal-tag'} add-tag`} onClick={setAddTagAsActive}>
+        <div className={`tag ${isActive ? '' : 'clickable-tag'} add-tag`} onClick={setAddTagAsActive}>
             {text}
             <div>
                 <input type="text" placeholder="Image URL" className="tag-input" name="contents" onChange={(event) => setImageUrl(event.target.value)} value={imageUrl}></input>
