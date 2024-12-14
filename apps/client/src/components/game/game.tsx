@@ -198,7 +198,7 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
                 <div className={isCreator ? 'clickable-text' : ''} onClick={isCreator ? () => this.setState({ showingGameAdminButtons: !this.state.showingGameAdminButtons }) : undefined}>
                     Created by: {game.creator.name} {isCreator && (this.state.showingGameAdminButtons ? '▼' : '▶')}
                 </div>
-                <div className="game-admin-buttons" hidden={!isCreator || !this.state.showingGameAdminButtons}>
+                <div className="game-admin-buttons button-pair" hidden={!isCreator || !this.state.showingGameAdminButtons}>
                     <button className="game-admin-button" onClick={() => this.props.editGame()}>
                         Edit game
                     </button>
