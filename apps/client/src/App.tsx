@@ -90,28 +90,27 @@ export default class App extends React.Component<AppProps, AppComponentState> {
         if (this.state.state === AppState.HOME) {
             inner = <Login key="login" setUser={({ name, id }: { name: string; id: string }) => this.setUser({ name, id })}></Login>;
         } else if (this.state.state === AppState.LOGGED_IN) {
-            inner = [<br key="br1"></br>, <Landing key="landing" user={this.state.user!} dateOverride={this.state.dateOverride}></Landing>, <br key="br2"></br>];
+            inner = <Landing key="landing" user={this.state.user!} dateOverride={this.state.dateOverride}></Landing>;
         }
+
+        const loggedIn = this.state.user ? (
+            <span className="logged-in-text">
+                Logged in as {this.state.user.name}{' '}
+                <button name="login" value="Log out" onClick={() => this.handleLogOut()}>
+                    Log out
+                </button>
+            </span>
+        ) : undefined;
 
         return (
             <div className="App">
-                <header className="App-header">
-                    <h1 key="h1">Bike Tag</h1>
-                    {this.state.user && (
-                        <div>
-                            Logged in as {this.state.user.name} ({this.state.userId})<br></br>
-                            <div>
-                                Date override: <input aria-label="Date" type="date" defaultValue={this.state.dateOverride.format('YYYY-MM-DD')} onChange={(event) => this.handleDateChange(event)} />
-                            </div>
-                        </div>
-                    )}
-                    <hr></hr>
-
-                    {inner}
-                    <hr></hr>
-                    {this.state.user && [<input key="logout-button" type="button" name="login" value="Log out" onClick={() => this.handleLogOut()}></input>, <br key="login-br"></br>]}
-                    <input type="button" name="reset-client-button" value="Reset local client ID" onClick={this.handleResetClient}></input>
-                </header>
+                <div>Bike Tag! {loggedIn}</div>
+                <div>
+                    Date override: <input aria-label="Date" type="date" defaultValue={this.state.dateOverride.format('YYYY-MM-DD')} onChange={(event) => this.handleDateChange(event)} />
+                </div>
+                <hr></hr>
+                {inner}
+                {/* <input type="button" name="reset-client-button" value="Reset local client ID" onClick={this.handleResetClient}></input> */}
             </div>
         );
     }

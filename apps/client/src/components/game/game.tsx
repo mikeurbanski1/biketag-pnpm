@@ -27,6 +27,7 @@ interface ViewGameState {
     sortColumn: number;
     sortedAscending: boolean;
     scoresCollapsed: boolean;
+    showingGameAdminButtons: boolean;
 }
 
 interface ViewGameProps {
@@ -52,6 +53,7 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
             sortColumn: 1, // points column
             sortedAscending: false,
             scoresCollapsed: true,
+            showingGameAdminButtons: false,
         };
     }
 
@@ -162,19 +164,32 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
         //     );
         // });
 
+        const isCreator = game.creator.id === this.props.user.id;
+
         return (
             <div className="game-view">
-                <div>
-                    <h1>{game.name}</h1>
+                <div className="game-title" title="Click to refresh">
+                    <span className="clickable-text" onClick={() => this.props.doneViewingGame()}>
+                        ←
+                    </span>{' '}
+                    {game.name}{' '}
+                    <span className="clickable-text" onClick={() => this.refreshGame()}>
+                        ↻
+                    </span>
                 </div>
-                <div>Created by: {game.creator.name}</div>
-                <div>
-                    <input type="button" value="Refresh game" onClick={() => this.refreshGame()}></input>
+                <div className={isCreator ? 'clickable-text' : ''} onClick={isCreator ? () => this.setState({ showingGameAdminButtons: !this.state.showingGameAdminButtons }) : undefined}>
+                    Created by: {game.creator.name} {isCreator && (this.state.showingGameAdminButtons ? '▼' : '▶')}
                 </div>
-                <div>
-                    <h2 className="clickable-text" onClick={() => this.setState({ scoresCollapsed: !this.state.scoresCollapsed })}>
-                        {this.state.scoresCollapsed ? '▶' : '▼'}Scoreboard
-                    </h2>
+                <div className="game-admin-buttons" hidden={!isCreator || !this.state.showingGameAdminButtons}>
+                    <button className="game-admin-button" onClick={() => this.props.editGame()}>
+                        Edit game
+                    </button>
+                    <button className="game-admin-button" onClick={() => this.props.deleteGame()}>
+                        Delete game
+                    </button>
+                </div>
+                <div className="clickable-text" onClick={() => this.setState({ scoresCollapsed: !this.state.scoresCollapsed })}>
+                    {this.state.scoresCollapsed ? '▶' : '▼'}Scoreboard
                 </div>
                 <div hidden={this.state.scoresCollapsed}>
                     <Table<PlayerDetailsTableRow>
@@ -211,10 +226,6 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
                         refreshScores={() => this.refreshScores()}
                     />
                 )} */}
-                {this.state.isCreator && <input type="button" name="editGame" value="Edit game" onClick={() => this.props.editGame()}></input>}
-                {this.state.isCreator && <input type="button" name="deleteGame" value="Delete game" onClick={() => this.props.deleteGame()}></input>}
-                <br></br>
-                <input type="button" name="goBack" value="Go back" onClick={() => this.props.doneViewingGame()}></input>
             </div>
         );
     }
