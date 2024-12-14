@@ -27,10 +27,10 @@ interface PendingTagProps {
 }
 
 export const Tag: React.FC<TagProps> = ({ tag, isSubtag }) => {
-    const className = isSubtag ? 'subtag' : 'main-tag';
+    // const className = isSubtag ? 'subtag' : 'main-tag';
     const tagWinner = isSubtag || !tag.nextTag ? undefined : <span>Winner: {tag.nextTag.creator.name}</span>;
     return (
-        <div className={className}>
+        <div className="tag">
             <img className="tag-image" src={tag.imageUrl}></img>
             <span>
                 by <span className={`tag-creator`}>{tag.creator.name}</span>
@@ -44,9 +44,9 @@ export const Tag: React.FC<TagProps> = ({ tag, isSubtag }) => {
     );
 };
 
-export const MinimalTag: React.FC<MinimalTagProps> = ({ tag, selectTag, isSubtag }) => {
+export const MinimalTag: React.FC<MinimalTagProps> = ({ tag, selectTag }) => {
     return (
-        <div className={`minimal-tag flex-spread ${isSubtag ? 'subtag' : 'root-tag'}`} onClick={selectTag}>
+        <div className="tag clickable-tag" onClick={selectTag}>
             <img className="tag-image" src={tag.imageUrl}></img>
             <span>
                 by <span className="tag-creator">{tag.creator.name}</span>
@@ -57,9 +57,9 @@ export const MinimalTag: React.FC<MinimalTagProps> = ({ tag, selectTag, isSubtag
 };
 
 export const PendingTag: React.FC<PendingTagProps> = ({ tag, selectTag, isActive }) => {
-    const className = isActive ? 'main-tag' : 'minimal-tag flex-spread root-tag';
+    const className = isActive ? '' : 'clickable-tag';
     return (
-        <div className={className} onClick={selectTag}>
+        <div className={`tag ${className}`} onClick={selectTag}>
             The next tag posted by <span className="tag-creator">{tag.creator.name}</span> will go live at midnight!
         </div>
     );

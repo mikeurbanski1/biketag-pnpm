@@ -165,16 +165,14 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
         return (
             <div className="game-view">
                 <div>
-                    <h1>{game.name}</h1>
+                    <b>{game.name}</b>
                 </div>
                 <div>Created by: {game.creator.name}</div>
                 <div>
                     <input type="button" value="Refresh game" onClick={() => this.refreshGame()}></input>
                 </div>
-                <div>
-                    <h2 className="clickable-text" onClick={() => this.setState({ scoresCollapsed: !this.state.scoresCollapsed })}>
-                        {this.state.scoresCollapsed ? '▶' : '▼'}Scoreboard
-                    </h2>
+                <div className="clickable-text" onClick={() => this.setState({ scoresCollapsed: !this.state.scoresCollapsed })}>
+                    {this.state.scoresCollapsed ? '▶' : '▼'}Scoreboard
                 </div>
                 <div hidden={this.state.scoresCollapsed}>
                     <Table<PlayerDetailsTableRow>

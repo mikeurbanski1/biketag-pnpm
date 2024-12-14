@@ -95,23 +95,15 @@ export default class App extends React.Component<AppProps, AppComponentState> {
 
         return (
             <div className="App">
-                <header className="App-header">
-                    <h1 key="h1">Bike Tag</h1>
-                    {this.state.user && (
-                        <div>
-                            Logged in as {this.state.user.name} ({this.state.userId})<br></br>
-                            <div>
-                                Date override: <input aria-label="Date" type="date" defaultValue={this.state.dateOverride.format('YYYY-MM-DD')} onChange={(event) => this.handleDateChange(event)} />
-                            </div>
-                        </div>
-                    )}
-                    <hr></hr>
-
-                    {inner}
-                    <hr></hr>
-                    {this.state.user && [<input key="logout-button" type="button" name="login" value="Log out" onClick={() => this.handleLogOut()}></input>, <br key="login-br"></br>]}
-                    <input type="button" name="reset-client-button" value="Reset local client ID" onClick={this.handleResetClient}></input>
-                </header>
+                <div>Bike Tag {this.state.user && `Logged in as ${this.state.user.name}`}</div>
+                <div>
+                    Date override: <input aria-label="Date" type="date" defaultValue={this.state.dateOverride.format('YYYY-MM-DD')} onChange={(event) => this.handleDateChange(event)} />
+                </div>
+                <hr></hr>
+                {inner}
+                <hr></hr>
+                {this.state.user && [<input key="logout-button" type="button" name="login" value="Log out" onClick={() => this.handleLogOut()}></input>, <br key="login-br"></br>]}
+                <input type="button" name="reset-client-button" value="Reset local client ID" onClick={this.handleResetClient}></input>
             </div>
         );
     }
