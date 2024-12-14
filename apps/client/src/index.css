@@ -23,7 +23,7 @@
 .flex-column {
     display: flex;
     flex-direction: column;
-    border: 1px solid blue;
+    /* border: 1px solid blue; */
     align-items: center;
 }
 
@@ -33,7 +33,7 @@
 
 .App {
     /* width: 100%; */
-    border: 1px solid black;
+    /* border: 1px solid black; */
     display: grid;
     height: 100%;
     grid-template-rows: 60px 1fr;
@@ -142,7 +142,7 @@ input.login-text {
     display: flex;
     justify-content: center;
     gap: 1em;
-    border: 1px solid green;
+    /* border: 1px solid green; */
     width: 100%
 }
 
@@ -187,9 +187,14 @@ h1 {
     font-style: italic;
 }
 
+.clickable-text {
+    cursor: pointer;
+    color: #0003c3
+}
+
 .clickable-text:hover {
     cursor: pointer;
-    color: #000266
+    color: #000142
 }
 
 .root-scroller-button {
@@ -209,19 +214,12 @@ h1 {
     align-items: center;
 }
 
-.flex>div {
-    flex: 1 0 0;
-}
-
-.flex>div:nth-child(1) {
-    text-align: center;
-}
 
 .game-view {
     display: flex;
     flex-direction: column;
     align-items: center;
-    border: 1px solid purple;
+    /* border: 1px solid purple; */
     height: 100%;
     overflow: hidden;
 }
@@ -269,7 +267,7 @@ h1 {
     gap: 1em;
     justify-content: space-between;
     /* align-items: top; */
-    border: 1px solid #00ff00;
+    /* border: 1px solid #00ff00; */
     border-radius: 20px;
     background-color: white;
     box-sizing: border-box;
@@ -278,8 +276,10 @@ h1 {
 .root-tag-scroller {
     display: grid;
     width: 100%;
+    height: 100%;
     grid-template-columns: 10% 10% 60% 10% 10%;
-    border: 1px solid #ff0000;
+    grid-auto-rows: 100%;
+    /* border: 1px solid #ff0000; */
     /* overflow: scroll; */
     position: relative;
 }
@@ -314,16 +314,24 @@ h1 {
 
 .tag {
     border-radius: 20px;
+    display: grid;
+    grid-template-rows: 80% 1fr;
+    align-items: center;
+    box-shadow: 15px 15px 5px rgb(143, 143, 143);
+    /* border: 1px solid #ff0000; */
+    box-sizing: border-box;
+    overflow: hidden;
+    /* height: 700px; */
+    height: 100%;
+    background-color: #e8e8e8;
+}
+
+.tag-details {
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-shadow: 15px 15px 5px rgb(143, 143, 143);
     gap: 0.25em;
-    border: 1px solid #ff0000;
-    box-sizing: border-box;
-    overflow: hidden;
-    height: 100%;
-    background-color: #e8e8e8;
+    padding: 1em;
 }
 
 .main-tag {
@@ -341,10 +349,33 @@ h1 {
     box-sizing: border-box;
 }
 
+/* .minimal-tag-image-container {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+} */
+
 .tag-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.clickable-tag {
+    background-color: #bcbcbc;
+}
+
+.clickable-tag:hover {
+    background-color: #e8e8e8;
+    cursor: pointer;
+}
+
+.clickable-tag:hover .tag-image {
+    filter: brightness(130%);
+    -webkit-filter: brightness(130%);
+    -moz-filter: brightness(130%);
+    -o-filter: brightness(130%);
+    -ms-filter: brightness(130%);
 }
 
 .subtag {
@@ -372,14 +403,7 @@ h1 {
     color: #0058fb;
 }
 
-.clickable-tag {
-    background-color: #bcbcbc;
-}
 
-.clickable-tag:hover {
-    background-color: #e8e8e8;
-    cursor: pointer;
-}
 
 .minimal-tag .tag-title {
     font-size: 1.5em;

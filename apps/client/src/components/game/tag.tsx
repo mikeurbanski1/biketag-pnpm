@@ -27,19 +27,20 @@ interface PendingTagProps {
 }
 
 export const Tag: React.FC<TagProps> = ({ tag, isSubtag }) => {
-    // const className = isSubtag ? 'subtag' : 'main-tag';
     const tagWinner = isSubtag || !tag.nextTag ? undefined : <span>Winner: {tag.nextTag.creator.name}</span>;
     return (
         <div className="tag">
             <img className="tag-image" src={tag.imageUrl}></img>
-            <span>
-                by <span className={`tag-creator`}>{tag.creator.name}</span>
-            </span>
-            <span className="tag-points">
-                {tag.stats.points} point{tag.stats.points === 1 ? '' : 's'}
-            </span>
-            <span>{dayjs(tag.postedDate).format(DATE_FORMAT)}</span>
-            {tagWinner}
+            <div className="tag-details">
+                <span>
+                    by <span className={`tag-creator`}>{tag.creator.name}</span>
+                </span>
+                <span className="tag-points">
+                    {tag.stats.points} point{tag.stats.points === 1 ? '' : 's'}
+                </span>
+                <span>{dayjs(tag.postedDate).format(DATE_FORMAT)}</span>
+                {tagWinner}
+            </div>
         </div>
     );
 };
@@ -47,11 +48,13 @@ export const Tag: React.FC<TagProps> = ({ tag, isSubtag }) => {
 export const MinimalTag: React.FC<MinimalTagProps> = ({ tag, selectTag }) => {
     return (
         <div className="tag clickable-tag" onClick={selectTag}>
-            <img className="tag-image" src={tag.imageUrl}></img>
-            <span>
-                by <span className="tag-creator">{tag.creator.name}</span>
-            </span>
-            <span>{dayjs(tag.postedDate).format(DATE_FORMAT)}</span>
+            <img className="tag-image image-hover-highlight" src={tag.imageUrl}></img>
+            <div className="tag-details">
+                <span>
+                    by <span className="tag-creator">{tag.creator.name}</span>
+                </span>
+                <span>{dayjs(tag.postedDate).format(DATE_FORMAT)}</span>
+            </div>
         </div>
     );
 };

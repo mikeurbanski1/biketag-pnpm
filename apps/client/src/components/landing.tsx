@@ -103,23 +103,22 @@ export class Landing extends React.Component<LandingProps, LandingState> {
     }
 
     render(): ReactNode {
-        if (this.state.loadingGames) {
-            return <h1>Loading games...</h1>;
-        }
-
         if (!this.state.creatingGame && !this.state.game) {
             return (
                 <div className="landing">
-                    <div>
-                        <b>Your games:</b>
-                    </div>
-                    <div className="game-list">
-                        {this.state.games.map((game) => (
-                            <a key={'a' + game.id} onClick={() => this.setState({ game })}>
-                                {game.name}
-                            </a>
-                        ))}
-                    </div>
+                    <div className="title">Your games</div>
+                    {this.state.loadingGames ? (
+                        <div>Loading games...</div>
+                    ) : (
+                        <div className="game-list">
+                            {this.state.games.map((game) => (
+                                <div className="clickable-text" key={'a' + game.id} onClick={() => this.setState({ game })}>
+                                    {game.name}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
                     <button onClick={() => this.setState({ creatingGame: true })}>Create game</button>
                 </div>
             );
