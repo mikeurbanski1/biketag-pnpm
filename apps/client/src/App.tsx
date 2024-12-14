@@ -93,17 +93,24 @@ export default class App extends React.Component<AppProps, AppComponentState> {
             inner = [<br key="br1"></br>, <Landing key="landing" user={this.state.user!} dateOverride={this.state.dateOverride}></Landing>, <br key="br2"></br>];
         }
 
+        const loggedIn = this.state.user ? (
+            <span className="logged-in-text">
+                Logged in as {this.state.user.name}{' '}
+                <button name="login" value="Log out" onClick={() => this.handleLogOut()}>
+                    Log out
+                </button>
+            </span>
+        ) : undefined;
+
         return (
             <div className="App">
-                <div>Bike Tag {this.state.user && `Logged in as ${this.state.user.name}`}</div>
+                <div>Bike Tag! {loggedIn}</div>
                 <div>
                     Date override: <input aria-label="Date" type="date" defaultValue={this.state.dateOverride.format('YYYY-MM-DD')} onChange={(event) => this.handleDateChange(event)} />
                 </div>
                 <hr></hr>
                 {inner}
-                <hr></hr>
-                {this.state.user && [<input key="logout-button" type="button" name="login" value="Log out" onClick={() => this.handleLogOut()}></input>, <br key="login-br"></br>]}
-                <input type="button" name="reset-client-button" value="Reset local client ID" onClick={this.handleResetClient}></input>
+                {/* <input type="button" name="reset-client-button" value="Reset local client ID" onClick={this.handleResetClient}></input> */}
             </div>
         );
     }
