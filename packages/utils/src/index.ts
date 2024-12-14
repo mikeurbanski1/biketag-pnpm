@@ -63,6 +63,8 @@ export const copyDefinedProperties = <T>(source: T, filters?: (keyof T)[]): Part
     return retVal;
 };
 
-export { Logger, LogLevel };
+export const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+
 export * from './consts';
 export * from './date';
+export { Logger, LogLevel };

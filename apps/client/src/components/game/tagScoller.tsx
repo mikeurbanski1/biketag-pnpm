@@ -13,7 +13,6 @@ const logger = new Logger({ prefix: '[TagScroller]' });
 interface TagScrollerState {
     loadingTag: boolean;
     currentTag?: TagDto;
-    userCanAddTag: boolean;
     fakeTagIsActive: boolean;
 }
 
@@ -25,8 +24,9 @@ interface TagScrollerProps {
     refreshScores: () => void;
     // general handler for notifying the parent component that a new tag was created, so it can refresh anything it needs to
     createNewTag: (tag: TagDto) => void;
-    // setCurrentRootTag?: (tag: TagDto) => void;
+    setCurrentRootTag?: (tag: TagDto) => void;
     dateOverride: Dayjs;
+    userCanAddTag: boolean;
 }
 
 export class TagScroller extends React.Component<TagScrollerProps, TagScrollerState> {
@@ -34,37 +34,19 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         super(props);
         logger.info(`[constructor]`, { props });
 
-        let userCanAddTag;
-        if (props.isSubtag) {
-            if (!props.subtagRootTag) {
-                throw new Error('Subtag view must have a root tag');
-            }
-            // if the root tag was not created by us and has no children, we can add a tag
-            // otherwise, we do not know, so set to false for now
-            userCanAddTag = !props.subtagRootTag.nextTag && props.subtagRootTag.creator.id !== props.user.id;
-        } else {
-            // if (!props.setCurrentRootTag) {
-            //     throw new Error('Root tag view must have a setCurrentRootTag function');
-            // }
-            // if the game has no tags, we can add a tag
-            // otherwise, we do not know, so set to false for now
-            userCanAddTag = props.game.latestRootTag === undefined;
-        }
-
         // we have to load the next tag if we are a subtag
         const currentTag = props.isSubtag ? undefined : this.props.game.latestRootTag;
         logger.info(`[constructor]`, { currentTag: currentTag ?? 'undefined' });
 
         this.state = {
+            // we have to load the subtag, because the game's tag only contains a minimal link
             loadingTag: props.isSubtag,
             currentTag,
-            userCanAddTag,
             fakeTagIsActive: props.game.latestRootTag === undefined,
         };
     }
 
     componentDidMount(): void {
-        this.fetchAndSetCanUserAddTag();
         if (this.props.isSubtag) {
             this.setTagById(this.props.subtagRootTag!.nextTag?.id);
         } else {
@@ -72,23 +54,9 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         }
     }
 
-    fetchAndSetCanUserAddTag(): void {
-        if (this.props.isSubtag) {
-            const tagId = this.props.subtagRootTag!.id;
-            ApiManager.tagApi.canUserAddSubtag({ tagId, userId: this.props.user.id }).then((userCanAddTag) => {
-                logger.info(`[fetchAndSetCanUserAddTag] result`, { userCanAddTag });
-                this.setState({ userCanAddTag });
-            });
-        } else {
-            ApiManager.tagApi.canUserAddTag({ userId: this.props.user.id, gameId: this.props.game.id, dateOverride: this.props.dateOverride }).then((userCanAddTag) => {
-                this.setState({ userCanAddTag });
-            });
-        }
-    }
-
     setTagById(id?: string): void {
         if (!id) {
-            this.setState({ currentTag: undefined, loadingTag: false, userCanAddTag: true });
+            this.setState({ currentTag: undefined, loadingTag: false });
         } else if (id !== this.state.currentTag?.id) {
             ApiManager.tagApi.getTag({ id }).then((tag) => {
                 this.setTag({ tag });
@@ -98,12 +66,11 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         }
     }
 
-    setTag({ tag, userCanAddTagOverride }: { tag?: TagDto; userCanAddTagOverride?: boolean }): void {
+    setTag({ tag }: { tag?: TagDto }): void {
         if (tag && tag.id === this.state.currentTag?.id) {
             this.setState({ fakeTagIsActive: false });
         } else {
-            const userCanAddTagUpdate = userCanAddTagOverride !== undefined ? { userCanAddTag: userCanAddTagOverride } : ({} as TagScrollerState);
-            this.setState({ currentTag: tag, loadingTag: false, ...userCanAddTagUpdate, fakeTagIsActive: false });
+            this.setState({ currentTag: tag, loadingTag: false, fakeTagIsActive: false });
         }
     }
 
@@ -117,11 +84,6 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         } else {
             return <MinimalTag tag={tag} isSubtag={this.props.isSubtag} selectTag={() => this.setTagById(tag.id)} />;
         }
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    createNewSubtag(_tag: TagDto): void {
-        this.fetchAndSetCanUserAddTag();
     }
 
     saveNewTag({ imageUrl }: { imageUrl: string }): void {
@@ -144,7 +106,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
             };
         }
         ApiManager.tagApi.createTag(tag).then((newTag) => {
-            this.setTag({ tag: newTag, userCanAddTagOverride: false });
+            this.setTag({ tag: newTag });
             this.props.createNewTag(newTag);
             this.props.refreshScores();
         });
@@ -169,7 +131,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         // dev mode code - handle re-rendering when changing the date override - only applies to new root tags
         const userCanAddTagWithDateOverride = this.props.isSubtag || !this.props.game.latestRootTag ? true : !isEarlierDate(this.props.dateOverride, this.props.game.latestRootTag.postedDate);
         // so we can actually add a tag only if the date override is true
-        const canAddTagDateOverride = this.state.userCanAddTag && userCanAddTagWithDateOverride;
+        const canAddTagDateOverride = this.props.userCanAddTag && userCanAddTagWithDateOverride;
 
         // const canAddTag = canAddTagDateOverride && (this.props.isSubtag || (!this.props.isSubtag && this.props.game.latestRootTag?.id === this.state.currentTag?.id));
 
@@ -187,7 +149,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
                     isFirstTag={(this.props.isSubtag ? this.props.subtagRootTag!.nextTag : this.props.game.latestRootTag) === undefined}
                 />
             ) : undefined;
-        logger.info(`[render]`, { addTagPanel: addTagPanel ? 'true' : 'false' });
+        logger.info(`[render]`, { addTagPanel: addTagPanel ? 'true' : 'false', isSubtag: this.props.isSubtag, userCanAddTag: this.props.userCanAddTag, userCanAddTagWithDateOverride });
 
         // start with the simple case of no tag to display
         if (!this.state.currentTag) {
@@ -229,36 +191,24 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         if (this.props.isSubtag) {
             innerDiv = <Tag tag={this.state.currentTag} isSubtag={this.props.isSubtag} />;
         } else if (!this.state.fakeTagIsActive) {
-            innerDiv = (
-                <div className="latest-tag-column">
-                    <Tag tag={this.state.currentTag} isSubtag={this.props.isSubtag} />
-                    <div style={{ border: '1px solid #00ffee' }}>{this.state.currentTag.nextTag ? 'Other tags:' : ' '}</div>
-                    <TagScroller
-                        key={`subtag-${this.state.currentTag.id}`}
-                        isSubtag={true}
-                        game={this.props.game}
-                        user={this.props.user}
-                        subtagRootTag={this.state.currentTag}
-                        refreshScores={this.props.refreshScores}
-                        createNewTag={(tag: TagDto) => this.createNewSubtag(tag)}
-                        dateOverride={this.props.dateOverride}
-                    />
-                </div>
-            );
+            innerDiv = <Tag tag={this.state.currentTag} isSubtag={this.props.isSubtag} />;
         } else if (addTagPanel) {
             innerDiv = addTagPanel;
         } else if (this.state.fakeTagIsActive) {
             innerDiv = <PendingTag isActive={true} tag={this.props.game.pendingRootTag!} />;
         }
 
+        logger.info(`[render] before return`, {
+            nextTagPanel: nextTagPanel ? 'true' : 'false',
+            innerDivIsAddTag: innerDiv === addTagPanel,
+        });
+
         return (
             <div className={className}>
                 <div>{this.getMinimalTag(previousTag)}</div>
                 {innerDiv}
-                <div id="1234">
-                    {nextTagPanel}
-                    {innerDiv !== addTagPanel && addTagPanel}
-                </div>
+                {nextTagPanel}
+                {innerDiv !== addTagPanel && addTagPanel}
             </div>
         );
     }
