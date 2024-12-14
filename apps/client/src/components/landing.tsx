@@ -120,7 +120,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
                             </a>
                         ))}
                     </div>
-                    <input type="button" name="createGame" value="Create game" onClick={() => this.setState({ creatingGame: true })}></input>
+                    <button onClick={() => this.setState({ creatingGame: true })}>Create game</button>
                 </div>
             );
         }

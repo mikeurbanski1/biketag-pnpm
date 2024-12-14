@@ -186,7 +186,7 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
 
         return (
             <div className="game-view">
-                <div className="game-title" title="Click to refresh">
+                <div className="title" title="Click to refresh">
                     <span className="clickable-text" onClick={() => this.props.doneViewingGame()}>
                         ←
                     </span>{' '}

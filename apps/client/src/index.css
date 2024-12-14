@@ -36,7 +36,7 @@
     border: 1px solid black;
     display: grid;
     height: 100%;
-    grid-template-rows: 8% 1fr;
+    grid-template-rows: 60px 1fr;
 }
 
 .header {
@@ -48,13 +48,79 @@
     grid-row: 2;
 }
 
-.login-text {
-    width: 90%;
+input[type="text"] {
+    width: 80%;
     border-radius: 8px;
     border: 1px solid #ad0088;
-    font-size: 2em;
+    font-size: 1em;
     text-align: center;
     color: #656567;
+}
+
+button {
+    border-radius: 8px;
+    border: 1px solid #ad0088;
+    padding: 0.2em 0.4em;
+    font-size: 1em;
+    font-family: inherit;
+    background-color: #f2f2f2;
+    transition: border-color 0.5s;
+    box-sizing: content-box;
+    width: 80%;
+    text-align: center;
+}
+
+.log-out-button {
+    width: 10%;
+}
+
+select {
+    border-radius: 8px;
+    border: 1px solid #ad0088;
+    padding: 0.2em 0.4em;
+    font-size: 1em;
+    font-family: inherit;
+    background-color: #f2f2f2;
+    transition: border-color 0.5s;
+    box-sizing: content-box;
+    width: 80%;
+    text-align: center;
+}
+
+.user-grid button, select {
+    height: 25px;
+}
+
+button:disabled {
+    border-radius: 8px;
+    border: 1px solid #454545;
+}
+
+button:hover:enabled {
+    border-color: #646cff;
+    cursor: pointer;
+}
+
+button:focus:enabled,
+button:focus-visible:enabled {
+    border-color: #4047c8;
+    background-color: #e8e8e8;
+}
+
+.button-pair {
+    display: flex;
+    justify-content: center;
+    gap: 5%;
+    width: 80%;
+}
+
+.button-pair>button {
+    width: 40%;
+}
+
+input.login-text {
+    width: 90%;
+    font-size: 2em;
 }
 
 .login-text:focus,
@@ -67,18 +133,6 @@
     color: #656567;
     outline: 0;
 }
-
-.login-button {
-    width: 40%
-}
-
-.login-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 5%;
-    width: 100%
-}
-
 
 .game-admin-button {
     width: 10%
@@ -117,27 +171,6 @@ h1 {
     line-height: 1.1;
 }
 
-button {
-    border-radius: 8px;
-    border: 1px solid #ad0088;
-    padding: 0.2em 0.4em;
-    font-size: 1em;
-    font-family: inherit;
-    background-color: #f2f2f2;
-    cursor: pointer;
-    transition: border-color 0.25s;
-}
-
-button:hover {
-    border-color: #646cff;
-}
-
-button:focus,
-button:focus-visible {
-    border-color: #4047c8;
-    background-color: #e8e8e8;
-}
-
 @media (prefers-color-scheme: light) {
     :root {
         color: #213547;
@@ -149,9 +182,6 @@ button:focus-visible {
     }
 }
 
-input[type="button"] {
-    text-align: center;
-}
 
 .logged-in-text {
     font-style: italic;
@@ -196,7 +226,39 @@ input[type="button"] {
     overflow: hidden;
 }
 
-.game-title {
+.user-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1em;
+    width: 100%;
+}
+
+.user-grid-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1em;
+    width: 80%;
+    align-items: center;
+}
+
+.user-grid-row>div:nth-last-child(-n + 2) {
+    text-align: center;
+}
+
+/* .user-grid-row>div:nth-child(1) {
+    grid-column: 1;
+}
+
+.user-grid-row>div:nth-child(2) {
+    grid-column: 2;
+}
+
+.user-grid-row>div:nth-child(3) {
+    grid-column: 3;
+} */
+
+.title {
     font-weight: bold;
     color: #8500e4
 }
@@ -213,15 +275,6 @@ input[type="button"] {
     box-sizing: border-box;
 }
 
-/* .root-tag-scroller {
-    display: flex;
-    gap: 1em;
-    justify-content: space-between;
-    align-items: flex-start;
-    border: 1px solid #ff0000;
-    box-sizing: border-box;
-} */
-
 .root-tag-scroller {
     display: grid;
     width: 100%;
@@ -235,8 +288,6 @@ input[type="button"] {
     grid-row: 1;
     grid-column-end: span 3;
 }
-
-/* .root-tag-scroller>div:nth-child(odd) {} */
 
 .root-tag-scroller>div:nth-child(1) {
     grid-column-start: 1;

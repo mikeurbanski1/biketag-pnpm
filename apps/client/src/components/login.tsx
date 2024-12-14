@@ -81,7 +81,7 @@ export class Login extends React.Component<LoginProps, LoginState> {
         return (
             <div className="flex-column moderate-gap center">
                 <input className="login-text" placeholder="Name" type="text" onChange={(event) => this.handleNameChange(event)} value={this.state.name}></input>
-                <div className="login-buttons">
+                <div className="button-pair">
                     <button className="login-button" type="button" onClick={async () => await this.login()} disabled={!this.state.canSignup}>
                         Login
                     </button>

@@ -96,7 +96,7 @@ export default class App extends React.Component<AppProps, AppComponentState> {
         const loggedIn = this.state.user ? (
             <span className="logged-in-text">
                 Logged in as {this.state.user.name}{' '}
-                <button name="login" value="Log out" onClick={() => this.handleLogOut()}>
+                <button className="log-out-button" name="login" value="Log out" onClick={() => this.handleLogOut()}>
                     Log out
                 </button>
             </span>
