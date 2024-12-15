@@ -15,7 +15,9 @@
         "",
         "^@biketag/.*$",
         "",
-        "^[./]"
+        "^[./].*(?<!\\.css)$",
+        "",
+        "^.*\\.css$"
     ],
     "importOrderParserPlugins": [
         "typescript",

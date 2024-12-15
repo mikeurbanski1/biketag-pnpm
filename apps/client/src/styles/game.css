@@ -1,0 +1,41 @@
+.game-admin-button {
+    width: 10%
+}
+
+.game-admin-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1em;
+    /* border: 1px solid green; */
+    width: 100%
+}
+
+.game-admin-buttons[hidden] {
+    display: none;
+}
+
+.game-view {
+    display: grid;
+    grid-template-rows: 75px 1fr;
+    align-items: center;
+    /* border: 1px solid purple; */
+    height: 700px;
+    overflow: hidden;
+}
+
+.game-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* border: 1px solid purple; */
+    height: 100%;
+    overflow: hidden;
+    grid-row: 1;
+}
+
+.tag-view {
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    height: 100%
+}

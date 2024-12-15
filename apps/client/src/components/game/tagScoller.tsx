@@ -8,6 +8,8 @@ import { ApiManager } from '../../api';
 import { AddTag } from './addTag';
 import { MinimalTag, PendingTag, Tag } from './tag';
 
+import '../../styles/tag.css';
+
 const logger = new Logger({ prefix: '[TagScroller]' });
 
 interface TagScrollerState {

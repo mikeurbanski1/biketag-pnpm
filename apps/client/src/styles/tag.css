@@ -1,0 +1,110 @@
+.tag-scroller {
+    display: grid;
+    width: 100%;
+    height: 500px;
+    grid-template-columns: 10% 10% 60% 10% 10%;
+    grid-auto-rows: 100%;
+    /* border: 1px solid #ff0000; */
+    /* overflow: scroll; */
+    /* position: relative; */
+    /* height: 80% */
+}
+
+.tag-scroller.minimized {
+    height: 20%;
+}
+
+.tag-scroller>div {
+    grid-row: 1;
+    grid-column-end: span 3;
+}
+
+.tag-scroller>div:nth-child(1) {
+    grid-column-start: 1;
+    z-index: 0;
+}
+
+.tag-scroller>div:nth-child(2) {
+    grid-column-start: 2;
+    z-index: 1;
+}
+
+.tag-scroller>div:nth-child(3) {
+    grid-column-start: 3;
+    z-index: 0;
+}
+
+
+.tag {
+    border-radius: 20px;
+    display: grid;
+    grid-template-rows: 80% 1fr;
+    box-shadow: 15px 15px 5px rgb(143, 143, 143);
+    /* border: 1px solid #ff0000; */
+    box-sizing: border-box;
+    overflow: hidden;
+    /* height: 300px; */
+    height: 100%;
+    background-color: #e8e8e8;
+    text-align: center;
+}
+
+.add-tag {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1em;
+}
+
+.tag-details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.tag-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.clickable-tag {
+    background-color: #bcbcbc;
+}
+
+.clickable-tag:hover {
+    background-color: #e8e8e8;
+    cursor: pointer;
+}
+
+.clickable-tag:hover .tag-image {
+    filter: brightness(130%);
+    -webkit-filter: brightness(130%);
+    -moz-filter: brightness(130%);
+    -o-filter: brightness(130%);
+    -ms-filter: brightness(130%);
+}
+
+.tag-creator {
+    color: #535bf2;
+    font-size: 1.1em;
+}
+
+.tag-points {
+    color: #fb0000;
+    font-size: 1.1em;
+}
+
+/* .subtag {
+    border-radius: 20px;
+    padding: 1em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 1em;
+    background-color: #ececec;
+    box-shadow: 15px 15px 5px rgb(143, 143, 143);
+    border: 1px solid #ff8000;
+    box-sizing: border-box;
+} */

@@ -8,6 +8,8 @@ import { Logger } from '@biketag/utils';
 import { ApiManager } from '../../api';
 import { TagScroller } from './tagScoller';
 
+import '../../styles/game.css';
+
 const logger = new Logger({ prefix: '[ViewGame]' });
 
 type PlayerTableRole = GameRoles | 'OWNER';

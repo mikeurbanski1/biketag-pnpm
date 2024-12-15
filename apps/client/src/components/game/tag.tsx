@@ -6,6 +6,8 @@ import { Logger } from '@biketag/utils';
 
 import { DATE_FORMAT } from '../../utils/consts';
 
+import '../../styles/tag.css';
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const logger = new Logger({});
 
