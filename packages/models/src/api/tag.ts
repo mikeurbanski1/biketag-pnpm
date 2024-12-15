@@ -11,7 +11,6 @@ export interface MinimalTag extends BaseDto {
 
 export interface PendingTag extends BaseDto {
     creator: Pick<UserDto, 'id' | 'name'>;
-    isPendingTagView: true;
 }
 
 export interface TagDto extends BaseDto {

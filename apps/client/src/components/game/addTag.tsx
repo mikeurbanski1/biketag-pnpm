@@ -43,7 +43,7 @@ export const AddTag: React.FC<AddTagProps> = ({ saveTag, previousRootTagDate, da
     }
 
     return (
-        <div className={`tag ${isActive ? '' : 'clickable-tag'}`} onClick={setAddTagAsActive}>
+        <div className={`tag ${isActive ? '' : 'clickable-tag'}`} onClick={isActive ? undefined : setAddTagAsActive}>
             <div className="add-tag">
                 {text}
                 <div>
