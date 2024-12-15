@@ -7,6 +7,8 @@ import { ApiManager } from '../api';
 import { CreateEditGame } from './createEditGame';
 import { Game } from './game/game';
 
+import '../styles/landing.css';
+
 interface LandingState {
     loadingGames: boolean;
     games: GameDto[];

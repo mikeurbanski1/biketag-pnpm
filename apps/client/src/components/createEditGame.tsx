@@ -1,5 +1,7 @@
 import React from 'react';
 
+import '../styles/createEditGame.css';
+
 import { CreateGameParams, GameDto, GameRoles, UserDto } from '@biketag/models';
 
 import { ApiManager } from '../api';
