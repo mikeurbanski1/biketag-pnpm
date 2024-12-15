@@ -1,12 +1,12 @@
 import dayjs, { Dayjs } from 'dayjs';
 import React from 'react';
 
-import { CreateTagDto, GameDto, MinimalTag as MinimalTagType, PendingTag as PendingTagType, TagDto, UserDto } from '@biketag/models';
+import { CreateTagDto, GameDto, isImageTag, MinimalTag as MinimalTagType, PendingTag as PendingTagType, TagDto, UserDto } from '@biketag/models';
 import { isEarlierDate, Logger } from '@biketag/utils';
 
 import { ApiManager } from '../../api';
 import { AddTag } from './addTag';
-import { MinimalTag, PendingTag, Tag } from './tag';
+import { Tag } from './tag';
 
 import '../../styles/tag.css';
 
@@ -58,6 +58,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
     }
 
     setTagById(id?: string): void {
+        logger.info(`[setTagById]`, { id });
         if (!id) {
             this.setState({ currentTag: undefined, loadingTag: false });
         } else if (id !== this.state.currentTag?.id) {
@@ -82,11 +83,11 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
     getMinimalTag(tag?: MinimalTagType | PendingTagType): React.ReactNode {
         if (!tag) {
             return undefined;
-        } else if ('isPendingTagView' in tag) {
-            return <PendingTag tag={tag} selectTag={() => this.setState({ fakeTagIsActive: true })} />;
-        } else {
-            return <MinimalTag tag={tag} isSubtag={this.props.isSubtag} selectTag={() => this.setTagById(tag.id)} />;
         }
+
+        const selectTag = isImageTag(tag) ? () => this.setTagById(tag.id) : () => this.setState({ fakeTagIsActive: true });
+
+        return <Tag tag={tag} selectTag={selectTag} isActive={false} />;
     }
 
     saveNewTag({ imageUrl }: { imageUrl: string }): void {
@@ -180,8 +181,8 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         let previousTag: MinimalTagType | undefined;
         if (this.props.isSubtag) {
             // if the previous tag of the subtag is the root tag, then we do not want to show it
-            logger.info(`[render] this.state.currentTag.parentTag?.id ${this.state.currentTag.parentTag?.id}`);
-            logger.info(`[render] this.props.subtagRootTag!.id ${this.props.subtagRootTag!.id}`);
+            // logger.info(`[render] this.state.currentTag.parentTag?.id ${this.state.currentTag.parentTag?.id}`);
+            // logger.info(`[render] this.props.subtagRootTag!.id ${this.props.subtagRootTag!.id}`);
             previousTag = this.state.currentTag.parentTag?.id !== this.props.subtagRootTag!.id ? this.state.currentTag.parentTag : undefined;
         } else if (!this.state.fakeTagIsActive) {
             previousTag = this.state.currentTag.previousRootTag;
@@ -190,20 +191,18 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         }
 
         let innerDiv: React.ReactNode;
-        if (this.props.isSubtag) {
-            innerDiv = <Tag tag={this.state.currentTag} isSubtag={this.props.isSubtag} />;
-        } else if (!this.state.fakeTagIsActive) {
-            innerDiv = <Tag tag={this.state.currentTag} isSubtag={this.props.isSubtag} />;
+        if (this.props.isSubtag || !this.state.fakeTagIsActive) {
+            innerDiv = <Tag tag={this.state.currentTag} />;
         } else if (addTagPanel) {
             innerDiv = addTagPanel;
         } else if (this.state.fakeTagIsActive) {
-            innerDiv = <PendingTag isActive={true} tag={this.props.game.pendingRootTag!} />;
+            innerDiv = <Tag tag={this.props.game.pendingRootTag!} />;
         }
 
-        logger.info(`[render] before return`, {
-            nextTagPanel: nextTagPanel ? 'true' : 'false',
-            innerDivIsAddTag: innerDiv === addTagPanel,
-        });
+        // logger.info(`[render] before return`, {
+        //     nextTagPanel: nextTagPanel ? 'true' : 'false',
+        //     innerDivIsAddTag: innerDiv === addTagPanel,
+        // });
 
         return (
             <div className={className}>

@@ -39,7 +39,6 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             return {
                 id: tag.id,
                 creator: await this.usersService.getRequired({ id: tag.creatorId }),
-                isPendingTagView: true,
             };
         }
         return await this.convertToDto(tag);
@@ -50,7 +49,6 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         return {
             id: tag.id,
             creator: await this.usersService.getRequired({ id: tag.creatorId }),
-            isPendingTagView: true,
         };
     }
 
