@@ -6,7 +6,6 @@ import { PlayerScores } from '@biketag/models/src/api/score';
 import { Logger } from '@biketag/utils';
 
 import { ApiManager } from '../../api';
-import { Table } from '../common/table';
 import { TagScroller } from './tagScoller';
 
 const logger = new Logger({ prefix: '[ViewGame]' });
@@ -186,30 +185,32 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
 
         return (
             <div className="game-view">
-                <div className="title" title="Click to refresh">
-                    <span className="clickable-text" onClick={() => this.props.doneViewingGame()}>
-                        ←
-                    </span>{' '}
-                    {game.name}{' '}
-                    <span className="clickable-text" onClick={() => this.refreshGame()}>
-                        ↻
-                    </span>
+                <div className="game-header">
+                    <div className="title" title="Click to refresh">
+                        <span className="clickable-text" onClick={() => this.props.doneViewingGame()}>
+                            ←
+                        </span>{' '}
+                        {game.name}{' '}
+                        <span className="clickable-text" onClick={() => this.refreshGame()}>
+                            ↻
+                        </span>
+                    </div>
+                    <div className={isCreator ? 'clickable-text' : ''} onClick={isCreator ? () => this.setState({ showingGameAdminButtons: !this.state.showingGameAdminButtons }) : undefined}>
+                        Created by: {game.creator.name} {isCreator && (this.state.showingGameAdminButtons ? '▼' : '▶')}
+                    </div>
+                    <div className="game-admin-buttons button-pair" hidden={!isCreator || !this.state.showingGameAdminButtons}>
+                        <button className="game-admin-button" onClick={() => this.props.editGame()}>
+                            Edit game
+                        </button>
+                        <button className="game-admin-button" onClick={() => this.props.deleteGame()}>
+                            Delete game
+                        </button>
+                    </div>
+                    <div className="clickable-text" onClick={() => this.setState({ scoresCollapsed: !this.state.scoresCollapsed })}>
+                        {this.state.scoresCollapsed ? '▶' : '▼'}Scoreboard
+                    </div>
                 </div>
-                <div className={isCreator ? 'clickable-text' : ''} onClick={isCreator ? () => this.setState({ showingGameAdminButtons: !this.state.showingGameAdminButtons }) : undefined}>
-                    Created by: {game.creator.name} {isCreator && (this.state.showingGameAdminButtons ? '▼' : '▶')}
-                </div>
-                <div className="game-admin-buttons button-pair" hidden={!isCreator || !this.state.showingGameAdminButtons}>
-                    <button className="game-admin-button" onClick={() => this.props.editGame()}>
-                        Edit game
-                    </button>
-                    <button className="game-admin-button" onClick={() => this.props.deleteGame()}>
-                        Delete game
-                    </button>
-                </div>
-                <div className="clickable-text" onClick={() => this.setState({ scoresCollapsed: !this.state.scoresCollapsed })}>
-                    {this.state.scoresCollapsed ? '▶' : '▼'}Scoreboard
-                </div>
-                <div hidden={this.state.scoresCollapsed}>
+                {/* <div hidden={this.state.scoresCollapsed}>
                     <Table<PlayerDetailsTableRow>
                         data={this.state.playerDetailsTable}
                         columnMapping={[
@@ -223,31 +224,35 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
                         initialSort={{ column: 'points', ascending: false }}
                         tableClassName="player-details-table"
                     />
-                </div>
-                <TagScroller
-                    key={`rootTagView-${game.latestRootTag?.id}`}
-                    isSubtag={false}
-                    game={game}
-                    user={this.props.user}
-                    createNewTag={(tag: TagDto) => this.createNewRootTag(tag)}
-                    refreshScores={() => this.refreshGame()}
-                    dateOverride={this.props.dateOverride}
-                    userCanAddTag={this.state.userCanAddRootTag}
-                    setCurrentRootTag={(tag: TagDto) => this.setCurrentRootTag(tag)}
-                />
-                {/* {this.state.currentRootTag && (
+                </div> */}
+                <div className="tag-view">
                     <TagScroller
-                        key={`subtag-${game.latestRootTag?.id}`}
-                        isSubtag={true}
-                        game={this.props.game}
+                        key={`rootTagView-${game.latestRootTag?.id}`}
+                        isSubtag={false}
+                        game={game}
                         user={this.props.user}
-                        subtagRootTag={this.state.currentRootTag}
+                        createNewTag={(tag: TagDto) => this.createNewRootTag(tag)}
                         refreshScores={() => this.refreshGame()}
-                        createNewTag={() => this.createNewSubtag()}
                         dateOverride={this.props.dateOverride}
-                        userCanAddTag={this.state.userCanAddSubtag}
+                        userCanAddTag={this.state.userCanAddRootTag}
+                        setCurrentRootTag={(tag: TagDto) => this.setCurrentRootTag(tag)}
+                        minimized={false}
                     />
-                )} */}
+                    {this.state.currentRootTag && (
+                        <TagScroller
+                            key={`subtag-${game.latestRootTag?.id}`}
+                            isSubtag={true}
+                            game={this.props.game}
+                            user={this.props.user}
+                            subtagRootTag={this.state.currentRootTag}
+                            refreshScores={() => this.refreshGame()}
+                            createNewTag={() => this.createNewSubtag()}
+                            dateOverride={this.props.dateOverride}
+                            userCanAddTag={this.state.userCanAddSubtag}
+                            minimized={true}
+                        />
+                    )}
+                </div>
             </div>
         );
     }

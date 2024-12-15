@@ -63,7 +63,9 @@ export const PendingTag: React.FC<PendingTagProps> = ({ tag, selectTag, isActive
     const className = isActive ? '' : 'clickable-tag';
     return (
         <div className={`tag ${className}`} onClick={selectTag}>
-            The next tag posted by <span className="tag-creator">{tag.creator.name}</span> will go live at midnight!
+            <div className="tag-details">
+                The next tag posted by <span className="tag-creator">{tag.creator.name}</span> will go live at midnight!
+            </div>
         </div>
     );
 };

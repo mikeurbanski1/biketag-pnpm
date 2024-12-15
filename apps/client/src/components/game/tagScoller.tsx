@@ -27,6 +27,7 @@ interface TagScrollerProps {
     setCurrentRootTag?: (tag: TagDto) => void;
     dateOverride: Dayjs;
     userCanAddTag: boolean;
+    minimized: boolean;
 }
 
 export class TagScroller extends React.Component<TagScrollerProps, TagScrollerState> {
@@ -117,8 +118,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
     }
 
     render() {
-        const classType = this.props.isSubtag ? 'subtag' : 'root-tag';
-        const className = `${classType}-scroller`;
+        const className = `tag-scroller ${this.props.minimized ? 'minimized' : ''}`;
 
         logger.info(`[render]`, { isSubtag: this.props.isSubtag, state: this.state, props: this.props });
 

@@ -1,6 +1,7 @@
 #root {
     width: 100%;
     height: 100vh;
+    max-height: 100vh;
     overflow: scroll;
     margin: 0;
 }
@@ -46,6 +47,7 @@
 
 .main {
     grid-row: 2;
+    /* border: 1px solid #de0007; */
 }
 
 input[type="text"] {
@@ -216,12 +218,28 @@ h1 {
 
 
 .game-view {
+    display: grid;
+    grid-template-rows: 75px 1fr;
+    align-items: center;
+    /* border: 1px solid purple; */
+    height: 100%;
+    overflow: hidden;
+}
+
+.game-header {
     display: flex;
     flex-direction: column;
     align-items: center;
     /* border: 1px solid purple; */
     height: 100%;
     overflow: hidden;
+    grid-row: 1;
+}
+
+.tag-view {
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
 }
 
 .user-grid {
@@ -273,10 +291,10 @@ h1 {
     box-sizing: border-box;
 }
 
-.root-tag-scroller {
+.tag-scroller {
     display: grid;
     width: 100%;
-    height: 100%;
+    height: 500px;
     grid-template-columns: 10% 10% 60% 10% 10%;
     grid-auto-rows: 100%;
     /* border: 1px solid #ff0000; */
@@ -284,39 +302,42 @@ h1 {
     position: relative;
 }
 
-.root-tag-scroller>div {
+.minimized {
+    height: 100px;
+}
+
+.tag-scroller>div {
     grid-row: 1;
     grid-column-end: span 3;
 }
 
-.root-tag-scroller>div:nth-child(1) {
+.tag-scroller>div:nth-child(1) {
     grid-column-start: 1;
     z-index: 0;
 }
 
-.root-tag-scroller>div:nth-child(2) {
+.tag-scroller>div:nth-child(2) {
     grid-column-start: 2;
     z-index: 1;
 }
 
-.root-tag-scroller>div:nth-child(3) {
+.tag-scroller>div:nth-child(3) {
     grid-column-start: 3;
     z-index: 0;
 }
 
-.subtag-scroller {
+/* .subtag-scroller {
     display: flex;
     flex-direction: column;
     gap: 1em;
     border: 1px solid #0011ff;
     box-sizing: border-box;
-}
+} */
 
 .tag {
     border-radius: 20px;
     display: grid;
     grid-template-rows: 80% 1fr;
-    align-items: center;
     box-shadow: 15px 15px 5px rgb(143, 143, 143);
     /* border: 1px solid #ff0000; */
     box-sizing: border-box;
@@ -324,14 +345,21 @@ h1 {
     /* height: 700px; */
     height: 100%;
     background-color: #e8e8e8;
+    text-align: center;
+}
+
+.add-tag {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1em;
 }
 
 .tag-details {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.25em;
-    padding: 1em;
+    justify-content: center;
 }
 
 .main-tag {

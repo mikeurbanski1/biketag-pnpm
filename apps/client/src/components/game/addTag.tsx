@@ -43,13 +43,17 @@ export const AddTag: React.FC<AddTagProps> = ({ saveTag, previousRootTagDate, da
     }
 
     return (
-        <div className={`tag ${isActive ? '' : 'clickable-tag'} add-tag`} onClick={setAddTagAsActive}>
-            {text}
-            <div>
-                <input type="text" placeholder="Image URL" className="tag-input" name="contents" onChange={(event) => setImageUrl(event.target.value)} value={imageUrl}></input>
+        <div className={`tag ${isActive ? '' : 'clickable-tag'}`} onClick={setAddTagAsActive}>
+            <div className="add-tag">
+                {text}
+                <div>
+                    <input type="text" placeholder="Image URL" className="tag-input" name="contents" onChange={(event) => setImageUrl(event.target.value)} value={imageUrl}></input>
+                </div>
             </div>
-            <div>
-                <input type="button" name="save-tag" value="Save" disabled={!canSave} onClick={() => saveTag({ imageUrl })}></input>
+            <div className="tag-details">
+                <button disabled={!canSave} onClick={() => saveTag({ imageUrl })}>
+                    Save
+                </button>
             </div>
         </div>
     );
