@@ -31,30 +31,24 @@ body {
     }
 }
 
-#root {
+/* #root {
     width: 100%;
     height: 100vh;
     max-height: 100vh;
     overflow: scroll;
     margin: 0;
-}
+} */
 
 .App {
     /* width: 100%; */
     /* border: 1px solid black; */
     display: grid;
     height: 100%;
-    grid-template-rows: 60px 1fr;
-}
-
-.header {
-    grid-row: 1;
-    text-align: center;
-}
-
-.main {
-    grid-row: 2;
-    /* border: 1px solid #de0007; */
+    grid-template-rows: auto 1fr;
+    grid-auto-flow: column;
+    gap: 8px;
+    height: 100vh;
+    max-height: 100vh;
 }
 
 .landing {
@@ -62,6 +56,10 @@ body {
     flex-direction: column;
     gap: 1em;
     align-items: center;
+}
+
+.main {
+    overflow: hidden;
 }
 
 /* Common styles */
@@ -76,7 +74,7 @@ body {
     gap: 1em;
 }
 
-input[type="text"] {
+input[type='text'] {
     width: 80%;
     border-radius: 8px;
     border: 1px solid #ad0088;
@@ -85,8 +83,8 @@ input[type="text"] {
     color: #656567;
 }
 
-input[type="text"]:focus,
-input[type="text"]:focus-visible {
+input[type='text']:focus,
+input[type='text']:focus-visible {
     border-radius: 8px;
     border-color: #0000ec;
     color: #656567;
@@ -129,7 +127,7 @@ button:focus-visible:enabled {
     width: 80%;
 }
 
-.button-pair>button {
+.button-pair > button {
     width: 40%;
 }
 
@@ -148,23 +146,23 @@ select {
 
 .clickable-text {
     cursor: pointer;
-    color: #0003c3
+    color: #0003c3;
 }
 
 .clickable-text:hover {
     cursor: pointer;
-    color: #000142
+    color: #000142;
 }
 
 .title {
     font-weight: bold;
-    color: #8500e4
+    color: #8500e4;
 }
 
 /* More specific element styles */
 
 .log-out-button {
-    width: 10%;
+    width: auto;
 }
 
 input.login-text {
