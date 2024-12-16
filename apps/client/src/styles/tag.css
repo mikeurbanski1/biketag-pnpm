@@ -39,7 +39,7 @@
     border-radius: 20px;
     display: grid;
     grid-template-rows: 80% 1fr;
-    box-shadow: 15px 15px 5px rgb(143, 143, 143);
+    box-shadow: 15px 15px 5px rgb(0, 0, 0, 0.5);
     /* border: 1px solid #ff0000; */
     box-sizing: border-box;
     overflow: hidden;
@@ -47,6 +47,7 @@
     height: 100%;
     background-color: #e8e8e8;
     text-align: center;
+    align-items: center;
 }
 
 .tag.minimized {
@@ -68,8 +69,10 @@
 }
 
 .tag-image {
-    width: 100%;
-    height: 100%;
+    width: 90%;
+    height: 90%;
+    display: block;
+    margin: auto;
     object-fit: cover;
 }
 

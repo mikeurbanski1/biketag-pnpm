@@ -37,6 +37,7 @@
     display: grid;
     grid-auto-rows: 70% 30%;
     /* border: 1px solid #0000ec; */
+    gap: 1em;
     height: 100%;
     overflow: hidden;
 }
