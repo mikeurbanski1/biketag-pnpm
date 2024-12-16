@@ -65,6 +65,10 @@ export const copyDefinedProperties = <T>(source: T, filters?: (keyof T)[]): Part
 
 export const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
+export const isNumeric = (str: string | number): boolean => {
+    return typeof str === 'number' || !isNaN(Number(str));
+};
+
 export * from './consts';
 export * from './date';
 export { Logger, LogLevel };

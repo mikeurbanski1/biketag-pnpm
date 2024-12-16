@@ -29,7 +29,7 @@ interface TagScrollerProps {
     setCurrentRootTag?: (tag: TagDto) => void;
     dateOverride: Dayjs;
     userCanAddTag: boolean;
-    minimized: boolean;
+    isMinimized: boolean;
 }
 
 export class TagScroller extends React.Component<TagScrollerProps, TagScrollerState> {
@@ -58,7 +58,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
     }
 
     setTagById(id?: string): void {
-        logger.info(`[setTagById]`, { id });
+        logger.info(`[setTagById]`, { id, isSubtag: this.props.isSubtag });
         if (!id) {
             this.setState({ currentTag: undefined, loadingTag: false });
         } else if (id !== this.state.currentTag?.id) {
@@ -73,8 +73,13 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
     setTag({ tag }: { tag?: TagDto }): void {
         if (tag && tag.id === this.state.currentTag?.id) {
             this.setState({ fakeTagIsActive: false });
-        } else {
+        } else if (tag) {
             this.setState({ currentTag: tag, loadingTag: false, fakeTagIsActive: false });
+            if (!this.props.isSubtag) {
+                this.props.setCurrentRootTag!(tag);
+            }
+        } else {
+            this.setState({ currentTag: undefined, loadingTag: false, fakeTagIsActive: false });
         }
     }
 
@@ -121,7 +126,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
     }
 
     render() {
-        const className = `tag-scroller ${this.props.minimized ? 'minimized' : ''}`;
+        const className = `tag-scroller ${this.props.isMinimized ? 'minimized' : ''}`;
 
         logger.info(`[render]`, { isSubtag: this.props.isSubtag, state: this.state, props: this.props });
 
@@ -158,7 +163,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         if (!this.state.currentTag) {
             return (
                 <div className={className}>
-                    <div>{this.props.isSubtag ? 'Nobody else has been here yet!' : 'Nobody has gone anywhere!'}</div>
+                    <div></div>
                     {addTagPanel}
                 </div>
             );
@@ -192,7 +197,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
 
         let innerDiv: React.ReactNode;
         if (this.props.isSubtag || !this.state.fakeTagIsActive) {
-            innerDiv = <Tag tag={this.state.currentTag} />;
+            innerDiv = <Tag tag={this.state.currentTag} isMinimized={this.props.isMinimized} />;
         } else if (addTagPanel) {
             innerDiv = addTagPanel;
         } else if (this.state.fakeTagIsActive) {

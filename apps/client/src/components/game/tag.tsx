@@ -15,6 +15,7 @@ interface TagProps {
     tag: TagDto | MinimalTagType | PendingTagType;
     isActive?: boolean;
     selectTag?: () => void;
+    isMinimized?: boolean;
 }
 
 // interface MinimalTagProps {
@@ -29,7 +30,7 @@ interface TagProps {
 //     selectTag?: () => void;
 // }
 
-export const Tag: React.FC<TagProps> = ({ tag, isActive = true, selectTag }) => {
+export const Tag: React.FC<TagProps> = ({ tag, isActive = true, selectTag, isMinimized = false }) => {
     const classes = ['tag'];
     if (!isActive) {
         classes.push('clickable-tag');
@@ -41,7 +42,7 @@ export const Tag: React.FC<TagProps> = ({ tag, isActive = true, selectTag }) => 
         let points = undefined;
         let tagWinner = undefined;
 
-        if (isFullTag(tag)) {
+        if (isFullTag(tag) && !isMinimized) {
             points = (
                 <span className="tag-points">
                     {tag.stats.points} point{tag.stats.points === 1 ? '' : 's'}
