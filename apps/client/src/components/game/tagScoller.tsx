@@ -174,9 +174,10 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         let nextTagPanel: React.ReactNode = undefined;
 
         if (!this.state.fakeTagIsActive) {
-            if (this.props.isSubtag && this.state.currentTag.nextTag) {
-                nextTagPanel = this.getMinimalTag(this.state.currentTag.nextTag);
-            } else if (!this.props.isSubtag && this.props.game.pendingRootTag) {
+            if (this.props.isSubtag && this.state.currentTag.parentTag && this.state.currentTag.parentTag?.id !== this.props.subtagRootTag!.id) {
+                // we start with the first tag, not the last like for root tags, so we will have them go from right to left for now (just for now.... ... ?)
+                nextTagPanel = this.getMinimalTag(this.state.currentTag.parentTag);
+            } else if (!this.props.isSubtag && this.state.currentTag.id === this.props.game.latestRootTag?.id && this.props.game.pendingRootTag) {
                 nextTagPanel = this.getMinimalTag(this.props.game.pendingRootTag);
             } else if (!this.props.isSubtag && this.state.currentTag.nextRootTag) {
                 nextTagPanel = this.getMinimalTag(this.state.currentTag.nextRootTag);
@@ -184,11 +185,8 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         }
 
         let previousTag: MinimalTagType | undefined;
-        if (this.props.isSubtag) {
-            // if the previous tag of the subtag is the root tag, then we do not want to show it
-            // logger.info(`[render] this.state.currentTag.parentTag?.id ${this.state.currentTag.parentTag?.id}`);
-            // logger.info(`[render] this.props.subtagRootTag!.id ${this.props.subtagRootTag!.id}`);
-            previousTag = this.state.currentTag.parentTag?.id !== this.props.subtagRootTag!.id ? this.state.currentTag.parentTag : undefined;
+        if (this.props.isSubtag && !this.state.fakeTagIsActive) {
+            previousTag = this.state.currentTag.nextTag;
         } else if (!this.state.fakeTagIsActive) {
             previousTag = this.state.currentTag.previousRootTag;
         } else {
@@ -196,7 +194,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         }
 
         let innerDiv: React.ReactNode;
-        if (this.props.isSubtag || !this.state.fakeTagIsActive) {
+        if (!this.state.fakeTagIsActive) {
             innerDiv = <Tag tag={this.state.currentTag} isMinimized={this.props.isMinimized} />;
         } else if (addTagPanel) {
             innerDiv = addTagPanel;

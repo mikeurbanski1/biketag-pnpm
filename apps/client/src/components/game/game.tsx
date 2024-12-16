@@ -71,6 +71,7 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
 
     componentDidMount(): void {
         this.setUserCanAddRootTag();
+        this.setUserCanAddSubtag();
     }
 
     setUserCanAddRootTag(): void {
@@ -78,6 +79,15 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
             logger.info(`[createNewSubtag] userCanAddRootTag result`, { userCanAddRootTag });
             this.setState({ userCanAddRootTag });
         });
+    }
+
+    setUserCanAddSubtag(): void {
+        if (this.state.currentRootTag) {
+            ApiManager.tagApi.canUserAddSubtag({ userId: this.props.user.id, tagId: this.state.currentRootTag.id }).then((userCanAddSubtag) => {
+                logger.info(`[createNewSubtag] userCanAddSubtag result`, { userCanAddSubtag });
+                this.setState({ userCanAddSubtag });
+            });
+        }
     }
 
     // private sortPlayerDetailsTable({
