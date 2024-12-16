@@ -34,6 +34,7 @@ interface ViewGameState {
     userCanAddRootTag: boolean;
     userCanAddSubtag: boolean;
     viewingGameDetails: boolean;
+    fakeRootTagActive: boolean;
 }
 
 interface ViewGameProps {
@@ -66,6 +67,7 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
             // a root tag exists, and there is no next tag, and we did not post it
             userCanAddSubtag: latestRootTag ? !latestRootTag.nextTag && latestRootTag.creator.id !== this.props.user.id : false,
             viewingGameDetails: false,
+            fakeRootTagActive: false,
         };
     }
 
@@ -172,6 +174,10 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
         this.setState({ currentRootTag: tag });
     }
 
+    setFakeRootTagActive(fakeRootTagActive: boolean): void {
+        this.setState({ fakeRootTagActive });
+    }
+
     getPlayerDetailsTable(game?: GameDto): PlayerDetailsTableRow[] {
         if (!game) {
             game = this.props.game;
@@ -209,8 +215,9 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
                     userCanAddTag={this.state.userCanAddRootTag}
                     setCurrentRootTag={(tag: TagDto) => this.setCurrentRootTag(tag)}
                     isMinimized={false}
+                    setFakeRootTagActive={(fakeRootTagActive: boolean) => this.setFakeRootTagActive(fakeRootTagActive)}
                 />
-                {this.state.currentRootTag && (
+                {this.state.currentRootTag && !this.state.fakeRootTagActive && (
                     <TagScroller
                         key={`subtag-${this.state.currentRootTag.id}`}
                         isSubtag={true}
