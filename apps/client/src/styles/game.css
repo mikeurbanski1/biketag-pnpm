@@ -25,9 +25,12 @@
 }
 
 .game-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.game-header > span {
+    text-align: center;
 }
 
 .tag-view {
@@ -36,4 +39,44 @@
     /* border: 1px solid #0000ec; */
     height: 100%;
     overflow: hidden;
+}
+
+.game-details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2em;
+}
+
+.player-details-table {
+    display: grid;
+    grid-auto-flow: row;
+    width: 90%;
+}
+
+.player-details-table .row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    align-items: center;
+}
+
+.player-details-table .header {
+    /* font-weight: bold; */
+}
+
+.player-details-table .cell {
+    padding: 0.2em;
+    text-align: center;
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+
+.player-details-table .sorted {
+    display: flex;
+    flex-direction: row;
+}
+
+.player-details-table .cell.sorted > span {
+    font-weight: bold;
 }
