@@ -91,6 +91,7 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
             this.setState({ currentTag: tag, loadingTag: false, fakeTagIsActive: false });
             if (rootTagCheck(this.props)) {
                 this.setFakeTagIsActive(false);
+                this.props.setCurrentRootTag(tag);
             }
         } else {
             this.setState({ currentTag: undefined, loadingTag: false, fakeTagIsActive: false });
