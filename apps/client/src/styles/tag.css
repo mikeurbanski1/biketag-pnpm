@@ -3,7 +3,7 @@
     /* width: 100%; */
     /* height: 500px; */
     /* height: 80%; */
-    grid-template-columns: 10% 10% 60% 10% 10%;
+    grid-template-columns: 15% 15% 40% 15% 15%;
     grid-auto-rows: 100%;
     /* border: 1px solid #ff0000; */
     /* overflow: scroll; */
@@ -38,20 +38,51 @@
 .tag {
     border-radius: 20px;
     display: grid;
-    grid-template-rows: 80% 1fr;
+    grid-template-rows: 1fr auto;
     box-shadow: 15px 15px 5px rgb(0, 0, 0, 0.5);
-    /* border: 1px solid #ff0000; */
+    border: 1px solid #535bf2;
     box-sizing: border-box;
-    overflow: hidden;
+    /* overflow: hidden; */
     /* height: 300px; */
     height: 100%;
+    width: 100%;
     background-color: #e8e8e8;
     text-align: center;
     align-items: center;
 }
 
-.tag.minimized {
-    height: 400%;
+.tag-image-container {
+    margin: auto;
+    width: calc(100% - 50px);
+    height: calc(100% - 50px);
+}
+
+.tag-image {
+    /* padding: 10px; */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tag-footer {
+    margin: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* padding: 0.5em; */
+    padding-bottom: 25px;
+    width: calc(100% - 50px);
+}
+
+.tag-footer > div {
+    line-height: 1em;
+    text-align: center;
+}
+
+.tag-footer > div:nth-child(1) {
+    text-align: left;
+}
+.tag-footer > div:nth-child(2) {
+    text-align: right;
 }
 
 .add-tag {
@@ -66,14 +97,6 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-}
-
-.tag-image {
-    width: 90%;
-    height: 90%;
-    display: block;
-    margin: auto;
-    object-fit: cover;
 }
 
 .clickable-tag {
