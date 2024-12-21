@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import React from 'react';
 
-import { isImageTag, MinimalTag as MinimalTagType, PendingTag as PendingTagType, TagDto } from '@biketag/models';
+import { isFullTag, PendingTag as PendingTagType, TagDto } from '@biketag/models';
 import { Logger } from '@biketag/utils';
 
 import { TIME_FORMAT } from '../../utils/consts';
@@ -14,7 +14,7 @@ import { convertDateToRelativeDate } from '../../utils/utils';
 const logger = new Logger({});
 
 interface TagProps {
-    tag: TagDto | MinimalTagType | PendingTagType;
+    tag: TagDto | PendingTagType;
     isActive?: boolean;
     selectTag?: () => void;
     isMinimized?: boolean;
@@ -40,19 +40,7 @@ export const Tag: React.FC<TagProps> = ({ tag, isActive = true, selectTag }) => 
 
     const className = classes.join(' ');
 
-    if (isImageTag(tag)) {
-        // const points = undefined;
-        // const tagWinner = undefined;
-
-        // if (isFullTag(tag) && !isMinimized) {
-        //     // points = (
-        //     //     <span className="tag-points">
-        //     //         {tag.stats.points} point{tag.stats.points === 1 ? '' : 's'}
-        //     //     </span>
-        //     // );
-        //     // tagWinner = tag.isRoot && tag.nextTag ? `Won by ${tag.nextTag.creator.name}` : <i>Nobody!</i>;
-        // }
-
+    if (isFullTag(tag)) {
         const relativeDate = convertDateToRelativeDate(dayjs(tag.postedDate));
         const timeFormat = dayjs(tag.postedDate).format(TIME_FORMAT);
 
@@ -72,25 +60,18 @@ export const Tag: React.FC<TagProps> = ({ tag, isActive = true, selectTag }) => 
                     <img className="tag-image" src={tag.imageUrl}></img>
                 </div>
                 {footer}
-                {/* <div className="tag-details">
-                    <span>
-                        by <span className={`tag-creator`}>{tag.creator.name}</span>
-                    </span>
-                    {points}
-                    <span>{dayjs(tag.postedDate).format(DATE_FORMAT)}</span>
-                    {tagWinner}
-                </div> */}
+            </div>
+        );
+    } else {
+        // pending tag
+        return (
+            <div className={`tag ${className}`} onClick={selectTag}>
+                <div className="tag-details">
+                    The next tag posted by <span className="tag-creator">{tag.creator.name}</span> will go live at midnight!
+                </div>
             </div>
         );
     }
-
-    return (
-        <div className={`tag ${className}`} onClick={selectTag}>
-            <div className="tag-details">
-                The next tag posted by <span className="tag-creator">{tag.creator.name}</span> will go live at midnight!
-            </div>
-        </div>
-    );
 };
 
 // export const MinimalTag: React.FC<MinimalTagProps> = ({ tag, selectTag }) => {

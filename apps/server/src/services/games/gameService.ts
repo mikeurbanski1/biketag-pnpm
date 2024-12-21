@@ -1,11 +1,9 @@
-import { CreateGameParams, GameDto, GameRoles, PlayerGame } from '@biketag/models';
-import { PlayerScores, TagStats } from '@biketag/models/src/api/score';
+import { BaseEntityWithoutId, CreateGameParams, GameDto, GameEntity, GameRoles, PlayerGame, PlayerScores, TagStats } from '@biketag/models';
 import { copyDefinedProperties } from '@biketag/utils';
 
 import { BaseService } from '../../common/baseService';
 import { validateExists } from '../../common/entityValidators';
 import { CannotRemovePlayerError, gameServiceErrors, UserNotFoundError } from '../../common/errors';
-import { BaseEntityWithoutId, GameEntity } from '../../dal/models';
 import { GameDalService } from '../../dal/services/gameDalService';
 import { TagService } from '../tags/tagService';
 import { UserService } from '../users/userService';

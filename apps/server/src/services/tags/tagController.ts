@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { Body, Controller, Get, Header, Path, Post, Query, Res, Route, SuccessResponse, TsoaResponse } from 'tsoa';
 
-import { CreateTagDto, TagDto } from '@biketag/models';
+import { CreateTagDto, PendingTag, TagDto } from '@biketag/models';
 import { Logger, USER_ID_HEADER } from '@biketag/utils';
 
 import { TagService } from './tagService';
@@ -14,9 +14,9 @@ export class TagController extends Controller {
 
     @Get('/{id}')
     @SuccessResponse('200', 'ok')
-    public async getTag(@Path() id: string, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<TagDto> {
+    public async getTag(@Path() id: string, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<TagDto | PendingTag> {
         logger.info(`[getTag] id: ${id}`);
-        const tag = await this.tagsService.get({ id });
+        const tag = await this.tagsService.getWithPendingCheck({ tagId: id });
         if (!tag) {
             return notFoundResponse(404, { reason: 'Tag does not exist' });
         }
@@ -34,7 +34,7 @@ export class TagController extends Controller {
 
     @Post('/multi')
     @SuccessResponse('201', 'Created')
-    public async getMultipleTags(@Body() requestBody: string[]): Promise<Record<string, TagDto>> {
+    public async getMultipleTags(@Body() requestBody: string[]): Promise<Record<string, TagDto | PendingTag>> {
         logger.info(`[getMultipleTags]`, { requestBody });
         const tags = await this.tagsService.getMultiple({ ids: requestBody });
         logger.info('[getMultipleTags] got tags', { tags });
@@ -43,7 +43,7 @@ export class TagController extends Controller {
                 idMap[tag.id] = tag;
                 return idMap;
             },
-            {} as Record<string, TagDto>
+            {} as Record<string, TagDto | PendingTag>
         );
     }
 

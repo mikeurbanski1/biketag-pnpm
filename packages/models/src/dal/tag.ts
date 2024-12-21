@@ -1,6 +1,5 @@
-import { TagStats } from '@biketag/models/src/api/score';
-
 import { BaseEntity } from '.';
+import { TagStats } from '../common';
 
 export interface TagEntity extends BaseEntity {
     // name: string;

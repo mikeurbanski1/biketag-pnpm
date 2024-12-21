@@ -1,6 +1,6 @@
 import { BaseDto, PendingTag, TagDto } from '.';
+import { GameScore } from '../common';
 import { GameRoles, PlayerGame, PlayerGameDto } from '../common/game';
-import { GameScore } from './score';
 import { UserDto } from './user';
 
 export interface GameDto extends BaseDto {

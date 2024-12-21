@@ -1,5 +1,6 @@
+import { UserEntity } from '@biketag/models';
+
 import { userServiceErrors } from '../../common/errors';
-import { UserEntity } from '../models';
 import { BaseDalService } from './baseDalService';
 
 export class UserDalService extends BaseDalService<UserEntity> {

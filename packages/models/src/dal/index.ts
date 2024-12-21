@@ -1,7 +1,8 @@
 import { EnhancedOmit, UUID } from 'mongodb';
 
-export * from './user';
 export * from './game';
+export * from './tag';
+export * from './user';
 
 export interface BaseEntity {
     id: string;

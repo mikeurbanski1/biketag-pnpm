@@ -1,9 +1,9 @@
 import { Collection, Filter, OptionalUnlessRequiredId, UUID, WithId } from 'mongodb';
 
+import { BaseEntity, BaseEntityWithoutId } from '@biketag/models';
 import { Logger } from '@biketag/utils';
 
 import { ServiceErrors } from '../../common/errors';
-import { BaseEntity, BaseEntityWithoutId } from '../models';
 import { CollectionName, MongoDbProvider } from '../providers/mongoProvider';
 
 export abstract class BaseDalService<E extends BaseEntity> {

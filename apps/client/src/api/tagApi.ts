@@ -1,18 +1,37 @@
 import { AxiosError } from 'axios';
 import { Dayjs } from 'dayjs';
 
-import { CreateTagDto, TagDto } from '@biketag/models';
+import { CreateTagDto, PendingTag, TagDto } from '@biketag/models';
 
 import { AbstractApi } from './abstractApi';
 
 export class TagNotFoundError extends Error {}
 
 export class TagApi extends AbstractApi {
+    private tagCache: Record<string, TagDto> = {};
+
     constructor({ clientId }: { clientId: string }) {
         super({ clientId, logPrefix: '[TagApi]' });
     }
 
-    public async getTag({ id }: { id: string }): Promise<TagDto> {
+    public clearCache(): void {
+        this.tagCache = {};
+    }
+
+    public async getTag({ id }: { id?: string }): Promise<TagDto | PendingTag | undefined> {
+        if (!id) {
+            return undefined;
+        }
+
+        const cachedTag = this.tagCache[id];
+        this.logger.info(`[getTag] cached tag`, { cachedTag });
+
+        // get from the cache if tag links are already set;
+        // if not, they might be updated, so we will re-fetch it
+        if (cachedTag) {
+            return this.tagCache[id];
+        }
+
         try {
             const resp = await this.axiosInstance.request<TagDto>({
                 method: 'get',
@@ -22,7 +41,9 @@ export class TagApi extends AbstractApi {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
             }
             this.logger.info('[getTag] got tag', { data: resp.data });
-            return resp.data;
+            const tag = resp.data;
+            this.tagCache[id] = tag;
+            return tag;
         } catch (err) {
             this.logger.error(`[getTag] got an error response`, { err });
             if (err instanceof AxiosError) {
@@ -34,11 +55,12 @@ export class TagApi extends AbstractApi {
         }
     }
 
-    public async getMultipleTags({ id }: { id: string }): Promise<Record<string, TagDto>> {
+    public async getMultipleTags({ ids }: { ids: string[] }): Promise<Record<string, TagDto | PendingTag>> {
         try {
-            const resp = await this.axiosInstance.request<Record<string, TagDto>>({
-                method: 'get',
-                url: `/tags/${id}`,
+            const resp = await this.axiosInstance.request<Record<string, TagDto | PendingTag>>({
+                method: 'post',
+                url: `/tags/multi`,
+                data: ids,
             });
             if (resp.status !== 200) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
