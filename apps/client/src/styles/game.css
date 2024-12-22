@@ -12,15 +12,6 @@
     /* height: 100%; */
 }
 
-.game-header {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-}
-
-.game-header > span {
-    text-align: center;
-}
-
 .tag-scroller {
     display: grid;
     /* width: 100%; */
