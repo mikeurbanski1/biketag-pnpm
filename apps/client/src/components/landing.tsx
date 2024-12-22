@@ -102,7 +102,12 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         if (!this.state.creatingGame && !this.state.selectedGame) {
             return (
                 <div className="landing">
-                    <div className="title">Your games</div>
+                    <div className="title">
+                        Your games{' '}
+                        <span className="clickable-text" onClick={() => this.refreshGames()}>
+                            ↻
+                        </span>
+                    </div>
                     {this.state.loadingGames ? (
                         <div>Loading games...</div>
                     ) : (
@@ -124,8 +129,6 @@ export class Landing extends React.Component<LandingProps, LandingState> {
             return (
                 <Game
                     gameId={this.state.selectedGame.id}
-                    // updateGame={(updateParams: Partial<GameDto>) => this.updateGame(updateParams)}
-                    setGame={(game: GameDto) => this.setGame(game)}
                     user={this.props.user}
                     deleteGame={() => this.deleteGame()}
                     doneViewingGame={() => this.doneViewingGame()}

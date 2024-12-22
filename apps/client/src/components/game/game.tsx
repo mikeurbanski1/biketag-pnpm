@@ -43,10 +43,7 @@ interface ViewGameState {
 interface ViewGameProps {
     user: UserDto;
     gameId: string;
-    // updateGame: (updateParams: Partial<GameDto>) => void;
-    setGame: (game: GameDto) => void;
     doneViewingGame: () => void;
-    // editGame: () => void;
     deleteGame: () => void;
     dateOverride: Dayjs;
 }
@@ -71,7 +68,6 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
 
     public componentDidMount(): void {
         this.fetchAndSetUserCanAddRootTag();
-        this.fetchAndSetUserCanAddSubtag();
         this.fetchAndSetGame();
     }
 
@@ -83,14 +79,26 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
                 game,
                 loadingGame: false,
                 isCreator: game.creator.id === this.props.user.id,
-                playerDetailsTable: playerDetailsTable,
+                playerDetailsTable,
                 currentRootTag: latestRootTag,
                 currentTag: latestRootTag,
                 showingAddRootTag: latestRootTag === undefined,
             });
             if (latestRootTag) {
+                logger.info(`[fetchAndSetGame]`, { latestRootTag });
                 this.fetchAndSetUserCanAddSubtag(latestRootTag);
             }
+        });
+    }
+
+    private refreshPlayerScores(): void {
+        const { game } = this.state;
+        if (!game) {
+            return;
+        }
+        ApiManager.gameApi.getGame({ id: game.id }).then((game) => {
+            const playerDetailsTable = this.getPlayerDetailsTable(game);
+            this.setState({ playerDetailsTable });
         });
     }
 
@@ -101,10 +109,10 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
     }
 
     private fetchAndSetUserCanAddSubtag(tagOverride?: TagDto): void {
-        if (!this.state.currentRootTag) {
+        if (!tagOverride && !this.state.currentRootTag) {
             this.setState({ userCanAddSubtag: false });
         } else {
-            ApiManager.tagApi.canUserAddSubtag({ userId: this.props.user.id, tagId: tagOverride?.id ?? this.state.currentRootTag.id }).then((userCanAddSubtag) => {
+            ApiManager.tagApi.canUserAddSubtag({ userId: this.props.user.id, tagId: tagOverride?.id ?? this.state.currentRootTag!.id }).then((userCanAddSubtag) => {
                 this.setState({ userCanAddSubtag });
             });
         }
@@ -118,54 +126,53 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
         }
     }
 
-    private createNewTag({ imageUrl, isSubtag }: { imageUrl: string; isSubtag: boolean }): void {
+    private async createNewTag({ imageUrl, isSubtag }: { imageUrl: string; isSubtag: boolean }): Promise<void> {
         if (isSubtag) {
-            this.createNewSubtag({ imageUrl });
+            await this.createNewSubtag({ imageUrl });
         } else {
-            this.createNewRootTag({ imageUrl });
+            await this.createNewRootTag({ imageUrl });
         }
+        this.refreshPlayerScores();
     }
 
-    private createNewRootTag({ imageUrl }: { imageUrl: string }): void {
-        ApiManager.tagApi.createTag({ imageUrl, gameId: this.props.gameId, isRoot: true }).then((tag) => {
-            // const latestRootTag = tag;
-            // const updateParams = { latestRootTag };
-            // this.props.updateGame(updateParams);
-            this.setState({
-                userCanAddRootTag: false,
-                userCanAddSubtag: false,
-                playerDetailsTable: this.getPlayerDetailsTable(),
-                currentRootTag: tag,
-                currentTag: tag,
-                showingAddRootTag: false,
-                game: { ...this.state.game!, latestRootTag: tag },
-            });
-            ApiManager.tagApi.updateTagInCache({
-                tagId: tag.previousRootTagId,
-                update: { nextRootTagId: tag.id },
-            });
+    private async createNewRootTag({ imageUrl }: { imageUrl: string }): Promise<void> {
+        const tag = await ApiManager.tagApi.createTag({ imageUrl, gameId: this.props.gameId, isRoot: true });
+        // const latestRootTag = tag;
+        // const updateParams = { latestRootTag };
+        // this.props.updateGame(updateParams);
+        this.setState({
+            userCanAddRootTag: false,
+            userCanAddSubtag: false,
+            currentRootTag: tag,
+            currentTag: tag,
+            showingAddRootTag: false,
+            game: { ...this.state.game!, latestRootTag: tag },
+        });
+        ApiManager.tagApi.updateTagInCache({
+            tagId: tag.previousRootTagId,
+            update: { nextRootTagId: tag.id },
         });
     }
 
-    private createNewSubtag({ imageUrl }: { imageUrl: string }): void {
-        ApiManager.tagApi.createTag({ imageUrl, gameId: this.props.gameId, isRoot: false, rootTagId: this.state.currentRootTag!.id }).then((tag) => {
-            const updateParams = {
-                userCanAddSubtag: false,
-                currentTag: tag,
-                showingAddSubtag: false,
-            };
-            if (tag.rootTagId! === this.state.game!.latestRootTag!.id) {
-                this.fetchAndSetUserCanAddRootTag();
-            }
-            this.setState(updateParams as ViewGameState);
-            ApiManager.tagApi.updateTagInCache({
-                tagId: tag.parentTagId,
-                update: { nextTagId: tag.id },
-            });
-            ApiManager.tagApi.updateTagInCache({
-                tagId: tag.rootTagId,
-                update: { lastTagInChainId: tag.id },
-            });
+    private async createNewSubtag({ imageUrl }: { imageUrl: string }): Promise<void> {
+        const tag = await ApiManager.tagApi.createTag({ imageUrl, gameId: this.props.gameId, isRoot: false, rootTagId: this.state.currentRootTag!.id });
+
+        const updateParams = {
+            userCanAddSubtag: false,
+            currentTag: tag,
+            showingAddSubtag: false,
+        };
+        if (tag.rootTagId! === this.state.game!.latestRootTag!.id) {
+            this.fetchAndSetUserCanAddRootTag();
+        }
+        this.setState(updateParams as ViewGameState);
+        ApiManager.tagApi.updateTagInCache({
+            tagId: tag.parentTagId,
+            update: { nextTagId: tag.id },
+        });
+        ApiManager.tagApi.updateTagInCache({
+            tagId: tag.rootTagId,
+            update: { lastTagInChainId: tag.id },
         });
     }
 
@@ -182,12 +189,13 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
     }
 
     private refreshGame(): void {
-        ApiManager.gameApi.getGame({ id: this.props.gameId }).then((game) => {
-            logger.info(`[refreshScores] got game`, { game });
-            this.props.setGame(game);
-            const playerDetailsTable = this.getPlayerDetailsTable();
-            this.setState({ playerDetailsTable, currentRootTag: game.latestRootTag });
+        this.setState({
+            loadingGame: true,
+            userCanAddRootTag: false,
+            userCanAddSubtag: false,
         });
+        this.fetchAndSetGame();
+        this.fetchAndSetUserCanAddRootTag();
     }
 
     private setCurrentTag(tag: TagDto | PendingTag): void {
