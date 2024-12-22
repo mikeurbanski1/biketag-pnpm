@@ -20,7 +20,7 @@
     grid-template-columns: 15% 15% 40% 15% 15%;
     grid-template-rows: 10% 10% 60% 10% 10%;
     grid-auto-rows: 100%;
-    border: 1px solid #ff0000;
+    /* border: 1px solid #ff0000; */
     /* overflow: scroll; */
     /* position: relative; */
     height: 100%;
