@@ -1,16 +1,16 @@
 import { Dayjs } from 'dayjs';
 import React from 'react';
 
-import { GameDto, GameRoles, TagDto, UserDto } from '@biketag/models';
-import { PlayerScores } from '@biketag/models/src/api/score';
+import { GameDto, GameRoles, isFullTag, PendingTag, PlayerScores, TagDto, UserDto } from '@biketag/models';
 import { Logger } from '@biketag/utils';
 
 import { ApiManager } from '../../api';
-import { TagScroller } from './tagScoller';
 
 import '../../styles/game.css';
 
 import { Table } from '../common/table';
+import { AddTag } from './addTag';
+import { Tag } from './tag';
 
 const logger = new Logger({ prefix: '[ViewGame]' });
 
@@ -23,18 +23,20 @@ type PlayerDetailsTableRow = PlayerScores & {
     [key: string]: string | number;
 };
 
+type Position = 'top' | 'right' | 'bottom' | 'left' | 'center';
+
 interface ViewGameState {
     isCreator: boolean;
     playerDetailsTable: PlayerDetailsTableRow[];
     currentRootTag?: TagDto;
-    sortColumn: number;
-    sortedAscending: boolean;
-    scoresCollapsed: boolean;
+    currentTag?: TagDto;
     showingGameAdminButtons: boolean;
     userCanAddRootTag: boolean;
     userCanAddSubtag: boolean;
     viewingGameDetails: boolean;
-    fakeRootTagActive: boolean;
+    showingPendingTag: boolean;
+    showingAddRootTag: boolean;
+    showingAddSubtag: boolean;
 }
 
 interface ViewGameProps {
@@ -58,125 +60,103 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
             isCreator: this.props.game.creator.id === this.props.user.id,
             playerDetailsTable: playerDetailsTable,
             currentRootTag: this.props.game.latestRootTag,
-            sortColumn: 1, // points column
-            sortedAscending: false,
-            scoresCollapsed: true,
+            currentTag: this.props.game.latestRootTag,
             showingGameAdminButtons: false,
-            // these are the two conditions we for sure know are true
-            userCanAddRootTag: latestRootTag === undefined,
-            // a root tag exists, and there is no next tag, and we did not post it
-            userCanAddSubtag: latestRootTag ? !latestRootTag.nextTag && latestRootTag.creator.id !== this.props.user.id : false,
             viewingGameDetails: false,
-            fakeRootTagActive: false,
+            showingPendingTag: false,
+            userCanAddRootTag: latestRootTag === undefined,
+            userCanAddSubtag: latestRootTag !== undefined && !latestRootTag.nextTagId && latestRootTag.creator.id !== props.user.id,
+            showingAddRootTag: latestRootTag === undefined,
+            showingAddSubtag: false,
         };
     }
 
-    componentDidMount(): void {
-        this.setUserCanAddRootTag();
-        this.setUserCanAddSubtag();
+    async componentDidMount(): Promise<void> {
+        const stateUpdates: Partial<ViewGameState> = {};
+        if (!this.state.userCanAddRootTag) {
+            const userCanAddRootTag = await ApiManager.tagApi.canUserAddTag({ userId: this.props.user.id, gameId: this.props.game.id, dateOverride: this.props.dateOverride });
+            stateUpdates.userCanAddRootTag = userCanAddRootTag;
+        }
+        if (!this.state.userCanAddSubtag && this.state.currentRootTag) {
+            const userCanAddSubtag = await ApiManager.tagApi.canUserAddSubtag({ userId: this.props.user.id, tagId: this.state.currentRootTag!.id });
+            stateUpdates.userCanAddSubtag = userCanAddSubtag;
+        }
+        this.setState(stateUpdates as ViewGameState);
     }
 
-    setUserCanAddRootTag(): void {
+    fetchAndSetUserCanAddRootTag(): void {
         ApiManager.tagApi.canUserAddTag({ userId: this.props.user.id, gameId: this.props.game.id, dateOverride: this.props.dateOverride }).then((userCanAddRootTag) => {
-            logger.info(`[createNewSubtag] userCanAddRootTag result`, { userCanAddRootTag });
             this.setState({ userCanAddRootTag });
         });
     }
 
-    setUserCanAddSubtag(): void {
-        if (this.state.currentRootTag) {
-            ApiManager.tagApi.canUserAddSubtag({ userId: this.props.user.id, tagId: this.state.currentRootTag.id }).then((userCanAddSubtag) => {
-                logger.info(`[createNewSubtag] userCanAddSubtag result`, { userCanAddSubtag });
+    fetchAndSetUserCanAddSubtag(tagOverride?: TagDto): void {
+        if (!this.state.currentRootTag) {
+            this.setState({ userCanAddSubtag: false });
+        } else {
+            ApiManager.tagApi.canUserAddSubtag({ userId: this.props.user.id, tagId: tagOverride?.id ?? this.state.currentRootTag.id }).then((userCanAddSubtag) => {
                 this.setState({ userCanAddSubtag });
             });
         }
     }
 
-    // private sortPlayerDetailsTable({
-    //     column,
-    //     sortAscendingOverride,
-    //     playerDetailsTable,
-    //     setState = false,
-    // }: {
-    //     column: number;
-    //     sortAscendingOverride?: boolean;
-    //     playerDetailsTable?: PlayerDetailsTableRow[];
-    //     setState?: boolean;
-    // }): PlayerDetailsTableRow[] {
-    //     logger.info(`[sortPlayerDetailsTable]`, { column, sortAscendingOverride, playerDetailsTable, setState });
-    //     let field: keyof PlayerScores | 'name';
-    //     switch (column) {
-    //         case 0:
-    //             field = 'name';
-    //             break;
-    //         case 1:
-    //             field = 'points';
-    //             break;
-    //         case 2:
-    //             field = 'totalTagsPosted';
-    //             break;
-    //         case 3:
-    //             field = 'tagsWon';
-    //             break;
-    //         case 4:
-    //             field = 'newTagsPosted';
-    //             break;
-    //         default:
-    //             field = 'tagsPostedOnTime';
-    //     }
-    //     logger.info(`[sortPlayerDetailsTable] field`, { field });
+    createNewRootTag({ imageUrl }: { imageUrl: string }): void {
+        ApiManager.tagApi.createTag({ imageUrl, gameId: this.props.game.id, isRoot: true }).then((tag) => {
+            const latestRootTag = tag;
+            const updateParams = { latestRootTag };
+            this.props.updateGame(updateParams);
+            this.setState({
+                userCanAddRootTag: false,
+                userCanAddSubtag: false,
+                currentRootTag: tag,
+                currentTag: tag,
+                showingAddRootTag: false,
+            });
+            ApiManager.tagApi.updateTagInCache({
+                tagId: tag.previousRootTagId,
+                update: { nextRootTagId: tag.id },
+            });
+        });
+        // this.setState({ userCanAddRootTag: false });
+        // this.setCurrentRootTag(tag);
+    }
 
-    //     // sort the name column ascending the first time, but the others descending
-    //     const sortAscending = sortAscendingOverride ?? (this.state.sortColumn === column ? !this.state.sortedAscending : field === 'name');
+    createNewSubtag({ imageUrl }: { imageUrl: string }): void {
+        ApiManager.tagApi.createTag({ imageUrl, gameId: this.props.game.id, isRoot: false, rootTagId: this.state.currentRootTag!.id }).then((tag) => {
+            const updateParams = {
+                userCanAddSubtag: false,
+                currentTag: tag,
+                showingAddSubtag: false,
+            };
+            if (tag.rootTagId! === this.props.game.latestRootTag!.id) {
+                this.fetchAndSetUserCanAddRootTag();
+            }
+            this.setState(updateParams as ViewGameState);
+            ApiManager.tagApi.updateTagInCache({
+                tagId: tag.parentTagId,
+                update: { nextTagId: tag.id },
+            });
+            ApiManager.tagApi.updateTagInCache({
+                tagId: tag.rootTagId,
+                update: { lastTagInChainId: tag.id },
+            });
+        });
+        // this.setState({ userCanAddSubtag: false });
+        // this.setUserCanAddRootTag();
+    }
 
-    //     logger.info(`[sortPlayerDetailsTable] sortAscending`, { sortAscending });
-    //     const valToSort = playerDetailsTable ?? this.state.playerDetailsTable;
-    //     const sortedPlayerDetails = [...valToSort].sort((a, b) => {
-    //         const aVal = field === 'name' ? a.name : a[field];
-    //         const bVal = field === 'name' ? b.name : b[field];
-
-    //         logger.info(`[sortPlayerDetailsTable] comparing`, { aVal, bVal });
-
-    //         let compVal: number;
-    //         if (typeof aVal === 'string' && typeof bVal === 'string') {
-    //             compVal = aVal.localeCompare(bVal);
-    //         } else {
-    //             compVal = (aVal as number) - (bVal as number);
-    //         }
-
-    //         if (sortAscending) {
-    //             return compVal;
-    //         } else {
-    //             return -compVal;
-    //         }
-    //     });
-    //     logger.info(`[sortPlayerDetailsTable] result`, { sortedPlayerDetails });
-    //     if (setState) {
-    //         this.setState({ playerDetailsTable: sortedPlayerDetails, sortColumn: column, sortedAscending: sortAscending });
-    //     }
-    //     return sortedPlayerDetails;
+    // createNewSubtag(): void {
+    //     this.setState({ userCanAddSubtag: false });
+    //     this.setUserCanAddRootTag();
     // }
 
-    createNewRootTag(tag: TagDto): void {
-        const latestRootTag = tag;
-        const updateParams = { latestRootTag };
-        this.props.updateGame(updateParams);
-        this.setState({ userCanAddRootTag: false });
-        this.setCurrentRootTag(tag);
-    }
+    // setCurrentRootTag(tag: TagDto): void {
+    //     this.setState({ currentRootTag: tag });
+    // }
 
-    createNewSubtag(): void {
-        this.setState({ userCanAddSubtag: false });
-        this.setUserCanAddRootTag();
-    }
-
-    setCurrentRootTag(tag: TagDto): void {
-        this.setState({ currentRootTag: tag });
-    }
-
-    setFakeRootTagActive(fakeRootTagActive: boolean): void {
-        this.setState({ fakeRootTagActive });
-    }
+    // setFakeRootTagActive(fakeRootTagActive: boolean): void {
+    //     this.setState({ fakeRootTagActive });
+    // }
 
     getPlayerDetailsTable(game?: GameDto): PlayerDetailsTableRow[] {
         if (!game) {
@@ -195,42 +175,149 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
             logger.info(`[refreshScores] got game`, { game });
             this.props.setGame(game);
             const playerDetailsTable = this.getPlayerDetailsTable();
-            // playerDetailsTable = this.sortPlayerDetailsTable({ column: this.state.sortColumn, sortAscendingOverride: this.state.sortedAscending, playerDetailsTable });
             this.setState({ playerDetailsTable, currentRootTag: game.latestRootTag });
         });
     }
 
+    setCurrentTag(tag: TagDto | PendingTag): void {
+        if (isFullTag(tag)) {
+            if (tag.id === this.state.currentTag?.id) {
+                this.setState({
+                    showingAddRootTag: false,
+                    showingAddSubtag: false,
+                    showingPendingTag: false,
+                });
+            } else {
+                let updateCanAddSubtag = false;
+                const stateUpdate: Partial<ViewGameState> = { currentTag: tag, showingAddRootTag: false, showingAddSubtag: false };
+                if (tag.isRoot) {
+                    stateUpdate.currentRootTag = tag;
+                    if (!tag.nextTagId) {
+                        stateUpdate.userCanAddSubtag = true;
+                    } else {
+                        updateCanAddSubtag = true;
+                    }
+                }
+                this.setState(stateUpdate as ViewGameState);
+                if (updateCanAddSubtag) {
+                    this.fetchAndSetUserCanAddSubtag(tag);
+                }
+            }
+        } else {
+            this.setState({ showingPendingTag: true });
+        }
+    }
+
+    getTagKey({ tag }: { tag?: TagDto | PendingTag | string }): string {
+        let tagKey: string;
+        if (!tag) {
+            tagKey = 'undefined';
+        } else if (typeof tag === 'object') {
+            tagKey = `tag-${tag.id}`;
+        } else {
+            tagKey = `id-${tag}`;
+        }
+        return tagKey;
+    }
+
+    getTagComponent({ tag, isActive, position }: { tag: TagDto | PendingTag | string; isActive: boolean; position: Position }): React.ReactNode {
+        let selectTag: ((tag: TagDto | PendingTag) => void) | undefined;
+        // if the tag is a real, not pending tag, then the callback actually selects it
+        if (!isActive) {
+            selectTag = (tag: TagDto | PendingTag) => this.setCurrentTag(tag);
+        }
+        return <Tag key={this.getTagKey({ tag })} tag={tag} isActive={isActive} selectTag={selectTag} position={position} />;
+    }
+
     getTagScrollerGameBody(): React.ReactNode {
         const { game } = this.props;
+        const { userCanAddRootTag, userCanAddSubtag, currentRootTag, currentTag, showingAddRootTag, showingAddSubtag, showingPendingTag } = this.state;
+
+        let centerTagElement: React.ReactNode | undefined = undefined;
+        let leftTagElement: React.ReactNode | undefined = undefined;
+        let rightTagElement: React.ReactNode | undefined = undefined;
+        let topTagElement: React.ReactNode | undefined = undefined;
+        let bottomTagElement: React.ReactNode | undefined = undefined;
+
+        const addRootTag = (
+            <AddTag
+                key="add-root-tag"
+                saveTag={({ imageUrl: string }) => this.createNewRootTag({ imageUrl: string })}
+                setAddTagAsActive={() => this.setState({ showingAddRootTag: true })}
+                isSubtag={false}
+                dateOverride={this.props.dateOverride}
+                isActive={showingAddRootTag}
+                isFirstTag={!game.latestRootTag}
+            />
+        );
+
+        const addSubtag = (
+            <AddTag
+                key="add-subtag"
+                saveTag={({ imageUrl: string }) => this.createNewSubtag({ imageUrl: string })}
+                setAddTagAsActive={() => this.setState({ showingAddSubtag: true })}
+                isSubtag={true}
+                dateOverride={this.props.dateOverride}
+                isActive={showingAddSubtag}
+                isFirstTag={!currentRootTag?.nextTagId}
+            />
+        );
+
+        if (showingAddRootTag) {
+            centerTagElement = addRootTag;
+            if (currentTag) {
+                leftTagElement = this.getTagComponent({ tag: currentTag, isActive: false, position: 'left' });
+            }
+        } else if (showingAddSubtag) {
+            centerTagElement = addSubtag;
+            if (currentTag) {
+                topTagElement = this.getTagComponent({ tag: currentTag, isActive: false, position: 'top' });
+            }
+        } else if (showingPendingTag) {
+            centerTagElement = this.getTagComponent({ tag: game.pendingRootTag!, isActive: true, position: 'center' });
+            if (currentTag) {
+                leftTagElement = this.getTagComponent({ tag: currentTag, isActive: false, position: 'left' });
+            }
+        } else if (currentTag) {
+            // showing an actual tag - this will always be true, but we have a type assertion now
+            centerTagElement = this.getTagComponent({ tag: currentTag, isActive: true, position: 'center' });
+            if (currentTag.isRoot) {
+                if (currentTag.previousRootTagId) {
+                    leftTagElement = this.getTagComponent({ tag: currentTag.previousRootTagId, isActive: false, position: 'left' });
+                }
+                if (currentTag.id === game.latestRootTag!.id) {
+                    if (game.pendingRootTag) {
+                        rightTagElement = this.getTagComponent({ tag: game.pendingRootTag, isActive: false, position: 'right' });
+                    } else if (userCanAddRootTag) {
+                        rightTagElement = addRootTag;
+                    }
+                } else if (currentTag.nextRootTagId) {
+                    rightTagElement = this.getTagComponent({ tag: currentTag.nextRootTagId, isActive: false, position: 'right' });
+                }
+                if (currentTag.nextTagId) {
+                    bottomTagElement = this.getTagComponent({ tag: currentTag.nextTagId, isActive: false, position: 'bottom' });
+                } else if (userCanAddSubtag) {
+                    bottomTagElement = addSubtag;
+                }
+            } else {
+                if (currentTag.parentTagId) {
+                    topTagElement = this.getTagComponent({ tag: currentTag.parentTagId, isActive: false, position: 'top' });
+                }
+                if (currentTag.nextTagId) {
+                    bottomTagElement = this.getTagComponent({ tag: currentTag.nextTagId, isActive: false, position: 'bottom' });
+                } else if (userCanAddSubtag) {
+                    bottomTagElement = addSubtag;
+                }
+            }
+        }
+
         return (
-            <div className="tag-view">
-                <TagScroller
-                    key={`rootTagView-${game.latestRootTag?.id}`}
-                    isSubtag={false}
-                    game={game}
-                    user={this.props.user}
-                    createNewTag={(tag: TagDto) => this.createNewRootTag(tag)}
-                    refreshScores={() => this.refreshGame()}
-                    dateOverride={this.props.dateOverride}
-                    userCanAddTag={this.state.userCanAddRootTag}
-                    setCurrentRootTag={(tag: TagDto) => this.setCurrentRootTag(tag)}
-                    isMinimized={false}
-                    setFakeRootTagActive={(fakeRootTagActive: boolean) => this.setFakeRootTagActive(fakeRootTagActive)}
-                />
-                {this.state.currentRootTag && !this.state.fakeRootTagActive && (
-                    <TagScroller
-                        key={`subtag-${this.state.currentRootTag.id}`}
-                        isSubtag={true}
-                        game={this.props.game}
-                        user={this.props.user}
-                        subtagRootTag={this.state.currentRootTag}
-                        refreshScores={() => this.refreshGame()}
-                        createNewTag={() => this.createNewSubtag()}
-                        dateOverride={this.props.dateOverride}
-                        userCanAddTag={this.state.userCanAddSubtag}
-                        isMinimized={true}
-                    />
-                )}
+            <div className="tag-scroller">
+                <div className="top-tag">{topTagElement}</div>
+                <div className="left-tag">{leftTagElement}</div>
+                <div className="center-tag">{centerTagElement}</div>
+                <div className="right-tag">{rightTagElement}</div>
+                <div className="bottom-tag">{bottomTagElement}</div>
             </div>
         );
     }

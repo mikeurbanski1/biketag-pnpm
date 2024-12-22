@@ -1,5 +1,6 @@
+import { TagEntity } from '@biketag/models';
+
 import { tagServiceErrors } from '../../common/errors';
-import { TagEntity } from '../models/tag';
 import { BaseDalService } from './baseDalService';
 
 export class TagDalService extends BaseDalService<TagEntity> {

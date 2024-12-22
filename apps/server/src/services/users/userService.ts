@@ -1,8 +1,7 @@
-import { CreateUserParams, UserDto } from '@biketag/models';
+import { CreateUserParams, UserDto, UserEntity } from '@biketag/models';
 
 import { BaseService } from '../../common/baseService';
 import { userServiceErrors } from '../../common/errors';
-import { UserEntity } from '../../dal/models';
 import { UserDalService } from '../../dal/services/userDalService';
 
 export class UserService extends BaseService<UserDto, CreateUserParams, UserEntity, UserDalService> {

@@ -10,5 +10,9 @@
     "keywords": [],
     "author": "",
     "license": "ISC",
-    "private": true
+    "private": true,
+    "devDependencies": {
+        "@types/mongodb": "^4.0.7",
+        "mongodb": "^6.10.0"
+    }
 }

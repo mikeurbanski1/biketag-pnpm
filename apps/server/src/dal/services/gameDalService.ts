@@ -1,7 +1,6 @@
-import { PlayerScores, TagStats } from '@biketag/models/src/api/score';
+import { GameEntity, PlayerScores, TagStats } from '@biketag/models';
 
 import { gameServiceErrors } from '../../common/errors';
-import { GameEntity } from '../models';
 import { BaseDalService } from './baseDalService';
 
 export class GameDalService extends BaseDalService<GameEntity> {
