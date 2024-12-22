@@ -103,6 +103,33 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
                 dalParams.players = players;
             }
         }
+
+        // if there were new players added, we need to add them to the playerScores
+        if (updateParams.players) {
+            const existingPlayerScores = game.gameScore.playerScores;
+            const newPlayerScores = updateParams.players.reduce(
+                (scores, player) => {
+                    if (!existingPlayerScores[player.userId]) {
+                        scores[player.userId] = { points: 0, totalTagsPosted: 0, newTagsPosted: 0, tagsPostedOnTime: 0, tagsWon: 0 };
+                    }
+                    return scores;
+                },
+                {} as Record<string, PlayerScores>
+            );
+
+            if (Object.keys(newPlayerScores).length) {
+                dalParams = {
+                    ...dalParams,
+                    gameScore: {
+                        ...game.gameScore,
+                        playerScores: {
+                            ...existingPlayerScores,
+                            ...newPlayerScores,
+                        },
+                    },
+                };
+            }
+        }
         const newGame = await this.dalService.update({ id, updateParams: dalParams });
         GameService.sortPlayersByAdmins(newGame.players);
         return await this.convertToDto(newGame);
@@ -218,12 +245,6 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
         game.players = players.filter((p) => p.userId !== userId);
         GameService.sortPlayersByAdmins(game.players);
     }
-
-    // private async validateUserExists({ userId }: { userId: string }) {
-    //     if (!(await this.usersService.get({ id: userId }))) {
-    //         throw new UserNotFoundError(`User with ID ${userId} does not exist`);
-    //     }
-    // }
 
     private static sortPlayersByAdmins(players: PlayerGame[]): void {
         players.sort((a, b) => {
