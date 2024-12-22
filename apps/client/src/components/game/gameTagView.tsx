@@ -1,9 +1,13 @@
 import { Dayjs } from 'dayjs';
 
 import { GameDto, PendingTag, TagDto } from '@biketag/models';
+import { Logger } from '@biketag/utils';
 
 import { AddTag } from '../tag/addTag';
 import { Tag } from '../tag/tag';
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const logger = new Logger({});
 
 interface TagViewProps {
     game: GameDto;

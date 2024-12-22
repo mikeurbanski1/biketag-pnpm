@@ -138,6 +138,7 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
                 currentRootTag: tag,
                 currentTag: tag,
                 showingAddRootTag: false,
+                game: { ...this.state.game!, latestRootTag: tag },
             });
             ApiManager.tagApi.updateTagInCache({
                 tagId: tag.previousRootTagId,
