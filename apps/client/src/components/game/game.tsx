@@ -43,10 +43,7 @@ interface ViewGameState {
 interface ViewGameProps {
     user: UserDto;
     gameId: string;
-    // updateGame: (updateParams: Partial<GameDto>) => void;
-    setGame: (game: GameDto) => void;
     doneViewingGame: () => void;
-    // editGame: () => void;
     deleteGame: () => void;
     dateOverride: Dayjs;
 }
@@ -71,7 +68,6 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
 
     public componentDidMount(): void {
         this.fetchAndSetUserCanAddRootTag();
-        this.fetchAndSetUserCanAddSubtag();
         this.fetchAndSetGame();
     }
 
@@ -89,6 +85,7 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
                 showingAddRootTag: latestRootTag === undefined,
             });
             if (latestRootTag) {
+                logger.info(`[fetchAndSetGame]`, { latestRootTag });
                 this.fetchAndSetUserCanAddSubtag(latestRootTag);
             }
         });
@@ -101,7 +98,7 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
     }
 
     private fetchAndSetUserCanAddSubtag(tagOverride?: TagDto): void {
-        if (!this.state.currentRootTag) {
+        if (!tagOverride && !this.state.currentRootTag) {
             this.setState({ userCanAddSubtag: false });
         } else {
             ApiManager.tagApi.canUserAddSubtag({ userId: this.props.user.id, tagId: tagOverride?.id ?? this.state.currentRootTag.id }).then((userCanAddSubtag) => {
@@ -182,12 +179,13 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
     }
 
     private refreshGame(): void {
-        ApiManager.gameApi.getGame({ id: this.props.gameId }).then((game) => {
-            logger.info(`[refreshScores] got game`, { game });
-            this.props.setGame(game);
-            const playerDetailsTable = this.getPlayerDetailsTable();
-            this.setState({ playerDetailsTable, currentRootTag: game.latestRootTag });
+        this.setState({
+            loadingGame: true,
+            userCanAddRootTag: false,
+            userCanAddSubtag: false,
         });
+        this.fetchAndSetGame();
+        this.fetchAndSetUserCanAddRootTag();
     }
 
     private setCurrentTag(tag: TagDto | PendingTag): void {
