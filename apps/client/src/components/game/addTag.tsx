@@ -49,11 +49,11 @@ export const AddTag: React.FC<AddTagProps> = ({ saveTag, previousRootTagDate, da
                 <div>
                     <input type="text" placeholder="Image URL" className="tag-input" name="contents" onChange={(event) => setImageUrl(event.target.value)} value={imageUrl}></input>
                 </div>
-            </div>
-            <div className="tag-details">
-                <button disabled={!canSave} onClick={() => saveTag({ imageUrl })}>
-                    Save
-                </button>
+                <div>
+                    <button disabled={!canSave} onClick={() => saveTag({ imageUrl })}>
+                        Save
+                    </button>
+                </div>
             </div>
         </div>
     );

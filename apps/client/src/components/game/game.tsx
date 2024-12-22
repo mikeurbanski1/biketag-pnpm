@@ -9,6 +9,7 @@ import { ApiManager } from '../../api';
 import '../../styles/game.css';
 
 import { Table } from '../common/table';
+import { CreateEditGame } from '../createEditGame';
 import { AddTag } from './addTag';
 import { Tag } from './tag';
 
@@ -27,6 +28,7 @@ type Position = 'top' | 'right' | 'bottom' | 'left' | 'center';
 
 interface ViewGameState {
     game?: GameDto;
+    editingGame: boolean;
     loadingGame: boolean;
     isCreator: boolean;
     playerDetailsTable: PlayerDetailsTableRow[];
@@ -44,10 +46,10 @@ interface ViewGameState {
 interface ViewGameProps {
     user: UserDto;
     gameId: string;
-    updateGame: (updateParams: Partial<GameDto>) => void;
+    // updateGame: (updateParams: Partial<GameDto>) => void;
     setGame: (game: GameDto) => void;
     doneViewingGame: () => void;
-    editGame: () => void;
+    // editGame: () => void;
     deleteGame: () => void;
     dateOverride: Dayjs;
 }
@@ -57,6 +59,7 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
         super(props);
         this.state = {
             isCreator: false,
+            editingGame: false,
             loadingGame: true,
             playerDetailsTable: [],
             showingGameAdminButtons: false,
@@ -112,9 +115,9 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
 
     createNewRootTag({ imageUrl }: { imageUrl: string }): void {
         ApiManager.tagApi.createTag({ imageUrl, gameId: this.props.gameId, isRoot: true }).then((tag) => {
-            const latestRootTag = tag;
-            const updateParams = { latestRootTag };
-            this.props.updateGame(updateParams);
+            // const latestRootTag = tag;
+            // const updateParams = { latestRootTag };
+            // this.props.updateGame(updateParams);
             this.setState({
                 userCanAddRootTag: false,
                 userCanAddSubtag: false,
@@ -326,7 +329,12 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
                     Created by: {game.creator.name} {isCreator && (this.state.showingGameAdminButtons ? '▼' : '▶')}
                 </div>
                 <div className="game-admin-buttons button-pair" hidden={!isCreator || !this.state.showingGameAdminButtons}>
-                    <button className="game-admin-button" onClick={() => this.props.editGame()}>
+                    <button
+                        className="game-admin-button"
+                        onClick={() => {
+                            this.setState({ editingGame: true });
+                        }}
+                    >
                         Edit game
                     </button>
                     <button className="game-admin-button" onClick={() => this.props.deleteGame()}>
@@ -357,6 +365,10 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
 
         if (!game || this.state.loadingGame) {
             return <div>Loading...</div>;
+        }
+
+        if (this.state.editingGame) {
+            return <CreateEditGame user={this.props.user} doneCreatingGame={() => this.setState({ editingGame: false })} game={this.state.game!} />;
         }
 
         const backText = this.state.viewingGameDetails ? '← Back to tags' : '← Back to games';

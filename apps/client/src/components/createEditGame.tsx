@@ -2,7 +2,7 @@ import React from 'react';
 
 import '../styles/createEditGame.css';
 
-import { CreateGameParams, GameDto, GameRoles, UserDto } from '@biketag/models';
+import { CreateGameDto, GameDto, GameRoles, UserDto } from '@biketag/models';
 
 import { ApiManager } from '../api';
 import { UserBeingAdded } from '../models/user';
@@ -25,10 +25,10 @@ interface CreateEditGameProps {
 export class CreateEditGame extends React.Component<CreateEditGameProps, CreateEditGameState> {
     constructor(props: CreateEditGameProps) {
         super(props);
-        const gameName = props.game?.name || '';
+        // const gameName = props.game?.name || '';
         const isNewGame = props.game === undefined;
         this.state = {
-            gameName,
+            gameName: '',
             isNewGame,
             canSaveGame: !isNewGame,
             loadingUsers: true,
@@ -37,9 +37,8 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
     }
 
     createEditGame(): void {
-        const game: CreateGameParams = {
+        const game: CreateGameDto = {
             name: this.state.gameName,
-            creatorId: this.props.user.id,
             players: this.state.selectedUsers
                 .filter((user) => user.role !== undefined)
                 .map((user) => ({
@@ -55,7 +54,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         if (!this.props.game) {
             ApiManager.gameApi.createGame(game).then(callback);
         } else {
-            ApiManager.gameApi.updateGame(this.props.game.id, game).then(callback);
+            ApiManager.gameApi.updateGame({ id: this.props.game.id, game }).then(callback);
         }
     }
 
