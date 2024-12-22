@@ -33,7 +33,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         // this.editGame = this.editGame.bind(this);
     }
 
-    componentDidMount(): void {
+    public componentDidMount(): void {
         this.refreshGames().then(() => this.setState({ loadingGames: false }));
     }
 
@@ -45,7 +45,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         });
     }
 
-    doneCreatingGame(game?: GameDto): void {
+    private doneCreatingGame(game?: GameDto): void {
         this.setState({
             loadingGames: true,
         });
@@ -65,7 +65,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         });
     }
 
-    setGame(game: GameSummary): void {
+    private setGame(game: GameSummary): void {
         this.setState({
             selectedGame: game,
             games: this.state.games.map((g) => (g.id === game.id ? game : g)),
@@ -83,13 +83,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
     //     });
     // }
 
-    editGame(): void {
-        this.setState({
-            creatingGame: true,
-        });
-    }
-
-    deleteGame(): void {
+    private deleteGame(): void {
         this.setState({
             selectedGame: undefined,
             loadingGames: true,
@@ -97,14 +91,14 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         ApiManager.gameApi.deleteGame({ gameId: this.state.selectedGame!.id }).then(() => this.refreshGames().then(() => this.setState({ loadingGames: false })));
     }
 
-    doneViewingGame(): void {
+    private doneViewingGame(): void {
         this.setState({
             selectedGame: undefined,
         });
         this.refreshGames().then(() => this.setState({ loadingGames: false }));
     }
 
-    render(): ReactNode {
+    public render(): ReactNode {
         if (!this.state.creatingGame && !this.state.selectedGame) {
             return (
                 <div className="landing">

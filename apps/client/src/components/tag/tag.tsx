@@ -61,7 +61,7 @@ const isLoadedTag = (tag?: TagTypeWithId): tag is TagDto | PendingTag => typeof 
 const isInactiveTag = (props: TagProps): props is TagProps & RealInactiveTagDefinedProps => !props.isActive;
 
 export const Tag: React.FC<TagProps> = (props: TagProps): React.ReactNode => {
-    logger.info(`[Tag] render`, { props });
+    logger.info(`[Tag] public public render()`, { props });
     // we are only displaying loading if we know we are getting a tag
     // if isLoading is true, tagToRender will be undefined, and vice versa
     // if we have a tag ID, we can also skip loading if we have the cached tag

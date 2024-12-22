@@ -36,7 +36,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         };
     }
 
-    createEditGame(): void {
+    private createEditGame(): void {
         const game: CreateGameDto = {
             name: this.state.gameName,
             players: this.state.selectedUsers
@@ -58,7 +58,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         }
     }
 
-    componentDidMount(): void {
+    public componentDidMount(): void {
         this.refreshUsers().then(() => this.setState({ loadingUsers: false }));
     }
 
@@ -81,7 +81,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         });
     }
 
-    handleNameChange(event: React.ChangeEvent<HTMLInputElement>): void {
+    private handleNameChange(event: React.ChangeEvent<HTMLInputElement>): void {
         const canCreateGame = event.target.value !== '';
         this.setState({
             canSaveGame: canCreateGame,
@@ -89,7 +89,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         });
     }
 
-    handleUserSelect(index: number, user: UserDto, role?: GameRoles): void {
+    private handleUserSelect(index: number, user: UserDto, role?: GameRoles): void {
         console.log(`selected user:`, user, role);
         const selectedUsers = this.state.selectedUsers;
         selectedUsers[index] = { user, role };
@@ -98,7 +98,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         });
     }
 
-    render() {
+    public render() {
         return (
             <div className="flex-column moderate-gap">
                 <div className="title">{this.state.isNewGame ? 'Create' : 'Edit'} game</div>
