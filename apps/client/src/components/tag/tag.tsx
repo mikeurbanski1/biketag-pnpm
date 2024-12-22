@@ -29,7 +29,6 @@ interface TagProps {
     tag: TagTypeWithId; // string is a tagId
     isActive: boolean;
     selectTag?: (tag: TagType) => void;
-    isMinimized?: boolean;
 }
 
 interface LoadingTagDefinedProps {
@@ -92,6 +91,10 @@ export const Tag: React.FC<TagProps> = (props: TagProps): React.ReactNode => {
         if (isInactiveTag(props)) {
             onClick = () => props.selectTag(tagToRender);
             classes.push('clickable-tag');
+        }
+
+        if (isFullTag(tagToRender) && !tagToRender.isRoot) {
+            classes.push('subtag');
         }
 
         const className = classes.join(' ');
