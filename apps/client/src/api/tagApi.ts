@@ -22,6 +22,17 @@ export class TagApi extends AbstractApi {
         return this.tagCache[id];
     }
 
+    public updateTagInCache({ tagId, update }: { tagId?: string; update: Partial<TagDto | PendingTag> }): void {
+        if (!tagId) {
+            return;
+        }
+        const tag = this.tagCache[tagId];
+        if (!tag) {
+            return;
+        }
+        this.tagCache[tag.id] = { ...tag, ...update };
+    }
+
     public async getTag({ id }: { id?: string }): Promise<TagDto | PendingTag | undefined> {
         if (!id) {
             return undefined;
@@ -129,6 +140,7 @@ export class TagApi extends AbstractApi {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
             }
             this.logger.info('[createTag] got 201 response', { data: resp.data });
+            this.tagCache[resp.data.id] = resp.data;
             return resp.data;
         } catch (err) {
             this.logger.error(`[createTag] got an error response`, { err });

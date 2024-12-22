@@ -5,7 +5,7 @@ import { CreateTagDto, GameDto, isFullTag, PendingTag, TagDto, UserDto } from '@
 import { Logger } from '@biketag/utils';
 
 import { ApiManager } from '../../api';
-import { AddTagProps, Tag } from './tag';
+import { Tag } from './tag';
 
 import '../../styles/tag.css';
 
@@ -15,8 +15,8 @@ type Position = 'topTag' | 'bottomTag' | 'rootTagLeftTag' | 'rootTagRightTag' | 
 
 type RealTag = TagDto | PendingTag;
 type TagOrId = RealTag | string;
-type RightTag = TagOrId | AddTagProps;
-type BottomTag = TagOrId | AddTagProps;
+type RightTag = TagOrId;
+type BottomTag = TagOrId;
 type CenterTag = RealTag | RightTag | BottomTag;
 
 interface TagScrollerState {
@@ -51,10 +51,10 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
         // we will set the canAddTag values if we can determine them with certainty
 
         const userCanAddRootTagInGame = !latestRootTag;
-        const centerTag = latestRootTag ?? this.getAddTagProps({ isSubtag: false });
+        const centerTag = latestRootTag!;
 
         const userCanAddSubtagInChain = latestRootTag !== undefined && !latestRootTag.nextTagId && latestRootTag.creator.id !== this.props.user.id;
-        const bottomTag = userCanAddSubtagInChain ? this.getAddTagProps({ isSubtag: true }) : latestRootTag?.nextTagId;
+        const bottomTag = latestRootTag?.nextTagId;
 
         const rootTagRightTag = pendingRootTag;
         const rootTagLeftTag = latestRootTag?.previousRootTagId;
@@ -321,32 +321,33 @@ export class TagScroller extends React.Component<TagScrollerProps, TagScrollerSt
             tagKey = 'undefined';
         } else if (isTag(tag)) {
             tagKey = tag.id;
-        } else if (typeof tag === 'string') {
+        } else {
+            // if (typeof tag === 'string') {
             // tag ID
             tagKey = tag;
-        } else {
-            tagKey = `add-tag-${tag.isSubtag ? 'subtag' : 'root'}`;
+            // } else {
+            //     tagKey = `add-tag-${tag.isSubtag ? 'subtag' : 'root'}`;
         }
         return `${tagKey}-${position}`;
     }
 
-    getAddTagProps({ isSubtag, rootTag }: { isSubtag: boolean; rootTag: CenterTag }): AddTagProps {
-        const { latestRootTag } = this.props.game;
-        let isFirstTag: boolean;
-        if (isSubtag) {
-            isFirstTag = isTag(centerTag) && isFullTag(centerTag) && !centerTag.isRoot;
-        } else {
-            isFirstTag = latestRootTag === undefined;
-        }
-        return {
-            saveTag: ({ imageUrl }) => {
-                this.saveNewTag({ imageUrl, isSubtag });
-            },
-            isSubtag,
-            dateOverride: this.props.dateOverride,
-            isFirstTag,
-        };
-    }
+    // getAddTagProps({ isSubtag, subtagRootTag }: { isSubtag: boolean; subtagRootTag: CenterTag }): AddTagProps {
+    //     const { latestRootTag } = this.props.game;
+    //     let isFirstTag: boolean;
+    //     if (isSubtag) {
+    //         isFirstTag = isTag(rootTag) && isFullTag(rootTag) && !rootTag.isRoot;
+    //     } else {
+    //         isFirstTag = latestRootTag === undefined;
+    //     }
+    //     return {
+    //         saveTag: ({ imageUrl }) => {
+    //             this.saveNewTag({ imageUrl, isSubtag });
+    //         },
+    //         isSubtag,
+    //         dateOverride: this.props.dateOverride,
+    //         isFirstTag,
+    //     };
+    // }
 
     render() {
         logger.info(`[render]`, { state: this.state, props: this.props });
