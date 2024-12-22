@@ -104,7 +104,7 @@ export default class App extends React.Component<AppProps, AppComponentState> {
             <div className="App">
                 <div className="flex-column header">
                     <div>Bike Tag! {loggedIn}</div>
-                    <div>
+                    <div hidden={true}>
                         Date override: <input aria-label="Date" type="date" defaultValue={this.state.dateOverride.format('YYYY-MM-DD')} onChange={(event) => this.handleDateChange(event)} />
                     </div>
                 </div>
