@@ -30,7 +30,6 @@ interface TagProps {
     isActive: boolean;
     selectTag?: (tag: TagType) => void;
     isMinimized?: boolean;
-    position: string;
 }
 
 interface LoadingTagDefinedProps {

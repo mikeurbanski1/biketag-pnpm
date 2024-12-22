@@ -10,8 +10,7 @@ import '../../styles/game.css';
 
 import { Table } from '../common/table';
 import { CreateEditGame } from '../createEditGame';
-import { AddTag } from './addTag';
-import { Tag } from './tag';
+import { TagView } from './tagView';
 
 const logger = new Logger({ prefix: '[ViewGame]' });
 
@@ -23,8 +22,6 @@ type PlayerDetailsTableRow = PlayerScores & {
     role: string;
     [key: string]: string | number;
 };
-
-type Position = 'top' | 'right' | 'bottom' | 'left' | 'center';
 
 interface ViewGameState {
     game?: GameDto;
@@ -110,6 +107,22 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
             ApiManager.tagApi.canUserAddSubtag({ userId: this.props.user.id, tagId: tagOverride?.id ?? this.state.currentRootTag.id }).then((userCanAddSubtag) => {
                 this.setState({ userCanAddSubtag });
             });
+        }
+    }
+
+    setAddTagAsActive(isSubtag: boolean): void {
+        if (isSubtag) {
+            this.setState({ showingAddSubtag: true });
+        } else {
+            this.setState({ showingAddRootTag: true });
+        }
+    }
+
+    createNewTag({ imageUrl, isSubtag }: { imageUrl: string; isSubtag: boolean }): void {
+        if (isSubtag) {
+            this.createNewSubtag({ imageUrl });
+        } else {
+            this.createNewRootTag({ imageUrl });
         }
     }
 
@@ -205,120 +218,99 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
         }
     }
 
-    getTagKey({ tag }: { tag?: TagDto | PendingTag | string }): string {
-        let tagKey: string;
-        if (!tag) {
-            tagKey = 'undefined';
-        } else if (typeof tag === 'object') {
-            tagKey = `tag-${tag.id}`;
-        } else {
-            tagKey = `id-${tag}`;
-        }
-        return tagKey;
-    }
+    // getTagScrollerGameBody(): React.ReactNode {
+    //     const game = this.state.game!;
 
-    getTagComponent({ tag, isActive, position }: { tag: TagDto | PendingTag | string; isActive: boolean; position: Position }): React.ReactNode {
-        let selectTag: ((tag: TagDto | PendingTag) => void) | undefined;
-        // if the tag is a real, not pending tag, then the callback actually selects it
-        if (!isActive) {
-            selectTag = (tag: TagDto | PendingTag) => this.setCurrentTag(tag);
-        }
-        return <Tag key={this.getTagKey({ tag })} tag={tag} isActive={isActive} selectTag={selectTag} position={position} />;
-    }
+    //     const { userCanAddRootTag, userCanAddSubtag, currentRootTag, currentTag, showingAddRootTag, showingAddSubtag, showingPendingTag } = this.state;
 
-    getTagScrollerGameBody(): React.ReactNode {
-        const game = this.state.game!;
+    //     let centerTagElement: React.ReactNode | undefined = undefined;
+    //     let leftTagElement: React.ReactNode | undefined = undefined;
+    //     let rightTagElement: React.ReactNode | undefined = undefined;
+    //     let topTagElement: React.ReactNode | undefined = undefined;
+    //     let bottomTagElement: React.ReactNode | undefined = undefined;
 
-        const { userCanAddRootTag, userCanAddSubtag, currentRootTag, currentTag, showingAddRootTag, showingAddSubtag, showingPendingTag } = this.state;
+    //     const addRootTag = (
+    //         <AddTag
+    //             key="add-root-tag"
+    //             saveTag={({ imageUrl: string }) => this.createNewRootTag({ imageUrl: string })}
+    //             setAddTagAsActive={() => this.setState({ showingAddRootTag: true })}
+    //             isSubtag={false}
+    //             dateOverride={this.props.dateOverride}
+    //             isActive={showingAddRootTag}
+    //             isFirstTag={!game.latestRootTag}
+    //         />
+    //     );
 
-        let centerTagElement: React.ReactNode | undefined = undefined;
-        let leftTagElement: React.ReactNode | undefined = undefined;
-        let rightTagElement: React.ReactNode | undefined = undefined;
-        let topTagElement: React.ReactNode | undefined = undefined;
-        let bottomTagElement: React.ReactNode | undefined = undefined;
+    //     const addSubtag = (
+    //         <AddTag
+    //             key="add-subtag"
+    //             saveTag={({ imageUrl: string }) => this.createNewSubtag({ imageUrl: string })}
+    //             setAddTagAsActive={() => this.setState({ showingAddSubtag: true })}
+    //             isSubtag={true}
+    //             dateOverride={this.props.dateOverride}
+    //             isActive={showingAddSubtag}
+    //             isFirstTag={!currentRootTag?.nextTagId}
+    //         />
+    //     );
 
-        const addRootTag = (
-            <AddTag
-                key="add-root-tag"
-                saveTag={({ imageUrl: string }) => this.createNewRootTag({ imageUrl: string })}
-                setAddTagAsActive={() => this.setState({ showingAddRootTag: true })}
-                isSubtag={false}
-                dateOverride={this.props.dateOverride}
-                isActive={showingAddRootTag}
-                isFirstTag={!game.latestRootTag}
-            />
-        );
+    //     if (showingAddRootTag) {
+    //         centerTagElement = addRootTag;
+    //         if (currentTag) {
+    //             leftTagElement = this.getTagComponent({ tag: currentTag, isActive: false, position: 'left' });
+    //         }
+    //     } else if (showingAddSubtag) {
+    //         centerTagElement = addSubtag;
+    //         if (currentTag) {
+    //             topTagElement = this.getTagComponent({ tag: currentTag, isActive: false, position: 'top' });
+    //         }
+    //     } else if (showingPendingTag) {
+    //         centerTagElement = this.getTagComponent({ tag: game.pendingRootTag!, isActive: true, position: 'center' });
+    //         if (currentTag) {
+    //             leftTagElement = this.getTagComponent({ tag: currentTag, isActive: false, position: 'left' });
+    //         }
+    //     } else if (currentTag) {
+    //         // showing an actual tag - this will always be true, but we have a type assertion now
+    //         centerTagElement = this.getTagComponent({ tag: currentTag, isActive: true, position: 'center' });
+    //         if (currentTag.isRoot) {
+    //             if (currentTag.previousRootTagId) {
+    //                 leftTagElement = this.getTagComponent({ tag: currentTag.previousRootTagId, isActive: false, position: 'left' });
+    //             }
+    //             if (currentTag.id === game.latestRootTag!.id) {
+    //                 if (game.pendingRootTag) {
+    //                     rightTagElement = this.getTagComponent({ tag: game.pendingRootTag, isActive: false, position: 'right' });
+    //                 } else if (userCanAddRootTag) {
+    //                     rightTagElement = addRootTag;
+    //                 }
+    //             } else if (currentTag.nextRootTagId) {
+    //                 rightTagElement = this.getTagComponent({ tag: currentTag.nextRootTagId, isActive: false, position: 'right' });
+    //             }
+    //             if (currentTag.nextTagId) {
+    //                 bottomTagElement = this.getTagComponent({ tag: currentTag.nextTagId, isActive: false, position: 'bottom' });
+    //             } else if (userCanAddSubtag) {
+    //                 bottomTagElement = addSubtag;
+    //             }
+    //         } else {
+    //             if (currentTag.parentTagId) {
+    //                 topTagElement = this.getTagComponent({ tag: currentTag.parentTagId, isActive: false, position: 'top' });
+    //             }
+    //             if (currentTag.nextTagId) {
+    //                 bottomTagElement = this.getTagComponent({ tag: currentTag.nextTagId, isActive: false, position: 'bottom' });
+    //             } else if (userCanAddSubtag) {
+    //                 bottomTagElement = addSubtag;
+    //             }
+    //         }
+    //     }
 
-        const addSubtag = (
-            <AddTag
-                key="add-subtag"
-                saveTag={({ imageUrl: string }) => this.createNewSubtag({ imageUrl: string })}
-                setAddTagAsActive={() => this.setState({ showingAddSubtag: true })}
-                isSubtag={true}
-                dateOverride={this.props.dateOverride}
-                isActive={showingAddSubtag}
-                isFirstTag={!currentRootTag?.nextTagId}
-            />
-        );
-
-        if (showingAddRootTag) {
-            centerTagElement = addRootTag;
-            if (currentTag) {
-                leftTagElement = this.getTagComponent({ tag: currentTag, isActive: false, position: 'left' });
-            }
-        } else if (showingAddSubtag) {
-            centerTagElement = addSubtag;
-            if (currentTag) {
-                topTagElement = this.getTagComponent({ tag: currentTag, isActive: false, position: 'top' });
-            }
-        } else if (showingPendingTag) {
-            centerTagElement = this.getTagComponent({ tag: game.pendingRootTag!, isActive: true, position: 'center' });
-            if (currentTag) {
-                leftTagElement = this.getTagComponent({ tag: currentTag, isActive: false, position: 'left' });
-            }
-        } else if (currentTag) {
-            // showing an actual tag - this will always be true, but we have a type assertion now
-            centerTagElement = this.getTagComponent({ tag: currentTag, isActive: true, position: 'center' });
-            if (currentTag.isRoot) {
-                if (currentTag.previousRootTagId) {
-                    leftTagElement = this.getTagComponent({ tag: currentTag.previousRootTagId, isActive: false, position: 'left' });
-                }
-                if (currentTag.id === game.latestRootTag!.id) {
-                    if (game.pendingRootTag) {
-                        rightTagElement = this.getTagComponent({ tag: game.pendingRootTag, isActive: false, position: 'right' });
-                    } else if (userCanAddRootTag) {
-                        rightTagElement = addRootTag;
-                    }
-                } else if (currentTag.nextRootTagId) {
-                    rightTagElement = this.getTagComponent({ tag: currentTag.nextRootTagId, isActive: false, position: 'right' });
-                }
-                if (currentTag.nextTagId) {
-                    bottomTagElement = this.getTagComponent({ tag: currentTag.nextTagId, isActive: false, position: 'bottom' });
-                } else if (userCanAddSubtag) {
-                    bottomTagElement = addSubtag;
-                }
-            } else {
-                if (currentTag.parentTagId) {
-                    topTagElement = this.getTagComponent({ tag: currentTag.parentTagId, isActive: false, position: 'top' });
-                }
-                if (currentTag.nextTagId) {
-                    bottomTagElement = this.getTagComponent({ tag: currentTag.nextTagId, isActive: false, position: 'bottom' });
-                } else if (userCanAddSubtag) {
-                    bottomTagElement = addSubtag;
-                }
-            }
-        }
-
-        return (
-            <div className="tag-scroller">
-                <div className="top-tag">{topTagElement}</div>
-                <div className="left-tag">{leftTagElement}</div>
-                <div className="center-tag">{centerTagElement}</div>
-                <div className="right-tag">{rightTagElement}</div>
-                <div className="bottom-tag">{bottomTagElement}</div>
-            </div>
-        );
-    }
+    //     return (
+    //         <div className="tag-scroller">
+    //             <div className="top-tag">{topTagElement}</div>
+    //             <div className="left-tag">{leftTagElement}</div>
+    //             <div className="center-tag">{centerTagElement}</div>
+    //             <div className="right-tag">{rightTagElement}</div>
+    //             <div className="bottom-tag">{bottomTagElement}</div>
+    //         </div>
+    //     );
+    // }
 
     getGameDetailsGameBody(): React.ReactNode {
         const game = this.state.game!;
@@ -396,7 +388,24 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
                         )}
                     </span>
                 </div>
-                {this.state.viewingGameDetails ? this.getGameDetailsGameBody() : this.getTagScrollerGameBody()}
+                {this.state.viewingGameDetails ? (
+                    this.getGameDetailsGameBody()
+                ) : (
+                    <TagView
+                        game={game}
+                        dateOverride={this.props.dateOverride}
+                        currentRootTag={this.state.currentRootTag}
+                        currentTag={this.state.currentTag}
+                        userCanAddRootTag={this.state.userCanAddRootTag}
+                        userCanAddSubtag={this.state.userCanAddSubtag}
+                        showingAddRootTag={this.state.showingAddRootTag}
+                        showingAddSubtag={this.state.showingAddSubtag}
+                        showingPendingTag={this.state.showingPendingTag}
+                        createNewTag={({ imageUrl, isSubtag }: { imageUrl: string; isSubtag: boolean }) => this.createNewTag({ imageUrl, isSubtag })}
+                        setAddTagAsActive={(isSubtag: boolean) => this.setAddTagAsActive(isSubtag)}
+                        selectTag={(tag: TagDto | PendingTag) => this.setCurrentTag(tag)}
+                    />
+                )}
             </div>
         );
     }
