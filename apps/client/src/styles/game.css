@@ -1,0 +1,109 @@
+.game-admin-buttons[hidden] {
+    display: none;
+}
+
+.game-view {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    align-items: center;
+    height: 100%;
+    /* border: 1px solid purple; */
+    /* height: 700px; */
+    /* height: 100%; */
+}
+
+.game-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.game-header > span {
+    text-align: center;
+}
+
+.tag-scroller {
+    display: grid;
+    /* width: 100%; */
+    /* height: 500px; */
+    /* height: 80%; */
+    grid-template-columns: 15% 15% 40% 15% 15%;
+    grid-template-rows: 10% 10% 60% 10% 10%;
+    grid-auto-rows: 100%;
+    border: 1px solid #ff0000;
+    /* overflow: scroll; */
+    /* position: relative; */
+    height: 100%;
+}
+
+.top-tag {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.center-tag {
+    grid-column: 2;
+    grid-row: 2;
+    z-index: 1;
+}
+
+.bottom-tag {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+.left-tag {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.right-tag {
+    grid-column: 3;
+    grid-row: 2;
+}
+
+.tag-scroller > div {
+    grid-column-end: span 3;
+    grid-row-end: span 3;
+    height: 100%;
+    width: 100%;
+}
+
+.game-details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2em;
+}
+
+.player-details-table {
+    display: grid;
+    grid-auto-flow: row;
+    width: 90%;
+}
+
+.player-details-table .row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    align-items: center;
+}
+
+.player-details-table .header {
+    /* font-weight: bold; */
+}
+
+.player-details-table .cell {
+    padding: 0.2em;
+    text-align: center;
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+
+.player-details-table .sorted {
+    display: flex;
+    flex-direction: row;
+}
+
+.player-details-table .cell.sorted > span {
+    font-weight: bold;
+}

@@ -1,0 +1,12 @@
+.landing {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    align-items: center;
+}
+
+.game-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}

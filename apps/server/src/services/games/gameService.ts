@@ -1,11 +1,9 @@
-import { CreateGameParams, GameDto, GameRoles, PlayerGame } from '@biketag/models';
-import { PlayerScores, TagStats } from '@biketag/models/src/api/score';
+import { BaseEntityWithoutId, CreateGameParams, GameDto, GameEntity, GameRoles, GameSummary, PlayerGame, PlayerScores, TagStats } from '@biketag/models';
 import { copyDefinedProperties } from '@biketag/utils';
 
 import { BaseService } from '../../common/baseService';
 import { validateExists } from '../../common/entityValidators';
 import { CannotRemovePlayerError, gameServiceErrors, UserNotFoundError } from '../../common/errors';
-import { BaseEntityWithoutId, GameEntity } from '../../dal/models';
 import { GameDalService } from '../../dal/services/gameDalService';
 import { TagService } from '../tags/tagService';
 import { UserService } from '../users/userService';
@@ -185,6 +183,14 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
         this.logger.info(`[getGamesForPlayer]`, { userId });
         const games = await this.dalService.getGamesForPlayer({ userId });
         return await this.convertToDtoList(games);
+    }
+
+    public async getGameSummaryForPlayer({ userId }: { userId: string }): Promise<GameSummary[]> {
+        this.logger.info(`[getGameSummaryForPlayer]`, { userId });
+
+        const games = await this.dalService.getGamesForPlayer({ userId });
+        const creators = await Promise.all(games.map((game) => this.usersService.getRequired({ id: game.creatorId })));
+        return games.map((game, index) => ({ id: game.id, name: game.name, creator: creators[index] }));
     }
 
     private setPlayerInGame({ game, userId, role }: { game: GameEntity; userId: string; role: GameRoles }): void {

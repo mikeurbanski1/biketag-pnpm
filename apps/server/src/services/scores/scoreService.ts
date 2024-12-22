@@ -1,11 +1,7 @@
 import dayjs from 'dayjs';
 
-import { CreateTagDto } from '@biketag/models';
-import { TagStats } from '@biketag/models/src/api/score';
+import { CreateTagDto, GameEntity, TagEntity, TagStats } from '@biketag/models';
 import { isSameDate, Logger } from '@biketag/utils';
-
-import { GameEntity } from '../../dal/models';
-import { TagEntity } from '../../dal/models/tag';
 
 // Not actually an entity service
 export class ScoreService {

@@ -1,9 +1,8 @@
-import { TagStats } from '@biketag/models/src/api/score';
-
 import { BaseEntity } from '.';
+import { TagStats } from '../common';
 
 export interface TagEntity extends BaseEntity {
-    name: string;
+    // name: string;
     creatorId: string;
     gameId: string;
     parentTagId?: string;
@@ -14,6 +13,6 @@ export interface TagEntity extends BaseEntity {
     previousRootTagId?: string;
     nextRootTagId?: string;
     postedDate: string;
-    contents: string;
+    imageUrl: string;
     stats: TagStats;
 }

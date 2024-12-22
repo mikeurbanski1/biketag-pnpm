@@ -1,41 +1,40 @@
 import { BaseDto } from '.';
-import { TagStats } from './score';
+import { TagStats } from '../common';
 import { UserDto } from './user';
 
-export interface MinimalTag extends BaseDto {
-    name: string;
-    creator: Pick<UserDto, 'id' | 'name'>;
-    contents: string;
-    postedDate: string;
-}
+// export interface MinimalTag extends BaseDto {
+//     // name: string;
+//     creator: Pick<UserDto, 'id' | 'name'>;
+//     imageUrl: string;
+//     postedDate: string;
+// }
 
 export interface PendingTag extends BaseDto {
     creator: Pick<UserDto, 'id' | 'name'>;
-    isPendingTagView: true;
 }
 
 export interface TagDto extends BaseDto {
-    name: string;
+    // name: string;
     creator: UserDto;
     gameId: string;
-    parentTag?: MinimalTag;
-    nextTag?: MinimalTag;
-    rootTag?: MinimalTag;
-    lastTagInChain?: MinimalTag; // only on root tag and only if there is a child
+    parentTagId?: string;
+    nextTagId?: string;
+    rootTagId?: string;
+    lastTagInChainId?: string; // only on root tag and only if there is a child
     isRoot: boolean;
-    previousRootTag?: MinimalTag;
-    nextRootTag?: MinimalTag;
+    previousRootTagId?: string;
+    nextRootTagId?: string;
     postedDate: string;
-    contents: string;
+    imageUrl: string;
     stats: TagStats;
 }
 
 export interface CreateTagDto {
-    name: string;
+    // name: string;
     gameId: string;
     rootTagId?: string;
     isRoot: boolean;
-    contents: string;
+    imageUrl: string;
     postedDate?: string; // used for bootstrapping
 }
 

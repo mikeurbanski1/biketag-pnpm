@@ -35,20 +35,20 @@ const UserSelection: React.FC<UserSelectionProps> = ({ user, index, onSelect, ga
     };
 
     return (
-        <tr>
-            <td>{user.name}</td>
-            <td>
+        <div className="user-grid-row">
+            <div>{user.name}</div>
+            <div>
                 <button onClick={handleSelectClick}>{isSelected ? 'Remove' : 'Add'}</button>
-            </td>
-            <td>
+            </div>
+            <div className="button-pair">
                 {isSelected && (
                     <select value={role || ''} onChange={handleRoleChange}>
                         <option value={GameRoles.PLAYER}>Player</option>
                         <option value={GameRoles.ADMIN}>Admin</option>
                     </select>
                 )}
-            </td>
-        </tr>
+            </div>
+        </div>
     );
 };
 

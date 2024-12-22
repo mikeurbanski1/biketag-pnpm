@@ -1,7 +1,5 @@
-import { PlayerGame } from '@biketag/models';
-import { GameScore } from '@biketag/models/src/api/score';
-
 import { BaseEntity } from '.';
+import { GameScore, PlayerGame } from '../common';
 
 export interface GameEntity extends BaseEntity {
     name: string;

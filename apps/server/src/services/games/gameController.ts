@@ -1,7 +1,7 @@
 // src/users/usersController.ts
 import { Body, Controller, Delete, Get, Header, Patch, Path, Post, Put, Res, Route, SuccessResponse, TsoaResponse } from 'tsoa';
 
-import { AddPlayerInGameParams, CreateGameDto, CreateGameParams, GameDto } from '@biketag/models';
+import { AddPlayerInGameParams, CreateGameDto, CreateGameParams, GameDto, GameSummary } from '@biketag/models';
 import { Logger, USER_ID_HEADER } from '@biketag/utils';
 
 import { GameNotFoundError, UserNotFoundError } from '../../common/errors';
@@ -37,6 +37,15 @@ export class GameController extends Controller {
         logger.info(`[getGamesForPlayer] player id: ${userId}`);
         const playerGames = await this.gamesService.getGamesForPlayer({ userId });
         logger.info(`[getGamesForPlayer] result`, { playerGames });
+        return playerGames;
+    }
+
+    @Get('/player/{userId}/summary')
+    @SuccessResponse('200', 'ok')
+    public async getGameSummaryForPlayer(@Path() userId: string): Promise<GameSummary[]> {
+        logger.info(`[getGameSummaryForPlayer] player id: ${userId}`);
+        const playerGames = await this.gamesService.getGameSummaryForPlayer({ userId });
+        logger.info(`[getGameSummaryForPlayer] result`, { playerGames });
         return playerGames;
     }
 

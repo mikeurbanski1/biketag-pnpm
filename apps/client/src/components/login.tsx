@@ -77,20 +77,19 @@ export class Login extends React.Component<LoginProps, LoginState> {
         }
     }
 
-    render(): ReactNode {
+    public render(): ReactNode {
         return (
-            <div>
-                <span>
-                    {/* <label htmlFor="id">User ID: </label>
-                    <input type="text" name="id" onChange={(event) => this.handleIdChange(event)} value={this.state.id}></input> */}
-                    <label htmlFor="name">Your name: </label>
-                    <input type="text" name="name" onChange={(event) => this.handleNameChange(event)} value={this.state.name}></input>
-                    <br></br>
-                    <input type="button" name="login" value="Login" onClick={async () => await this.login()} disabled={!this.state.canSignup}></input>
-                    <input type="button" name="signup" value="Sign Up" onClick={async () => await this.signUp()} disabled={!this.state.canSignup}></input>
-                    <br></br>
-                    <h3>{this.state.errorMessage || ''}</h3>
-                </span>
+            <div className="flex-column moderate-gap">
+                <input className="login-text" placeholder="Name" type="text" onChange={(event) => this.handleNameChange(event)} value={this.state.name}></input>
+                <div className="button-pair">
+                    <button className="login-button" type="button" onClick={async () => await this.login()} disabled={!this.state.canSignup}>
+                        Login
+                    </button>
+                    <button className="login-button" type="button" onClick={async () => await this.signUp()} disabled={!this.state.canSignup}>
+                        Sign up
+                    </button>
+                </div>
+                <h3>{this.state.errorMessage || ''}</h3>
             </div>
         );
     }

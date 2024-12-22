@@ -1,0 +1,23 @@
+.user-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1em;
+    width: 100%;
+}
+
+.user-grid button, select {
+    height: 25px;
+}
+
+.user-grid-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1em;
+    width: 80%;
+    align-items: center;
+}
+
+.user-grid-row>div:nth-last-child(-n + 2) {
+    text-align: center;
+}

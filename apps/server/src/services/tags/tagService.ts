@@ -1,14 +1,12 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { UUID } from 'mongodb';
 
-import { CreateTagParams, MinimalTag, PendingTag, TagDto, tagFields } from '@biketag/models';
+import { BaseEntityWithoutId, CreateTagParams, GameEntity, PendingTag, TagDto, TagEntity, tagFields } from '@biketag/models';
 import { getDateOnly, isEarlierDate, isSameDate } from '@biketag/utils';
 
 import { BaseService } from '../../common/baseService';
 import { validateExists } from '../../common/entityValidators';
 import { CannotPostTagError, tagServiceErrors } from '../../common/errors';
-import { BaseEntityWithoutId } from '../../dal/models';
-import { TagEntity } from '../../dal/models/tag';
 import { TagDalService } from '../../dal/services/tagDalService';
 import { QueueManager } from '../../queue/manager';
 import { GameService } from '../games/gameService';
@@ -29,20 +27,37 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
 
     /**
      * Gets the tag by ID, but returns a pending tag if the tag state is pending and the requesting user is not the creator (i.e., others cannot see it before it goes live)
+     * If no user is specified, assumes pending tag
      */
-    public async getWithPendingCheck({ tagId, userId }: { tagId: string; userId: string }): Promise<TagDto | PendingTag | null> {
+    public async getWithPendingCheck({ tagId, userId }: { tagId: string; userId?: string }): Promise<TagDto | PendingTag | null> {
         const tag = await this.dalService.getById({ id: tagId });
         if (!tag) {
             return null;
         }
-        if (tag.creatorId !== userId && (await this.gamesService.getRequiredAsEntity({ id: tag.gameId })).pendingRootTagId === tagId) {
+        if ((!userId || tag.creatorId !== userId) && (await this.gamesService.getRequiredAsEntity({ id: tag.gameId })).pendingRootTagId === tagId) {
             return {
                 id: tag.id,
                 creator: await this.usersService.getRequired({ id: tag.creatorId }),
-                isPendingTagView: true,
             };
         }
         return await this.convertToDto(tag);
+    }
+
+    public async getMultipleWithPendingCheck({ ids }: { ids: string[] }): Promise<(TagDto | PendingTag)[]> {
+        const tags = await this.getMultiple({ ids });
+        const gameMap: Record<string, GameEntity> = {};
+        return await Promise.all(
+            tags.map(async (tag) => {
+                const game = gameMap[tag.gameId] ?? (gameMap[tag.gameId] = await this.gamesService.getRequiredAsEntity({ id: tag.gameId }));
+                if (game.pendingRootTagId === tag.id) {
+                    return {
+                        id: tag.id,
+                        creator: tag.creator,
+                    };
+                }
+                return tag;
+            })
+        );
     }
 
     public async getPendingTag({ id }: { id: string }): Promise<PendingTag> {
@@ -50,7 +65,6 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         return {
             id: tag.id,
             creator: await this.usersService.getRequired({ id: tag.creatorId }),
-            isPendingTagView: true,
         };
     }
 
@@ -74,41 +88,10 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         if (!entity) {
             return null;
         }
-        const { parentTagId, nextTagId, rootTagId, previousRootTagId, nextRootTagId, lastTagInChainId } = entity;
-        const parentTag = parentTagId ? await this.getMinimalTag({ id: parentTagId }) : undefined;
-        const nextTag = nextTagId ? await this.getMinimalTag({ id: nextTagId }) : undefined;
-        const rootTag = rootTagId ? (rootTagId === parentTagId ? parentTag : await this.getMinimalTag({ id: rootTagId })) : undefined;
-        const previousRootTag = previousRootTagId ? await this.getMinimalTag({ id: previousRootTagId }) : undefined;
-        const nextRootTag = nextRootTagId ? await this.getMinimalTag({ id: nextRootTagId }) : undefined;
-        const lastTagInChain = lastTagInChainId ? (lastTagInChainId === nextTagId ? nextTag : await this.getMinimalTag({ id: lastTagInChainId })) : undefined;
-        return {
-            id: entity.id,
-            name: entity.name,
-            creator: await this.usersService.getRequired({ id: entity.creatorId }),
-            gameId: entity.gameId,
-            parentTag,
-            nextTag,
-            rootTag,
-            lastTagInChain,
-            isRoot: entity.isRoot,
-            previousRootTag,
-            nextRootTag,
-            postedDate: entity.postedDate,
-            contents: entity.contents,
-            stats: entity.stats,
-        };
-    }
 
-    public async getMinimalTag({ id }: { id: string }): Promise<MinimalTag> {
-        this.logger.info(`[getMinimalTag]`, { id });
-        // must go straight to the DAL service to avoid infinite loop
-        const tag = await this.dalService.getByIdRequired({ id });
         return {
-            id: tag.id,
-            name: tag.name,
-            postedDate: tag.postedDate,
-            creator: await this.usersService.getRequired({ id: tag.creatorId }),
-            contents: tag.contents,
+            ...entity,
+            creator: await this.usersService.getRequired({ id: entity.creatorId }),
         };
     }
 
@@ -291,7 +274,8 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             return { result: false, reason: 'There is already a pending tag for this game' };
         }
         const latestRootTag = await this.getRequired({ id: game.latestRootTagId });
-        const tagWinner = latestRootTag.nextTag?.creator.id;
+        const latestRootTagFirstTag = latestRootTag.nextTagId ? await this.get({ id: latestRootTag.nextTagId }) : undefined;
+        const tagWinner = latestRootTagFirstTag?.creator.id;
         if (isEarlierDate(dateOverride, latestRootTag.postedDate)) {
             return { result: false, reason: 'This date is older than the current tag' };
         }

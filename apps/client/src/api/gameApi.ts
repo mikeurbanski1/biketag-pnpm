@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 
-import { CreateGameParams, GameDto, PlayerGame } from '@biketag/models';
+import { CreateGameDto, GameDto, GameSummary, PlayerGame } from '@biketag/models';
 
 import { AbstractApi } from './abstractApi';
 
@@ -51,12 +51,29 @@ export class GameApi extends AbstractApi {
         }
     }
 
-    public async createGame({ name, creatorId, players }: { name: string; creatorId: string; players: PlayerGame[] }): Promise<GameDto> {
+    public async getGameSummaryForPlayer({ userId }: { userId: string }): Promise<GameSummary[]> {
+        try {
+            const resp = await this.axiosInstance.request<GameDto[]>({
+                method: 'get',
+                url: `/games/player/${userId}/summary`,
+            });
+            if (resp.status !== 200) {
+                throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
+            }
+            this.logger.info('[getGameSummaryForPlayer] got games', { data: resp.data });
+            return resp.data;
+        } catch (err) {
+            this.logger.error(`[getGameSummaryForPlayer] got an error response`, { err });
+            throw err;
+        }
+    }
+
+    public async createGame({ name, players }: { name: string; players: PlayerGame[] }): Promise<GameDto> {
         try {
             const resp = await this.axiosInstance.request<GameDto>({
                 method: 'post',
                 url: '/games',
-                data: { name, creatorId, players },
+                data: { name, players },
             });
             if (resp.status !== 201) {
                 throw new CreateGameFailedError(`Unexpected response: ${resp.status} - ${resp.statusText}`);
@@ -89,13 +106,13 @@ export class GameApi extends AbstractApi {
         }
     }
 
-    public async updateGame(id: string, game: CreateGameParams): Promise<GameDto> {
-        const { name, creatorId, players } = game;
+    public async updateGame({ id, game }: { id: string; game: CreateGameDto }): Promise<GameDto> {
+        const { name, players } = game;
         try {
             const resp = await this.axiosInstance.request<GameDto>({
                 method: 'patch',
                 url: `/games/${id}`,
-                data: { name, creatorId, players },
+                data: { name, players },
             });
             if (resp.status !== 200) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);

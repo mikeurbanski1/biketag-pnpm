@@ -1,6 +1,8 @@
 import React from 'react';
 
-import { CreateGameParams, GameDto, GameRoles, UserDto } from '@biketag/models';
+import '../styles/createEditGame.css';
+
+import { CreateGameDto, GameDto, GameRoles, UserDto } from '@biketag/models';
 
 import { ApiManager } from '../api';
 import { UserBeingAdded } from '../models/user';
@@ -23,10 +25,10 @@ interface CreateEditGameProps {
 export class CreateEditGame extends React.Component<CreateEditGameProps, CreateEditGameState> {
     constructor(props: CreateEditGameProps) {
         super(props);
-        const gameName = props.game?.name || '';
+        // const gameName = props.game?.name || '';
         const isNewGame = props.game === undefined;
         this.state = {
-            gameName,
+            gameName: '',
             isNewGame,
             canSaveGame: !isNewGame,
             loadingUsers: true,
@@ -34,10 +36,9 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         };
     }
 
-    createEditGame(): void {
-        const game: CreateGameParams = {
+    private createEditGame(): void {
+        const game: CreateGameDto = {
             name: this.state.gameName,
-            creatorId: this.props.user.id,
             players: this.state.selectedUsers
                 .filter((user) => user.role !== undefined)
                 .map((user) => ({
@@ -53,11 +54,11 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         if (!this.props.game) {
             ApiManager.gameApi.createGame(game).then(callback);
         } else {
-            ApiManager.gameApi.updateGame(this.props.game.id, game).then(callback);
+            ApiManager.gameApi.updateGame({ id: this.props.game.id, game }).then(callback);
         }
     }
 
-    componentDidMount(): void {
+    public componentDidMount(): void {
         this.refreshUsers().then(() => this.setState({ loadingUsers: false }));
     }
 
@@ -74,13 +75,13 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
     private async refreshUsers(): Promise<void> {
         const users = (await ApiManager.userApi.getUsers()).filter((user) => user.id !== this.props.user.id);
         console.log('got (filtered) users:', users);
-        const selectedUsers = this.getSelectedUsersForGame({ game: this.props.game, users });
+        const selectedUsers = this.getSelectedUsersForGame({ game: this.props.game, users }).sort((a, b) => a.user.name.localeCompare(b.user.name));
         this.setState({
             selectedUsers,
         });
     }
 
-    handleNameChange(event: React.ChangeEvent<HTMLInputElement>): void {
+    private handleNameChange(event: React.ChangeEvent<HTMLInputElement>): void {
         const canCreateGame = event.target.value !== '';
         this.setState({
             canSaveGame: canCreateGame,
@@ -88,7 +89,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         });
     }
 
-    handleUserSelect(index: number, user: UserDto, role?: GameRoles): void {
+    private handleUserSelect(index: number, user: UserDto, role?: GameRoles): void {
         console.log(`selected user:`, user, role);
         const selectedUsers = this.state.selectedUsers;
         selectedUsers[index] = { user, role };
@@ -97,29 +98,37 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         });
     }
 
-    render() {
+    public render() {
         return (
-            <div>
-                <div>
-                    <h1>{this.state.isNewGame ? 'Create' : 'Edit'} game:</h1>
-                    <input type="text" value={this.state.gameName} name="gameName" placeholder="Game name" onChange={(event) => this.handleNameChange(event)}></input>
-                    <br></br>
-                    {this.state.selectedUsers &&
-                        this.state.selectedUsers.map((user, index) => (
-                            <table key={user.user.id}>
-                                <tbody>
-                                    <UserSelection
-                                        user={user.user}
-                                        gameRole={user.role}
-                                        index={index}
-                                        onSelect={(index: number, user: UserDto, role?: GameRoles) => this.handleUserSelect(index, user, role)}
-                                    />
-                                </tbody>
-                            </table>
+            <div className="flex-column moderate-gap">
+                <div className="title">{this.state.isNewGame ? 'Create' : 'Edit'} game</div>
+                <input type="text" value={this.state.gameName} name="gameName" placeholder="Game name" onChange={(event) => this.handleNameChange(event)}></input>
+                {this.state.loadingUsers ? (
+                    <div>Loading users...</div>
+                ) : (
+                    <div className="user-grid">
+                        {this.state.selectedUsers.map((user, index) => (
+                            <UserSelection
+                                key={user.user.id}
+                                user={user.user}
+                                gameRole={user.role}
+                                index={index}
+                                onSelect={(index: number, user: UserDto, role?: GameRoles) => this.handleUserSelect(index, user, role)}
+                            />
                         ))}
-                    <input type="button" name="createGame" value={`${this.state.isNewGame ? 'Create' : 'Save'} game`} onClick={() => this.createEditGame()} disabled={!this.state.canSaveGame}></input>
-                    <br></br>
-                    <input type="button" name="goBack" value="Go back" onClick={() => this.props.doneCreatingGame()}></input>
+                    </div>
+                )}
+                <div className="button-pair">
+                    <button type="button" name="goBack" value="Go back" onClick={() => this.props.doneCreatingGame()}>
+                        Go back
+                    </button>
+                    <button
+                        type="button"
+                        name="createGame"
+                        value={`${this.state.isNewGame ? 'Create' : 'Save'} game`}
+                        onClick={() => this.createEditGame()}
+                        disabled={!this.state.canSaveGame}
+                    >{`${this.state.isNewGame ? 'Create' : 'Save'} game`}</button>
                 </div>
             </div>
         );

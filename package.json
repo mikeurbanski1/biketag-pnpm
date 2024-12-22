@@ -7,7 +7,10 @@
         "build-packages": "cd packages/models && pnpm build && cd ../../packages/utils && pnpm build",
         "build-server": "cd apps/server && pnpm build",
         "build-all": "pnpm build-packages && pnpm build-server",
-        "start-server": "cd apps/server && pnpm start",
+        "start-server": "cd apps/server && pnpm dev",
+        "start-client": "cd apps/client && pnpm dev",
+        "start-all": "concurrently \"pnpm start-server\" \"pnpm start-client\"",
+        "bootstrap": "cd apps/server && pnpm bootstrap",
         "test": "echo \"Error: no test specified\" && exit 1",
         "lint": "eslint"
     },

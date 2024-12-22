@@ -1,0 +1,86 @@
+.tag {
+    border-radius: 20px;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    box-shadow: 15px 15px 5px rgb(0, 0, 0, 0.5);
+    border: 1px solid #535bf2;
+    box-sizing: border-box;
+    height: 100%;
+    width: 100%;
+    background-color: #e8e8e8;
+    text-align: center;
+    align-items: center;
+}
+
+.tag-image-container {
+    margin: auto;
+    width: calc(100% - 50px);
+    height: calc(100% - 50px);
+}
+
+.tag-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tag-footer {
+    margin: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding-bottom: 25px;
+    width: calc(100% - 50px);
+}
+
+.tag-footer > div {
+    line-height: 1em;
+    text-align: center;
+}
+
+.tag-footer > div:nth-child(1) {
+    text-align: left;
+}
+.tag-footer > div:nth-child(2) {
+    text-align: right;
+}
+
+.add-tag {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1em;
+}
+
+.tag-details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.clickable-tag {
+    background-color: #bcbcbc;
+}
+
+.clickable-tag:hover {
+    background-color: #e8e8e8;
+    cursor: pointer;
+}
+
+.clickable-tag:hover .tag-image {
+    filter: brightness(130%);
+    -webkit-filter: brightness(130%);
+    -moz-filter: brightness(130%);
+    -o-filter: brightness(130%);
+    -ms-filter: brightness(130%);
+}
+
+.tag-creator {
+    color: #535bf2;
+    font-size: 1.1em;
+}
+
+.tag-points {
+    color: #fb0000;
+    font-size: 1.1em;
+}
