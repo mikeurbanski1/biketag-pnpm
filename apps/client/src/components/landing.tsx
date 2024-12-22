@@ -1,7 +1,7 @@
 import { Dayjs } from 'dayjs';
 import React, { ReactNode } from 'react';
 
-import { GameDto, UserDto } from '@biketag/models';
+import { GameDto, GameSummary, UserDto } from '@biketag/models';
 
 import { ApiManager } from '../api';
 import { CreateEditGame } from './createEditGame';
@@ -11,8 +11,8 @@ import '../styles/landing.css';
 
 interface LandingState {
     loadingGames: boolean;
-    games: GameDto[];
-    game?: GameDto;
+    selectedGame?: GameSummary;
+    games: GameSummary[];
     creatingGame: boolean;
 }
 
@@ -33,26 +33,26 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         // this.editGame = this.editGame.bind(this);
     }
 
-    componentDidMount(): void {
+    public componentDidMount(): void {
         this.refreshGames().then(() => this.setState({ loadingGames: false }));
     }
 
     private async refreshGames(): Promise<void> {
-        const games = await ApiManager.gameApi.getGamesForPlayer({ userId: this.props.user.id });
+        const games = await ApiManager.gameApi.getGameSummaryForPlayer({ userId: this.props.user.id });
         console.log('got games:', games);
         this.setState({
             games,
         });
     }
 
-    doneCreatingGame(game?: GameDto): void {
+    private doneCreatingGame(game?: GameDto): void {
         this.setState({
             loadingGames: true,
         });
         this.refreshGames().then(() => {
             if (game) {
                 this.setState({
-                    game,
+                    selectedGame: game,
                     creatingGame: false,
                     loadingGames: false,
                 });
@@ -65,47 +65,41 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         });
     }
 
-    setGame(game: GameDto): void {
+    private setGame(game: GameSummary): void {
         this.setState({
-            game,
+            selectedGame: game,
             games: this.state.games.map((g) => (g.id === game.id ? game : g)),
         });
     }
 
-    updateGame(updateParams: Partial<GameDto>): void {
-        const game = this.state.game!;
-        this.setState({
-            game: {
-                ...game,
-                ...updateParams,
-            },
-            games: this.state.games.map((g) => (g.id === game.id ? { ...g, ...updateParams } : g)),
-        });
-    }
+    // updateGame(updateParams: Partial<GameDto>): void {
+    //     const game = this.state.game!;
+    //     this.setState({
+    //         game: {
+    //             ...game,
+    //             ...updateParams,
+    //         },
+    //         games: this.state.games.map((g) => (g.id === game.id ? { ...g, ...updateParams } : g)),
+    //     });
+    // }
 
-    editGame(): void {
+    private deleteGame(): void {
         this.setState({
-            creatingGame: true,
-        });
-    }
-
-    deleteGame(): void {
-        this.setState({
-            game: undefined,
+            selectedGame: undefined,
             loadingGames: true,
         });
-        ApiManager.gameApi.deleteGame({ gameId: this.state.game!.id }).then(() => this.refreshGames().then(() => this.setState({ loadingGames: false })));
+        ApiManager.gameApi.deleteGame({ gameId: this.state.selectedGame!.id }).then(() => this.refreshGames().then(() => this.setState({ loadingGames: false })));
     }
 
-    doneViewingGame(): void {
+    private doneViewingGame(): void {
         this.setState({
-            game: undefined,
+            selectedGame: undefined,
         });
         this.refreshGames().then(() => this.setState({ loadingGames: false }));
     }
 
-    render(): ReactNode {
-        if (!this.state.creatingGame && !this.state.game) {
+    public render(): ReactNode {
+        if (!this.state.creatingGame && !this.state.selectedGame) {
             return (
                 <div className="landing">
                     <div className="title">Your games</div>
@@ -114,7 +108,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
                     ) : (
                         <div className="game-list">
                             {this.state.games.map((game) => (
-                                <div className="clickable-text" key={'a' + game.id} onClick={() => this.setState({ game })}>
+                                <div className="clickable-text" key={'a' + game.id} onClick={() => this.setState({ selectedGame: game })}>
                                     {game.name}
                                 </div>
                             ))}
@@ -126,21 +120,20 @@ export class Landing extends React.Component<LandingProps, LandingState> {
             );
         }
 
-        if (!this.state.creatingGame && this.state.game) {
+        if (!this.state.creatingGame && this.state.selectedGame) {
             return (
                 <Game
-                    game={this.state.game}
-                    updateGame={(updateParams: Partial<GameDto>) => this.updateGame(updateParams)}
+                    gameId={this.state.selectedGame.id}
+                    // updateGame={(updateParams: Partial<GameDto>) => this.updateGame(updateParams)}
                     setGame={(game: GameDto) => this.setGame(game)}
                     user={this.props.user}
                     deleteGame={() => this.deleteGame()}
-                    editGame={() => this.editGame()}
                     doneViewingGame={() => this.doneViewingGame()}
                     dateOverride={this.props.dateOverride}
                 />
             );
         }
 
-        return <CreateEditGame user={this.props.user} doneCreatingGame={this.doneCreatingGame} game={this.state.game} />;
+        return <CreateEditGame user={this.props.user} doneCreatingGame={this.doneCreatingGame} />;
     }
 }

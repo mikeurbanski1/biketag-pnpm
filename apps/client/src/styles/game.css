@@ -1,15 +1,3 @@
-.game-admin-button {
-    width: 10%;
-}
-
-.game-admin-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 1em;
-    /* border: 1px solid green; */
-    width: 100%;
-}
-
 .game-admin-buttons[hidden] {
     display: none;
 }
@@ -33,31 +21,51 @@
     text-align: center;
 }
 
-.tag-view {
+.tag-scroller {
     display: grid;
-    grid-template-rows: 15% 70% 15%;
-    grid-auto-columns: 100%;
-    /* border: 1px solid #0000ec; */
+    /* width: 100%; */
+    /* height: 500px; */
+    /* height: 80%; */
+    grid-template-columns: 15% 15% 40% 15% 15%;
+    grid-template-rows: 10% 10% 60% 10% 10%;
+    grid-auto-rows: 100%;
+    border: 1px solid #ff0000;
+    /* overflow: scroll; */
+    /* position: relative; */
     height: 100%;
-    overflow: hidden;
-    border: 1px solid #535bf2;
 }
 
-.tag-view > div {
-    grid-column: 1;
-    grid-row-end: span 2;
-
-    border: 1px solid #a05612;
+.top-tag {
+    grid-column: 2;
+    grid-row: 1;
 }
 
-.tag-view > div:nth-child(1) {
-    grid-row-start: 1;
+.center-tag {
+    grid-column: 2;
+    grid-row: 2;
     z-index: 1;
 }
 
-.tag-view > div:nth-child(2) {
-    grid-row-start: 2;
-    z-index: 0;
+.bottom-tag {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+.left-tag {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.right-tag {
+    grid-column: 3;
+    grid-row: 2;
+}
+
+.tag-scroller > div {
+    grid-column-end: span 3;
+    grid-row-end: span 3;
+    height: 100%;
+    width: 100%;
 }
 
 .game-details {

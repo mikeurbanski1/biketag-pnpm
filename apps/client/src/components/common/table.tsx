@@ -36,8 +36,8 @@ export class Table<T extends Record<string, string | number>> extends React.Comp
         };
     }
 
-    render() {
-        logger.info(`[render]`, { state: this.state, props: this.props });
+    public render() {
+        logger.info(`[public public render()]`, { state: this.state, props: this.props });
         return (
             <div className={this.props.tableClassName}>
                 <div className="row header">

@@ -14,6 +14,8 @@ export interface GameDto extends BaseDto {
     gameScore: GameScore;
 }
 
+export type GameSummary = Pick<GameDto, 'id' | 'name' | 'creator'>;
+
 export interface CreateGameDto {
     name: string;
     players: PlayerGame[];

@@ -2,7 +2,7 @@ import React from 'react';
 
 import '../styles/createEditGame.css';
 
-import { CreateGameParams, GameDto, GameRoles, UserDto } from '@biketag/models';
+import { CreateGameDto, GameDto, GameRoles, UserDto } from '@biketag/models';
 
 import { ApiManager } from '../api';
 import { UserBeingAdded } from '../models/user';
@@ -25,10 +25,10 @@ interface CreateEditGameProps {
 export class CreateEditGame extends React.Component<CreateEditGameProps, CreateEditGameState> {
     constructor(props: CreateEditGameProps) {
         super(props);
-        const gameName = props.game?.name || '';
+        // const gameName = props.game?.name || '';
         const isNewGame = props.game === undefined;
         this.state = {
-            gameName,
+            gameName: '',
             isNewGame,
             canSaveGame: !isNewGame,
             loadingUsers: true,
@@ -36,10 +36,9 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         };
     }
 
-    createEditGame(): void {
-        const game: CreateGameParams = {
+    private createEditGame(): void {
+        const game: CreateGameDto = {
             name: this.state.gameName,
-            creatorId: this.props.user.id,
             players: this.state.selectedUsers
                 .filter((user) => user.role !== undefined)
                 .map((user) => ({
@@ -55,11 +54,11 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         if (!this.props.game) {
             ApiManager.gameApi.createGame(game).then(callback);
         } else {
-            ApiManager.gameApi.updateGame(this.props.game.id, game).then(callback);
+            ApiManager.gameApi.updateGame({ id: this.props.game.id, game }).then(callback);
         }
     }
 
-    componentDidMount(): void {
+    public componentDidMount(): void {
         this.refreshUsers().then(() => this.setState({ loadingUsers: false }));
     }
 
@@ -82,7 +81,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         });
     }
 
-    handleNameChange(event: React.ChangeEvent<HTMLInputElement>): void {
+    private handleNameChange(event: React.ChangeEvent<HTMLInputElement>): void {
         const canCreateGame = event.target.value !== '';
         this.setState({
             canSaveGame: canCreateGame,
@@ -90,7 +89,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         });
     }
 
-    handleUserSelect(index: number, user: UserDto, role?: GameRoles): void {
+    private handleUserSelect(index: number, user: UserDto, role?: GameRoles): void {
         console.log(`selected user:`, user, role);
         const selectedUsers = this.state.selectedUsers;
         selectedUsers[index] = { user, role };
@@ -99,7 +98,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         });
     }
 
-    render() {
+    public render() {
         return (
             <div className="flex-column moderate-gap">
                 <div className="title">{this.state.isNewGame ? 'Create' : 'Edit'} game</div>

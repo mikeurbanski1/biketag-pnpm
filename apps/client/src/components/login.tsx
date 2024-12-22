@@ -77,7 +77,7 @@ export class Login extends React.Component<LoginProps, LoginState> {
         }
     }
 
-    render(): ReactNode {
+    public render(): ReactNode {
         return (
             <div className="flex-column moderate-gap">
                 <input className="login-text" placeholder="Name" type="text" onChange={(event) => this.handleNameChange(event)} value={this.state.name}></input>

@@ -53,8 +53,6 @@ export default class App extends React.Component<AppProps, AppComponentState> {
         localStorage.setItem('clientId', this.state.clientId);
     }
 
-    // componentDidMount(): void {}
-
     async setUser({ name, id }: { name: string; id: string }) {
         this.setState({
             user: { name, id },
@@ -64,12 +62,12 @@ export default class App extends React.Component<AppProps, AppComponentState> {
         ApiManager.setUser({ userId: id });
     }
 
-    handleResetClient() {
-        localStorage.removeItem('clientId');
-        window.location.reload();
-    }
+    // private handleResetClient() {
+    //     localStorage.removeItem('clientId');
+    //     window.location.reload();
+    // }
 
-    handleLogOut() {
+    private handleLogOut() {
         this.setState({
             state: AppState.HOME,
             userId: undefined,
@@ -79,12 +77,12 @@ export default class App extends React.Component<AppProps, AppComponentState> {
         ApiManager.setUser({ userId: null });
     }
 
-    handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    private handleDateChange(event: React.ChangeEvent<HTMLInputElement>) {
         if (!event.target['validity'].valid || !dayjs(event.target.value).isValid()) return;
         this.setState({ dateOverride: dayjs(event.target.value) });
-    };
+    }
 
-    render(): ReactNode {
+    public render(): ReactNode {
         let inner: ReactNode;
 
         if (this.state.state === AppState.HOME) {
