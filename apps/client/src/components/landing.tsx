@@ -9,6 +9,8 @@ import { Game } from './game/game';
 
 import '../styles/landing.css';
 
+import { NavHeader } from './common/navHeader';
+
 interface LandingState {
     loadingGames: boolean;
     selectedGame?: GameSummary;
@@ -65,24 +67,6 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         });
     }
 
-    private setGame(game: GameSummary): void {
-        this.setState({
-            selectedGame: game,
-            games: this.state.games.map((g) => (g.id === game.id ? game : g)),
-        });
-    }
-
-    // updateGame(updateParams: Partial<GameDto>): void {
-    //     const game = this.state.game!;
-    //     this.setState({
-    //         game: {
-    //             ...game,
-    //             ...updateParams,
-    //         },
-    //         games: this.state.games.map((g) => (g.id === game.id ? { ...g, ...updateParams } : g)),
-    //     });
-    // }
-
     private deleteGame(): void {
         this.setState({
             selectedGame: undefined,
@@ -102,12 +86,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         if (!this.state.creatingGame && !this.state.selectedGame) {
             return (
                 <div className="landing">
-                    <div className="title">
-                        Your games{' '}
-                        <span className="clickable-text" onClick={() => this.refreshGames()}>
-                            ↻
-                        </span>
-                    </div>
+                    <NavHeader centerText="Your games ↻" centerOnClick={() => this.refreshGames()} rightText="Create game →" rightOnClick={() => this.setState({ creatingGame: true })} />
                     {this.state.loadingGames ? (
                         <div>Loading games...</div>
                     ) : (
@@ -119,8 +98,6 @@ export class Landing extends React.Component<LandingProps, LandingState> {
                             ))}
                         </div>
                     )}
-
-                    <button onClick={() => this.setState({ creatingGame: true })}>Create game</button>
                 </div>
             );
         }
@@ -129,6 +106,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
             return (
                 <Game
                     gameId={this.state.selectedGame.id}
+                    gameName={this.state.selectedGame.name}
                     user={this.props.user}
                     deleteGame={() => this.deleteGame()}
                     doneViewingGame={() => this.doneViewingGame()}

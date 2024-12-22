@@ -3,10 +3,15 @@ import React from 'react';
 import '../styles/createEditGame.css';
 
 import { CreateGameDto, GameDto, GameRoles, UserDto } from '@biketag/models';
+import { Logger } from '@biketag/utils';
 
 import { ApiManager } from '../api';
 import { UserBeingAdded } from '../models/user';
+import { NavHeader } from './common/navHeader';
 import UserSelection from './userSelection';
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const logger = new Logger({ prefix: '[CreateEditGame]' });
 
 interface CreateEditGameState {
     gameName: string;
@@ -28,7 +33,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         // const gameName = props.game?.name || '';
         const isNewGame = props.game === undefined;
         this.state = {
-            gameName: '',
+            gameName: props.game?.name ?? '',
             isNewGame,
             canSaveGame: !isNewGame,
             loadingUsers: true,
@@ -36,7 +41,7 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
         };
     }
 
-    private createEditGame(): void {
+    private createOrEditGame(): void {
         const game: CreateGameDto = {
             name: this.state.gameName,
             players: this.state.selectedUsers
@@ -73,11 +78,12 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
     }
 
     private async refreshUsers(): Promise<void> {
+        this.setState({ loadingUsers: true });
         const users = (await ApiManager.userApi.getUsers()).filter((user) => user.id !== this.props.user.id);
-        console.log('got (filtered) users:', users);
         const selectedUsers = this.getSelectedUsersForGame({ game: this.props.game, users }).sort((a, b) => a.user.name.localeCompare(b.user.name));
         this.setState({
             selectedUsers,
+            loadingUsers: false,
         });
     }
 
@@ -99,10 +105,20 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
     }
 
     public render() {
+        const centerText = this.state.isNewGame ? 'Create game' : `Editing  ${this.props.game!.name}`;
         return (
-            <div className="flex-column moderate-gap">
-                <div className="title">{this.state.isNewGame ? 'Create' : 'Edit'} game</div>
+            <div className="flex-column moderate-gap full-width">
+                <NavHeader
+                    leftText="← Cancel"
+                    leftOnClick={() => this.props.doneCreatingGame()}
+                    centerText={centerText}
+                    centerOnClick={() => this.createOrEditGame()}
+                    rightText="Refresh users ↻"
+                    rightOnClick={() => this.refreshUsers()}
+                />
+
                 <input type="text" value={this.state.gameName} name="gameName" placeholder="Game name" onChange={(event) => this.handleNameChange(event)}></input>
+
                 {this.state.loadingUsers ? (
                     <div>Loading users...</div>
                 ) : (
@@ -118,18 +134,13 @@ export class CreateEditGame extends React.Component<CreateEditGameProps, CreateE
                         ))}
                     </div>
                 )}
-                <div className="button-pair">
-                    <button type="button" name="goBack" value="Go back" onClick={() => this.props.doneCreatingGame()}>
-                        Go back
-                    </button>
-                    <button
-                        type="button"
-                        name="createGame"
-                        value={`${this.state.isNewGame ? 'Create' : 'Save'} game`}
-                        onClick={() => this.createEditGame()}
-                        disabled={!this.state.canSaveGame}
-                    >{`${this.state.isNewGame ? 'Create' : 'Save'} game`}</button>
-                </div>
+                <button
+                    type="button"
+                    name="createGame"
+                    value={`${this.state.isNewGame ? 'Create' : 'Save'} game`}
+                    onClick={() => this.createOrEditGame()}
+                    disabled={!this.state.canSaveGame}
+                >{`${this.state.isNewGame ? 'Create' : 'Save'} game`}</button>
             </div>
         );
     }

@@ -8,6 +8,7 @@ import { ApiManager } from '../../api';
 
 import '../../styles/game.css';
 
+import { NavHeader } from '../common/navHeader';
 import { CreateEditGame } from '../createEditGame';
 import { GameDetails } from './gameDetails';
 import { GameTagView } from './gameTagView';
@@ -43,6 +44,7 @@ interface ViewGameState {
 interface ViewGameProps {
     user: UserDto;
     gameId: string;
+    gameName: string;
     doneViewingGame: () => void;
     deleteGame: () => void;
     dateOverride: Dayjs;
@@ -230,12 +232,42 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
     public render() {
         const { game } = this.state;
 
-        if (!game || this.state.loadingGame) {
-            return <div>Loading...</div>;
-        }
-
         if (this.state.editingGame) {
             return <CreateEditGame user={this.props.user} doneCreatingGame={() => this.setState({ editingGame: false })} game={this.state.game!} />;
+        }
+
+        let innerDiv: React.ReactNode;
+        if (!game || this.state.loadingGame) {
+            innerDiv = <div className="game-details">Loading...</div>;
+        } else if (this.state.viewingGameDetails) {
+            innerDiv = (
+                <GameDetails
+                    game={game}
+                    user={this.props.user}
+                    playerDetailsTable={this.state.playerDetailsTable}
+                    showingGameAdminButtons={this.state.showingGameAdminButtons}
+                    setShowingGameAdminButtons={(value) => this.setState({ showingGameAdminButtons: value })}
+                    setEditingGame={() => this.setState({ editingGame: true })}
+                    deleteGame={() => this.props.deleteGame()}
+                />
+            );
+        } else {
+            innerDiv = (
+                <GameTagView
+                    game={game}
+                    dateOverride={this.props.dateOverride}
+                    currentRootTag={this.state.currentRootTag}
+                    currentTag={this.state.currentTag}
+                    userCanAddRootTag={this.state.userCanAddRootTag}
+                    userCanAddSubtag={this.state.userCanAddSubtag}
+                    showingAddRootTag={this.state.showingAddRootTag}
+                    showingAddSubtag={this.state.showingAddSubtag}
+                    showingPendingTag={this.state.showingPendingTag}
+                    createNewTag={({ imageUrl, isSubtag }: { imageUrl: string; isSubtag: boolean }) => this.createNewTag({ imageUrl, isSubtag })}
+                    setAddTagAsActive={(isSubtag: boolean) => this.setAddTagAsActive(isSubtag)}
+                    selectTag={(tag: TagDto | PendingTag) => this.setCurrentTag(tag)}
+                />
+            );
         }
 
         const backText = this.state.viewingGameDetails ? '← Back to tags' : '← Back to games';
@@ -243,52 +275,15 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
 
         return (
             <div className="game-view">
-                <div className="game-header">
-                    <span className="clickable-text" onClick={backOnClick}>
-                        {backText}
-                    </span>
-                    <span className="title">
-                        {game.name}
-                        <span className="clickable-text" onClick={() => this.refreshGame()}>
-                            ↻
-                        </span>
-                    </span>
-                    <span>
-                        {this.state.viewingGameDetails ? (
-                            ''
-                        ) : (
-                            <span className="clickable-text" onClick={() => this.setState({ viewingGameDetails: true })}>
-                                Game details →
-                            </span>
-                        )}
-                    </span>
-                </div>
-                {this.state.viewingGameDetails ? (
-                    <GameDetails
-                        game={game}
-                        user={this.props.user}
-                        playerDetailsTable={this.state.playerDetailsTable}
-                        showingGameAdminButtons={this.state.showingGameAdminButtons}
-                        setShowingGameAdminButtons={(value) => this.setState({ showingGameAdminButtons: value })}
-                        setEditingGame={() => this.setState({ editingGame: true })}
-                        deleteGame={() => this.props.deleteGame()}
-                    />
-                ) : (
-                    <GameTagView
-                        game={game}
-                        dateOverride={this.props.dateOverride}
-                        currentRootTag={this.state.currentRootTag}
-                        currentTag={this.state.currentTag}
-                        userCanAddRootTag={this.state.userCanAddRootTag}
-                        userCanAddSubtag={this.state.userCanAddSubtag}
-                        showingAddRootTag={this.state.showingAddRootTag}
-                        showingAddSubtag={this.state.showingAddSubtag}
-                        showingPendingTag={this.state.showingPendingTag}
-                        createNewTag={({ imageUrl, isSubtag }: { imageUrl: string; isSubtag: boolean }) => this.createNewTag({ imageUrl, isSubtag })}
-                        setAddTagAsActive={(isSubtag: boolean) => this.setAddTagAsActive(isSubtag)}
-                        selectTag={(tag: TagDto | PendingTag) => this.setCurrentTag(tag)}
-                    />
-                )}
+                <NavHeader
+                    leftText={backText}
+                    leftOnClick={backOnClick}
+                    centerText={`${this.props.gameName} ↻`}
+                    centerOnClick={() => this.refreshGame()}
+                    rightText={!this.state.viewingGameDetails && !this.state.loadingGame ? 'Game details →' : undefined}
+                    rightOnClick={() => this.setState({ viewingGameDetails: true })}
+                />
+                {innerDiv}
             </div>
         );
     }

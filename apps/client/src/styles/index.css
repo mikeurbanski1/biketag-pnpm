@@ -74,6 +74,10 @@ body {
     gap: 1em;
 }
 
+.full-width {
+    width: 100%;
+}
+
 input[type='text'] {
     width: 80%;
     border-radius: 8px;
@@ -172,4 +176,14 @@ input.login-text {
 
 .logged-in-text {
     font-style: italic;
+}
+
+.nav-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    width: 100%;
+}
+
+.nav-header > span {
+    text-align: center;
 }
