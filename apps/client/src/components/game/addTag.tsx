@@ -8,12 +8,12 @@ const logger = new Logger({ prefix: '[AddTag]' });
 
 interface AddTagProps {
     saveTag: ({ imageUrl }: { imageUrl: string }) => void;
+    setAddTagAsActive: () => void;
     isSubtag: boolean;
     // will be provided for a new root tag (if there is a previous root tag)
     // hacky workaround to allow testing of creating tags at different times
     previousRootTagDate?: Dayjs;
     dateOverride: Dayjs;
-    setAddTagAsActive: () => void;
     isActive: boolean;
     isFirstTag: boolean;
 }

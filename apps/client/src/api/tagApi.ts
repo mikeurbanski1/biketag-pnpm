@@ -8,7 +8,7 @@ import { AbstractApi } from './abstractApi';
 export class TagNotFoundError extends Error {}
 
 export class TagApi extends AbstractApi {
-    private tagCache: Record<string, TagDto> = {};
+    private tagCache: Record<string, TagDto | PendingTag> = {};
 
     constructor({ clientId }: { clientId: string }) {
         super({ clientId, logPrefix: '[TagApi]' });
@@ -16,6 +16,10 @@ export class TagApi extends AbstractApi {
 
     public clearCache(): void {
         this.tagCache = {};
+    }
+
+    public getTagFromCache({ id }: { id: string }): TagDto | PendingTag | undefined {
+        return this.tagCache[id];
     }
 
     public async getTag({ id }: { id?: string }): Promise<TagDto | PendingTag | undefined> {

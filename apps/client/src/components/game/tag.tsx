@@ -1,100 +1,135 @@
-import dayjs from 'dayjs';
-import React from 'react';
+import dayjs, { Dayjs } from 'dayjs';
+import React, { useEffect, useState } from 'react';
 
-import { isFullTag, PendingTag as PendingTagType, TagDto } from '@biketag/models';
+import { isFullTag, PendingTag, TagDto } from '@biketag/models';
 import { Logger } from '@biketag/utils';
 
 import { TIME_FORMAT } from '../../utils/consts';
 
 import '../../styles/tag.css';
 
+import { ApiManager } from '../../api';
 import { convertDateToRelativeDate } from '../../utils/utils';
+import { AddTag } from './addTag';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const logger = new Logger({});
 
-interface TagProps {
-    tag: TagDto | PendingTagType;
-    isActive?: boolean;
-    selectTag?: () => void;
-    isMinimized?: boolean;
+export interface AddTagProps {
+    saveTag: ({ imageUrl }: { imageUrl: string }) => void;
+    isSubtag: boolean;
+    isFirstTag: boolean;
+    dateOverride: Dayjs;
+    previousRootTagDate?: Dayjs;
 }
 
-// interface MinimalTagProps {
-//     tag: MinimalTagType;
-//     isSubtag: boolean;
-//     selectTag: () => void;
+// type AddTagTypes = 'addRootTag' | 'addSubtag';
+type TagType = TagDto | PendingTag | AddTagProps;
+type TagTypeWithId = TagType | string;
+
+interface TagProps {
+    tag?: TagTypeWithId; // general string is a tagId
+    // tagId?: string; // we will be responsible for fetching the tag; if set than tag is undefined
+    isActive: boolean;
+    selectTag?: (tag: TagType) => void;
+    isMinimized?: boolean;
+    position: string;
+}
+
+interface LoadingTagDefinedProps {
+    tag: string;
+}
+
+// interface AddTagDefinedProps {
+//     tag: AddTagTypes;
+//     addTagProps: AddTagProps;
+//     selectTag: (tag: TagType) => void;
 // }
 
-// interface PendingTagProps {
-//     tag: PendingTagType;
-//     isActive?: boolean;
-//     selectTag?: () => void;
+interface RealActiveTagDefinedProps {
+    tag: TagDto | PendingTag;
+}
+
+interface RealInactiveTagDefinedProps extends RealActiveTagDefinedProps {
+    selectTag: (tag: TagType) => void;
+}
+
+// interface LoadingAndTagType {
+//     loading: boolean;
+//     tag?: TagType;
 // }
 
-export const Tag: React.FC<TagProps> = ({ tag, isActive = true, selectTag }) => {
-    const classes = ['tag'];
-    if (!isActive) {
-        classes.push('clickable-tag');
-    }
+const isTagToLoad = (props: TagProps): props is TagProps & LoadingTagDefinedProps => typeof props.tag === 'string';
+const isAddTag = (tag?: TagTypeWithId): tag is AddTagProps => typeof tag === 'object' && !('tagId' in tag);
+const isLoadedTag = (tag?: TagTypeWithId): tag is TagDto | PendingTag => typeof tag === 'object' && !isAddTag(tag);
+const isInactiveTag = (props: TagProps): props is TagProps & RealInactiveTagDefinedProps => !props.isActive;
 
-    const className = classes.join(' ');
+export const Tag: React.FC<TagProps> = (props: TagProps): React.ReactNode => {
+    logger.info(`[Tag] render`, { props });
+    // we are only displaying loading if we know we are getting a tag
+    // if isLoading is true, tagToRender will be undefined, and vice versa
+    // if we have a tag ID, we can also skip loading if we have the cached tag
+    const tagToUse = isAddTag(props.tag) || isLoadedTag(props.tag) ? props.tag : ApiManager.tagApi.getTagFromCache({ id: props.tag as string });
+    const [isLoading, setIsLoading] = useState<boolean>(!tagToUse && isTagToLoad(props));
+    const [tagToRender, setTagToRender] = useState<TagTypeWithId | undefined>(tagToUse);
 
-    if (isFullTag(tag)) {
-        const relativeDate = convertDateToRelativeDate(dayjs(tag.postedDate));
-        const timeFormat = dayjs(tag.postedDate).format(TIME_FORMAT);
+    useEffect(() => {
+        if (isLoading) {
+            ApiManager.tagApi.getTag({ id: props.tag as string }).then((tag) => {
+                setIsLoading(false);
+                setTagToRender(tag);
+            });
+        }
+    });
 
-        const footer = (
-            <div className="tag-footer">
-                <div>{tag.creator.name}</div>
-                <div>
-                    {relativeDate} — {timeFormat}
+    if (isLoading) {
+        return <div className="tag loading">Loading...</div>;
+    } else if (isAddTag(tagToRender)) {
+        if (!props.selectTag) {
+            throw new Error('selectTag is required when isActive is false');
+        }
+        return <AddTag {...tagToRender} isActive={props.isActive} setAddTagAsActive={() => props.selectTag!(tagToRender)} />;
+    } else if (isLoadedTag(tagToRender)) {
+        const classes: string[] = ['tag'];
+        let onClick: (() => void) | undefined = undefined;
+
+        if (isInactiveTag(props)) {
+            onClick = () => props.selectTag(tagToRender);
+            classes.push('clickable-tag');
+        }
+
+        const className = classes.join(' ');
+
+        if (isFullTag(tagToRender)) {
+            const relativeDate = convertDateToRelativeDate(dayjs(tagToRender.postedDate));
+            const timeFormat = dayjs(tagToRender.postedDate).format(TIME_FORMAT);
+
+            const footer = (
+                <div className="tag-footer">
+                    <div>{tagToRender.creator.name}</div>
+                    <div>
+                        {relativeDate} — {timeFormat}
+                    </div>
+                    {/* <div>{tagWinner}</div> */}
                 </div>
-                {/* <div>{tagWinner}</div> */}
-            </div>
-        );
+            );
 
-        return (
-            <div className={className} onClick={selectTag}>
-                <div className="tag-image-container">
-                    <img className="tag-image" src={tag.imageUrl}></img>
+            return (
+                <div className={className} onClick={onClick}>
+                    <div className="tag-image-container">
+                        <img className="tag-image" src={tagToRender.imageUrl}></img>
+                    </div>
+                    {footer}
                 </div>
-                {footer}
-            </div>
-        );
-    } else {
-        // pending tag
-        return (
-            <div className={`tag ${className}`} onClick={selectTag}>
-                <div className="tag-details">
-                    The next tag posted by <span className="tag-creator">{tag.creator.name}</span> will go live at midnight!
+            );
+        } else {
+            // pending tag
+            return (
+                <div className={`tag ${className}`} onClick={onClick}>
+                    <div className="tag-details">
+                        The next tag posted by <span className="tag-creator">{tagToRender.creator.name}</span> will go live at midnight!
+                    </div>
                 </div>
-            </div>
-        );
+            );
+        }
     }
 };
-
-// export const MinimalTag: React.FC<MinimalTagProps> = ({ tag, selectTag }) => {
-//     return (
-//         <div className="tag clickable-tag" onClick={selectTag}>
-//             <img className="tag-image image-hover-highlight" src={tag.imageUrl}></img>
-//             <div className="tag-details">
-//                 <span>
-//                     by <span className="tag-creator">{tag.creator.name}</span>
-//                 </span>
-//                 <span>{dayjs(tag.postedDate).format(DATE_FORMAT)}</span>
-//             </div>
-//         </div>
-//     );
-// };
-
-// export const PendingTag: React.FC<PendingTagProps> = ({ tag, selectTag, isActive }) => {
-//     const className = isActive ? '' : 'clickable-tag';
-//     return (
-//         <div className={`tag ${className}`} onClick={selectTag}>
-//             <div className="tag-details">
-//                 The next tag posted by <span className="tag-creator">{tag.creator.name}</span> will go live at midnight!
-//             </div>
-//         </div>
-//     );
-// };
