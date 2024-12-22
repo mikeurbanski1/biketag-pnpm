@@ -26,6 +26,8 @@ type PlayerDetailsTableRow = PlayerScores & {
 type Position = 'top' | 'right' | 'bottom' | 'left' | 'center';
 
 interface ViewGameState {
+    game?: GameDto;
+    loadingGame: boolean;
     isCreator: boolean;
     playerDetailsTable: PlayerDetailsTableRow[];
     currentRootTag?: TagDto;
@@ -41,7 +43,7 @@ interface ViewGameState {
 
 interface ViewGameProps {
     user: UserDto;
-    game: GameDto;
+    gameId: string;
     updateGame: (updateParams: Partial<GameDto>) => void;
     setGame: (game: GameDto) => void;
     doneViewingGame: () => void;
@@ -53,39 +55,47 @@ interface ViewGameProps {
 export class Game extends React.Component<ViewGameProps, ViewGameState> {
     constructor(props: ViewGameProps) {
         super(props);
-        const playerDetailsTable = this.getPlayerDetailsTable();
-        // playerDetailsTable = this.sortPlayerDetailsTable({ column: 1, sortAscendingOverride: false, playerDetailsTable });
-        const { latestRootTag } = this.props.game;
         this.state = {
-            isCreator: this.props.game.creator.id === this.props.user.id,
-            playerDetailsTable: playerDetailsTable,
-            currentRootTag: this.props.game.latestRootTag,
-            currentTag: this.props.game.latestRootTag,
+            isCreator: false,
+            loadingGame: true,
+            playerDetailsTable: [],
             showingGameAdminButtons: false,
             viewingGameDetails: false,
             showingPendingTag: false,
-            userCanAddRootTag: latestRootTag === undefined,
-            userCanAddSubtag: latestRootTag !== undefined && !latestRootTag.nextTagId && latestRootTag.creator.id !== props.user.id,
-            showingAddRootTag: latestRootTag === undefined,
+            userCanAddRootTag: false,
+            userCanAddSubtag: false,
+            showingAddRootTag: false,
             showingAddSubtag: false,
         };
     }
 
-    async componentDidMount(): Promise<void> {
-        const stateUpdates: Partial<ViewGameState> = {};
-        if (!this.state.userCanAddRootTag) {
-            const userCanAddRootTag = await ApiManager.tagApi.canUserAddTag({ userId: this.props.user.id, gameId: this.props.game.id, dateOverride: this.props.dateOverride });
-            stateUpdates.userCanAddRootTag = userCanAddRootTag;
-        }
-        if (!this.state.userCanAddSubtag && this.state.currentRootTag) {
-            const userCanAddSubtag = await ApiManager.tagApi.canUserAddSubtag({ userId: this.props.user.id, tagId: this.state.currentRootTag!.id });
-            stateUpdates.userCanAddSubtag = userCanAddSubtag;
-        }
-        this.setState(stateUpdates as ViewGameState);
+    componentDidMount(): void {
+        this.fetchAndSetUserCanAddRootTag();
+        this.fetchAndSetUserCanAddSubtag();
+        this.fetchAndSetGame();
+    }
+
+    fetchAndSetGame(): void {
+        ApiManager.gameApi.getGame({ id: this.props.gameId }).then((game) => {
+            const { latestRootTag } = game;
+            const playerDetailsTable = this.getPlayerDetailsTable(game);
+            this.setState({
+                game,
+                loadingGame: false,
+                isCreator: game.creator.id === this.props.user.id,
+                playerDetailsTable: playerDetailsTable,
+                currentRootTag: latestRootTag,
+                currentTag: latestRootTag,
+                showingAddRootTag: latestRootTag === undefined,
+            });
+            if (latestRootTag) {
+                this.fetchAndSetUserCanAddSubtag(latestRootTag);
+            }
+        });
     }
 
     fetchAndSetUserCanAddRootTag(): void {
-        ApiManager.tagApi.canUserAddTag({ userId: this.props.user.id, gameId: this.props.game.id, dateOverride: this.props.dateOverride }).then((userCanAddRootTag) => {
+        ApiManager.tagApi.canUserAddTag({ userId: this.props.user.id, gameId: this.props.gameId, dateOverride: this.props.dateOverride }).then((userCanAddRootTag) => {
             this.setState({ userCanAddRootTag });
         });
     }
@@ -101,13 +111,14 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
     }
 
     createNewRootTag({ imageUrl }: { imageUrl: string }): void {
-        ApiManager.tagApi.createTag({ imageUrl, gameId: this.props.game.id, isRoot: true }).then((tag) => {
+        ApiManager.tagApi.createTag({ imageUrl, gameId: this.props.gameId, isRoot: true }).then((tag) => {
             const latestRootTag = tag;
             const updateParams = { latestRootTag };
             this.props.updateGame(updateParams);
             this.setState({
                 userCanAddRootTag: false,
                 userCanAddSubtag: false,
+                playerDetailsTable: this.getPlayerDetailsTable(),
                 currentRootTag: tag,
                 currentTag: tag,
                 showingAddRootTag: false,
@@ -117,18 +128,16 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
                 update: { nextRootTagId: tag.id },
             });
         });
-        // this.setState({ userCanAddRootTag: false });
-        // this.setCurrentRootTag(tag);
     }
 
     createNewSubtag({ imageUrl }: { imageUrl: string }): void {
-        ApiManager.tagApi.createTag({ imageUrl, gameId: this.props.game.id, isRoot: false, rootTagId: this.state.currentRootTag!.id }).then((tag) => {
+        ApiManager.tagApi.createTag({ imageUrl, gameId: this.props.gameId, isRoot: false, rootTagId: this.state.currentRootTag!.id }).then((tag) => {
             const updateParams = {
                 userCanAddSubtag: false,
                 currentTag: tag,
                 showingAddSubtag: false,
             };
-            if (tag.rootTagId! === this.props.game.latestRootTag!.id) {
+            if (tag.rootTagId! === this.state.game!.latestRootTag!.id) {
                 this.fetchAndSetUserCanAddRootTag();
             }
             this.setState(updateParams as ViewGameState);
@@ -141,26 +150,11 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
                 update: { lastTagInChainId: tag.id },
             });
         });
-        // this.setState({ userCanAddSubtag: false });
-        // this.setUserCanAddRootTag();
     }
-
-    // createNewSubtag(): void {
-    //     this.setState({ userCanAddSubtag: false });
-    //     this.setUserCanAddRootTag();
-    // }
-
-    // setCurrentRootTag(tag: TagDto): void {
-    //     this.setState({ currentRootTag: tag });
-    // }
-
-    // setFakeRootTagActive(fakeRootTagActive: boolean): void {
-    //     this.setState({ fakeRootTagActive });
-    // }
 
     getPlayerDetailsTable(game?: GameDto): PlayerDetailsTableRow[] {
         if (!game) {
-            game = this.props.game;
+            game = this.state.game!;
         }
         logger.info(`[getPlayerDetailsTable]`, { game });
         return [{ id: game.creator.id, name: game.creator.name, role: 'OWNER' as PlayerTableRole, ...game.gameScore.playerScores[game.creator.id] }].concat(
@@ -171,7 +165,7 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
     }
 
     refreshGame(): void {
-        ApiManager.gameApi.getGame({ id: this.props.game.id }).then((game) => {
+        ApiManager.gameApi.getGame({ id: this.props.gameId }).then((game) => {
             logger.info(`[refreshScores] got game`, { game });
             this.props.setGame(game);
             const playerDetailsTable = this.getPlayerDetailsTable();
@@ -230,7 +224,8 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
     }
 
     getTagScrollerGameBody(): React.ReactNode {
-        const { game } = this.props;
+        const game = this.state.game!;
+
         const { userCanAddRootTag, userCanAddSubtag, currentRootTag, currentTag, showingAddRootTag, showingAddSubtag, showingPendingTag } = this.state;
 
         let centerTagElement: React.ReactNode | undefined = undefined;
@@ -323,7 +318,7 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
     }
 
     getGameDetailsGameBody(): React.ReactNode {
-        const { game } = this.props;
+        const game = this.state.game!;
         const isCreator = game.creator.id === this.props.user.id;
         return (
             <div className="game-details">
@@ -358,7 +353,12 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
     }
 
     render() {
-        const { game } = this.props;
+        const { game } = this.state;
+
+        if (!game || this.state.loadingGame) {
+            return <div>Loading...</div>;
+        }
+
         const backText = this.state.viewingGameDetails ? '← Back to tags' : '← Back to games';
         const backOnClick = this.state.viewingGameDetails ? () => this.setState({ viewingGameDetails: false }) : () => this.props.doneViewingGame();
 

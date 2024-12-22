@@ -1,7 +1,7 @@
 import { Dayjs } from 'dayjs';
 import React, { ReactNode } from 'react';
 
-import { GameDto, UserDto } from '@biketag/models';
+import { GameDto, GameSummary, UserDto } from '@biketag/models';
 
 import { ApiManager } from '../api';
 import { CreateEditGame } from './createEditGame';
@@ -11,8 +11,8 @@ import '../styles/landing.css';
 
 interface LandingState {
     loadingGames: boolean;
-    games: GameDto[];
-    game?: GameDto;
+    selectedGame?: GameSummary;
+    games: GameSummary[];
     creatingGame: boolean;
 }
 
@@ -38,7 +38,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
     }
 
     private async refreshGames(): Promise<void> {
-        const games = await ApiManager.gameApi.getGamesForPlayer({ userId: this.props.user.id });
+        const games = await ApiManager.gameApi.getGameSummaryForPlayer({ userId: this.props.user.id });
         console.log('got games:', games);
         this.setState({
             games,
@@ -52,7 +52,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         this.refreshGames().then(() => {
             if (game) {
                 this.setState({
-                    game,
+                    selectedGame: game,
                     creatingGame: false,
                     loadingGames: false,
                 });
@@ -65,23 +65,23 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         });
     }
 
-    setGame(game: GameDto): void {
+    setGame(game: GameSummary): void {
         this.setState({
-            game,
+            selectedGame: game,
             games: this.state.games.map((g) => (g.id === game.id ? game : g)),
         });
     }
 
-    updateGame(updateParams: Partial<GameDto>): void {
-        const game = this.state.game!;
-        this.setState({
-            game: {
-                ...game,
-                ...updateParams,
-            },
-            games: this.state.games.map((g) => (g.id === game.id ? { ...g, ...updateParams } : g)),
-        });
-    }
+    // updateGame(updateParams: Partial<GameDto>): void {
+    //     const game = this.state.game!;
+    //     this.setState({
+    //         game: {
+    //             ...game,
+    //             ...updateParams,
+    //         },
+    //         games: this.state.games.map((g) => (g.id === game.id ? { ...g, ...updateParams } : g)),
+    //     });
+    // }
 
     editGame(): void {
         this.setState({
@@ -129,7 +129,7 @@ export class Landing extends React.Component<LandingProps, LandingState> {
         if (!this.state.creatingGame && this.state.game) {
             return (
                 <Game
-                    game={this.state.game}
+                    gameId={this.state.game.id}
                     updateGame={(updateParams: Partial<GameDto>) => this.updateGame(updateParams)}
                     setGame={(game: GameDto) => this.setGame(game)}
                     user={this.props.user}

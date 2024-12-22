@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 
-import { CreateGameParams, GameDto, PlayerGame } from '@biketag/models';
+import { CreateGameParams, GameDto, GameSummary, PlayerGame } from '@biketag/models';
 
 import { AbstractApi } from './abstractApi';
 
@@ -47,6 +47,23 @@ export class GameApi extends AbstractApi {
             return resp.data;
         } catch (err) {
             this.logger.error(`[getGame] got an error response`, { err });
+            throw err;
+        }
+    }
+
+    public async getGameSummaryForPlayer({ userId }: { userId: string }): Promise<GameSummary[]> {
+        try {
+            const resp = await this.axiosInstance.request<GameDto[]>({
+                method: 'get',
+                url: `/games/player/${userId}/summary`,
+            });
+            if (resp.status !== 200) {
+                throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
+            }
+            this.logger.info('[getGameSummaryForPlayer] got games', { data: resp.data });
+            return resp.data;
+        } catch (err) {
+            this.logger.error(`[getGameSummaryForPlayer] got an error response`, { err });
             throw err;
         }
     }
