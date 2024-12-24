@@ -13,7 +13,7 @@ export type KeyOfType<T, V> = keyof {
 };
 
 export const isFullTag = (tag: TagDto | PendingTag): tag is TagDto => {
-    return 'imageUrl' in tag;
+    return tag && 'imageUrl' in tag;
 };
 
 interface SubtagDefinedFields {

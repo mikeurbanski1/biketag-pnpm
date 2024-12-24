@@ -74,7 +74,7 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
     }
 
     private fetchAndSetGame(): void {
-        ApiManager.gameApi.getGame({ id: this.props.gameId }).then((game) => {
+        ApiManager.gameApi.getGame({ id: this.props.gameId, convertPendingTagForOwner: true }).then((game) => {
             const { latestRootTag } = game;
             const playerDetailsTable = this.getPlayerDetailsTable(game);
             this.setState({
@@ -98,7 +98,7 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
         if (!game) {
             return;
         }
-        ApiManager.gameApi.getGame({ id: game.id }).then((game) => {
+        ApiManager.gameApi.getGame({ id: game.id, convertPendingTagForOwner: true }).then((game) => {
             const playerDetailsTable = this.getPlayerDetailsTable(game);
             this.setState({ playerDetailsTable });
         });
@@ -209,20 +209,17 @@ export class Game extends React.Component<ViewGameProps, ViewGameState> {
                     showingPendingTag: false,
                 });
             } else {
-                let updateCanAddSubtag = false;
                 const stateUpdate: Partial<ViewGameState> = { currentTag: tag, showingAddRootTag: false, showingAddSubtag: false };
                 if (tag.isRoot) {
                     stateUpdate.currentRootTag = tag;
-                    if (!tag.nextTagId) {
-                        stateUpdate.userCanAddSubtag = true;
+                    if (!tag.nextTagId && !tag.isPending && tag.creator.id !== this.props.user.id) {
+                        // if there is a chance it could be us, we will check and see
+                        this.fetchAndSetUserCanAddSubtag(tag);
                     } else {
-                        updateCanAddSubtag = true;
+                        stateUpdate.userCanAddSubtag = false;
                     }
                 }
                 this.setState(stateUpdate as ViewGameState);
-                if (updateCanAddSubtag) {
-                    this.fetchAndSetUserCanAddSubtag(tag);
-                }
             }
         } else {
             this.setState({ showingPendingTag: true });

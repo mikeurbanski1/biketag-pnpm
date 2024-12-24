@@ -8,15 +8,17 @@ import { TagService } from './tagService';
 
 const logger = new Logger({ prefix: '[TagController]' });
 
+type CreatedTag = TagDto | PendingTag;
+
 @Route('tags')
 export class TagController extends Controller {
     private tagsService = new TagService();
 
     @Get('/{id}')
     @SuccessResponse('200', 'ok')
-    public async getTag(@Path() id: string, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<TagDto | PendingTag> {
+    public async getTag(@Path() id: string, @Header(USER_ID_HEADER) userId: string, @Res() notFoundResponse: TsoaResponse<404, { reason: string }>): Promise<TagDto | PendingTag> {
         logger.info(`[getTag] id: ${id}`);
-        const tag = await this.tagsService.getWithPendingCheck({ tagId: id });
+        const tag = await this.tagsService.getWithPendingCheck({ tagId: id, userId });
         if (!tag) {
             return notFoundResponse(404, { reason: 'Tag does not exist' });
         }
@@ -26,10 +28,11 @@ export class TagController extends Controller {
 
     @Post('/')
     @SuccessResponse('201', 'Created')
-    public async createTag(@Body() requestBody: CreateTagDto, @Header(USER_ID_HEADER) userId: string): Promise<TagDto> {
+    public async createTag(@Body() requestBody: CreateTagDto, @Header(USER_ID_HEADER) userId: string): Promise<CreatedTag> {
         logger.info(`[createTag]`, { userId, requestBody });
-        const tag = await this.tagsService.create({ ...requestBody, creatorId: userId });
-        return tag;
+        const createdTag = await this.tagsService.create({ ...requestBody, creatorId: userId });
+        const tag = await this.tagsService.getWithPendingCheck({ tagId: createdTag.id, userId });
+        return tag!;
     }
 
     @Post('/multi')

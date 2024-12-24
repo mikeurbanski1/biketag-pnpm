@@ -42,7 +42,7 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
             players: await Promise.all(entity.players.map(async (p) => ({ ...p, user: await this.usersService.getRequired({ id: p.userId }) }))),
             firstRootTag: entity.firstRootTagId ? await this.tagsService.getRequired({ id: entity.firstRootTagId }) : undefined,
             latestRootTag: entity.latestRootTagId ? await this.tagsService.getRequired({ id: entity.latestRootTagId }) : undefined,
-            pendingRootTag: entity.pendingRootTagId ? await this.tagsService.getPendingTag({ id: entity.pendingRootTagId }) : undefined,
+            pendingRootTag: entity.pendingRootTagId ? await this.tagsService.getAsPendingTag({ id: entity.pendingRootTagId }) : undefined,
             gameScore: entity.gameScore,
         };
     }
@@ -151,6 +151,7 @@ export class GameService extends BaseService<GameDto, CreateGameParams, GameEnti
 
         await this.addScoreForPlayer({ gameId, playerId: pendingTag.creator.id, stats: pendingTag.stats });
         const newGame = await this.dalService.update({ id: gameId, updateParams: { latestRootTagId: game.pendingRootTagId, pendingRootTagId: undefined } });
+        await this.tagsService.setIsPendingTagValue({ tagId: game.pendingRootTagId, isPending: false });
 
         return await this.convertToDto(newGame);
     }
