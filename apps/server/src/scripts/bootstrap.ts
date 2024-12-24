@@ -201,7 +201,7 @@ const bootstrapData = async () => {
     obj = { imageUrl: imageUrls[nextImage++], creatorId: users[4].id, gameId: games[0].id, isRoot: false, postedDate: newChainDate(), rootTagId: tag3a.id };
     let tag3d = await tagService.create(obj);
 
-    obj = { imageUrl: imageUrls[nextImage++], creatorId: users[0].id, gameId: games[0].id, isRoot: false, postedDate: newChainDate(), rootTagId: tag3a.id };
+    obj = { imageUrl: imageUrls[nextImage++], creatorId: users[3].id, gameId: games[0].id, isRoot: false, postedDate: newChainDate(), rootTagId: tag3a.id };
     let tag3e = await tagService.create(obj);
 
     obj = { imageUrl: imageUrls[nextImage++], creatorId: users[1].id, gameId: games[0].id, isRoot: true, postedDate: newRootDate() };

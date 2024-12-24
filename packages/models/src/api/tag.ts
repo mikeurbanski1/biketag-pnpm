@@ -11,6 +11,8 @@ import { UserDto } from './user';
 
 export interface PendingTag extends BaseDto {
     creator: Pick<UserDto, 'id' | 'name'>;
+    // imageData: string;
+    // ownerImageUser: string;
 }
 
 export interface TagDto extends BaseDto {
@@ -27,6 +29,7 @@ export interface TagDto extends BaseDto {
     postedDate: string;
     imageUrl: string;
     stats: TagStats;
+    isPending: boolean;
 }
 
 export interface CreateTagDto {

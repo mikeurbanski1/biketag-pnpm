@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios';
 
 import { CreateGameDto, GameDto, GameSummary, PlayerGame } from '@biketag/models';
 
+import { ApiManager } from '.';
 import { AbstractApi } from './abstractApi';
 
 export class GameNotFoundError extends Error {}
@@ -12,7 +13,7 @@ export class GameApi extends AbstractApi {
         super({ clientId, logPrefix: '[GameApi]' });
     }
 
-    public async getGame({ id }: { id: string }): Promise<GameDto> {
+    public async getGame({ id, convertPendingTagForOwner }: { id: string; convertPendingTagForOwner: boolean }): Promise<GameDto> {
         try {
             const resp = await this.axiosInstance.request<GameDto>({
                 method: 'get',
@@ -21,8 +22,18 @@ export class GameApi extends AbstractApi {
             if (resp.status !== 200) {
                 throw new Error(`Unexpected response: ${resp.status} - ${resp.statusText}`);
             }
-            this.logger.info('[getGame] got game', { data: resp.data });
-            return resp.data;
+            const game = resp.data;
+            this.logger.info('[getGame] got game', { game });
+            if (convertPendingTagForOwner && game.pendingRootTag && game.pendingRootTag.creator.id === this.getUserIdRequired()) {
+                this.logger.info(`[getGame] convert for owner`);
+                return {
+                    ...game,
+                    // the API will tell us what we actually get, but it should be a real tag
+                    pendingRootTag: await ApiManager.tagApi.getTag({ id: game.pendingRootTag.id }),
+                };
+            }
+
+            return game;
         } catch (err) {
             this.logger.error(`[getGame] got an error response`, { err });
             if (err instanceof AxiosError) {

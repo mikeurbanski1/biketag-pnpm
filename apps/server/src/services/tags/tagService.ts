@@ -1,7 +1,7 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { UUID } from 'mongodb';
 
-import { BaseEntityWithoutId, CreateTagParams, GameEntity, PendingTag, TagDto, TagEntity, tagFields } from '@biketag/models';
+import { BaseEntityWithoutId, CreateTagParams, GameEntity, PendingTag, TagDto, TagEntity, tagFields, UserDto } from '@biketag/models';
 import { getDateOnly, isEarlierDate, isSameDate } from '@biketag/utils';
 
 import { BaseService } from '../../common/baseService';
@@ -25,22 +25,42 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         this.scoreService = new ScoreService();
     }
 
+    private async generatePendingTag({ tag, creator }: { tag: TagEntity; creator?: UserDto }): Promise<PendingTag> {
+        return {
+            id: tag.id,
+            creator: creator ?? (await this.usersService.getRequired({ id: tag.creatorId })),
+        };
+    }
+
     /**
      * Gets the tag by ID, but returns a pending tag if the tag state is pending and the requesting user is not the creator (i.e., others cannot see it before it goes live)
      * If no user is specified, assumes pending tag
      */
-    public async getWithPendingCheck({ tagId, userId }: { tagId: string; userId?: string }): Promise<TagDto | PendingTag | null> {
+    public async getWithPendingCheck({
+        tagId,
+        userId,
+        knownPendingTagId,
+        knownCreator,
+    }: {
+        tagId: string;
+        userId: string;
+        knownPendingTagId?: string;
+        knownCreator?: UserDto;
+    }): Promise<TagDto | PendingTag | null> {
         const tag = await this.dalService.getById({ id: tagId });
         if (!tag) {
             return null;
         }
-        if ((!userId || tag.creatorId !== userId) && (await this.gamesService.getRequiredAsEntity({ id: tag.gameId })).pendingRootTagId === tagId) {
-            return {
-                id: tag.id,
-                creator: await this.usersService.getRequired({ id: tag.creatorId }),
-            };
+
+        if (tag.creatorId !== userId && (knownPendingTagId ?? (await this.gamesService.getRequiredAsEntity({ id: tag.gameId })).pendingRootTagId) === tagId) {
+            return this.generatePendingTag({ tag, creator: knownCreator });
         }
         return await this.convertToDto(tag);
+    }
+
+    public async getAsPendingTag({ id }: { id: string }): Promise<PendingTag> {
+        const tag = await this.dalService.getByIdRequired({ id });
+        return this.generatePendingTag({ tag });
     }
 
     public async getMultipleWithPendingCheck({ ids }: { ids: string[] }): Promise<(TagDto | PendingTag)[]> {
@@ -60,13 +80,10 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         );
     }
 
-    public async getPendingTag({ id }: { id: string }): Promise<PendingTag> {
-        const tag = await this.dalService.getByIdRequired({ id });
-        return {
-            id: tag.id,
-            creator: await this.usersService.getRequired({ id: tag.creatorId }),
-        };
-    }
+    // public async getPendingTag({ id }: { id: string }): Promise<PendingTag> {
+    //     const tag = await this.dalService.getByIdRequired({ id });
+    //     return this.generatePendingTag({ tag });
+    // }
 
     protected async convertToUpsertEntity(dto: CreateTagParams): Promise<BaseEntityWithoutId<TagEntity>> {
         return await this.convertToNewEntity(dto);
@@ -136,7 +153,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
 
         const stats = this.scoreService.calculateStatsForTag({ tag: params, rootTag: isRoot ? undefined : rootTag, game });
 
-        const createParams: TagEntity = { ...params, id: tagUuid, postedDate: params.postedDate, stats };
+        const createParams: TagEntity = { ...params, id: tagUuid, postedDate: params.postedDate, stats, isPending };
 
         if (isRoot) {
             // before we update the game, get the current latest root tag, and point it to this as the next root
@@ -166,6 +183,11 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         }
 
         return await this.convertToDto(tag);
+    }
+
+    public async setIsPendingTagValue({ tagId, isPending }: { tagId: string; isPending: boolean }): Promise<void> {
+        this.logger.info(`[setIsPendingTagValue]`, { tagId, isPending });
+        await this.dalService.update({ id: tagId, updateParams: { isPending } });
     }
 
     /**

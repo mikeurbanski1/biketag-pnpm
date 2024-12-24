@@ -14,6 +14,10 @@ export interface GameDto extends BaseDto {
     gameScore: GameScore;
 }
 
+export interface GameDtoWithPendingTagOwner extends GameDto {
+    ownerPendingTag: TagDto;
+}
+
 export type GameSummary = Pick<GameDto, 'id' | 'name' | 'creator'>;
 
 export interface CreateGameDto {

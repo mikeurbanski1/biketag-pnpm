@@ -15,4 +15,5 @@ export interface TagEntity extends BaseEntity {
     postedDate: string;
     imageUrl: string;
     stats: TagStats;
+    isPending: boolean;
 }
