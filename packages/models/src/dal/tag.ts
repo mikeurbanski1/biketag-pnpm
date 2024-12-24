@@ -13,6 +13,7 @@ export interface TagEntity extends BaseEntity {
     previousRootTagId?: string;
     nextRootTagId?: string;
     postedDate: string;
+    forDate: string; // YYYY/MM/DD
     imageUrl: string;
     stats: TagStats;
     isPending: boolean;
