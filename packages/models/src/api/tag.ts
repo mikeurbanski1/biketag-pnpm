@@ -27,6 +27,7 @@ export interface TagDto extends BaseDto {
     previousRootTagId?: string;
     nextRootTagId?: string;
     postedDate: string;
+    forDate: string;
     imageUrl: string;
     stats: TagStats;
     isPending: boolean;

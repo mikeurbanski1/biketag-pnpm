@@ -129,13 +129,18 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
             params.postedDate = dayjs().toISOString();
         }
 
+        let forDate = params.postedDate;
+
         // create a new tag object id now so we can update references with fewer calls / cleaner flow
         const tagUuid = new UUID().toString();
 
         let isPending = false;
         let rootTag: TagEntity | undefined;
         if (isRoot) {
-            isPending = await this.checkIfTagShouldBePending({ params, gameId, dateOverride: dayjs(params.postedDate) });
+            isPending = await this.checkIfTagShouldBePending({ gameId, dateOverride: dayjs(params.postedDate) });
+            if (isPending) {
+                forDate = dayjs(params.postedDate).add(1, 'day').format('YYYY-MM-DD');
+            }
             if (isPending && game.pendingRootTagId) {
                 throw new CannotPostTagError('There is already a pending tag for this game');
             }
@@ -153,7 +158,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
 
         const stats = this.scoreService.calculateStatsForTag({ tag: params, rootTag: isRoot ? undefined : rootTag, game });
 
-        const createParams: TagEntity = { ...params, id: tagUuid, postedDate: params.postedDate, stats, isPending };
+        const createParams: TagEntity = { ...params, id: tagUuid, postedDate: params.postedDate, stats, isPending, forDate };
 
         if (isRoot) {
             // before we update the game, get the current latest root tag, and point it to this as the next root
@@ -179,8 +184,10 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         if (!isPending) {
             await this.gamesService.addScoreForPlayer({ gameId, playerId: tag.creatorId, stats: tag.stats });
         } else {
-            await QueueManager.getInstance().addPendingTagJob({ jobParams: { gameId }, triggerTime: getDateOnly(createParams.postedDate) });
+            await QueueManager.getInstance().addPendingTagJob({ jobParams: { gameId }, triggerTime: getDateOnly(createParams.forDate) });
         }
+
+        this.logger.info(`[create] created tag`, { tag });
 
         return await this.convertToDto(tag);
     }
@@ -194,16 +201,14 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
      * Checks if the given tag should be a pending tag, which means it was posted the same day as the latest root tag in the game.
      * If so, then set the posted date to be the next day, and return true. Else, return false.
      */
-    private async checkIfTagShouldBePending({ params, gameId, dateOverride = dayjs() }: { params: CreateTagParams; gameId: string; dateOverride?: Dayjs }): Promise<boolean> {
+    private async checkIfTagShouldBePending({ gameId, dateOverride = dayjs() }: { gameId: string; dateOverride?: Dayjs }): Promise<boolean> {
         const game = await this.gamesService.getRequiredAsEntity({ id: gameId });
         if (game.latestRootTagId) {
             const latestGameTag = await this.dalService.getByIdRequired({ id: game.latestRootTagId });
             const sameDate = isSameDate(dateOverride, latestGameTag.postedDate);
-            if (sameDate) {
-                this.logger.info(`[checkForPendingTag] found pending tag, setting date to tomorrow`);
-                params.postedDate = dateOverride.add(1, 'day').toISOString();
-                return true;
-            }
+            // this.logger.info(`[checkForPendingTag] found pending tag, setting date to tomorrow`);
+            // params = dateOverride.add(1, 'day').toISOString();
+            return sameDate;
         }
         return false;
     }
@@ -298,7 +303,7 @@ export class TagService extends BaseService<TagDto, CreateTagParams, TagEntity, 
         const latestRootTag = await this.getRequired({ id: game.latestRootTagId });
         const latestRootTagFirstTag = latestRootTag.nextTagId ? await this.get({ id: latestRootTag.nextTagId }) : undefined;
         const tagWinner = latestRootTagFirstTag?.creator.id;
-        if (isEarlierDate(dateOverride, latestRootTag.postedDate)) {
+        if (isEarlierDate(dateOverride, latestRootTag.forDate)) {
             return { result: false, reason: 'This date is older than the current tag' };
         }
         if (tagWinner !== userId) {

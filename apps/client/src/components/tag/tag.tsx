@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { isFullTag, PendingTag, TagDto } from '@biketag/models';
 import { Logger } from '@biketag/utils';
 
-import { TIME_FORMAT } from '../../utils/consts';
+import { TIME_READABLE_FORMAT } from '../../utils/consts';
 
 import '../../styles/tag.css';
 
@@ -100,15 +100,17 @@ export const Tag: React.FC<TagProps> = (props: TagProps): React.ReactNode => {
         const className = classes.join(' ');
 
         if (isFullTag(tagToRender)) {
-            const relativeDate = convertDateToRelativeDate(dayjs(tagToRender.postedDate));
-            const timeFormat = dayjs(tagToRender.postedDate).format(TIME_FORMAT);
+            logger.info(`[Tag] isFullTag`, { tagToRender });
+            const forDate = dayjs(tagToRender.forDate);
+            const relativeDate = convertDateToRelativeDate(forDate);
+            const timeFormat = forDate.format(TIME_READABLE_FORMAT);
+            const isPending = tagToRender.isPending;
+            const timeString = isPending ? 'Live at midnight!' : `${relativeDate} — ${timeFormat}`;
 
             const footer = (
                 <div className="tag-footer">
                     <div>{tagToRender.creator.name}</div>
-                    <div>
-                        {relativeDate} — {timeFormat}
-                    </div>
+                    <div>{timeString}</div>
                     {/* <div>{tagWinner}</div> */}
                 </div>
             );
